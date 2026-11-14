@@ -21,3 +21,19 @@
 .replay-error{padding:4rem 8vw}
 .time-axis{overflow-y:auto}
 .time-axis button{flex-shrink:0}
+
+.doubt-toggle {
+  display: inline-block;
+  margin-top: 14px;
+  border: 1px solid #567769;
+  border-radius: 20px;
+  padding: 8px 13px;
+  color: #c7e8d8;
+  font-size: 12px;
+}
+
+.doubt-toggle[aria-pressed="true"] {
+  border-color: #e4a676;
+  background: #513322;
+  color: #ffdfc4;
+}

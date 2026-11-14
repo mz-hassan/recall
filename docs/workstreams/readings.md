@@ -1,6 +1,6 @@
 # Reading breakdowns
 
-Workstream 1. Own `src/readings/` and the planned `server/src/features/readings/`. Start with Lecture 02's required DAgger paper in the manifest. Enter the page from any lecture row.
+Workstream 1. Own `src/readings/` and the planned `server/src/features/readings/`. Start with Lecture 02's required DAgger paper in the manifest. Open a lecture’s Course material page, then select Breakdown on a specific required or optional reading.
 
 - [ ] Build a reading harness that retrieves text and page images and returns an outline, key claims, notation, equations, study questions, and page citations.
 - [ ] Render expandable sections and accessible visuals, such as an algorithm flow or experiment chart, with the original paper one click away.
@@ -14,4 +14,4 @@ Workstream 1. Own `src/readings/` and the planned `server/src/features/readings/
 - Put reading input/output schemas in `shared/contracts/readings.ts` when shared contracts are introduced. Keep evaluations in this feature's `__tests__/` with small fixtures, referencing dataset PDFs instead of copying them.
 - Use React for the page, KaTeX for notation and vetted SVG/chart components for visual specs. Return structured sections, not executable model-generated UI.
 
-Done: the lecture's Reading breakdowns action displays a cited breakdown fixture, then the same contract from the backend, with original-source navigation and a missing-source fallback. See [stack and ownership](../architecture.md).
+Done: a reading’s Breakdown link displays a cited breakdown fixture, then the same contract from the backend, with original-source navigation and a missing-source fallback. See [stack and ownership](../architecture.md).
