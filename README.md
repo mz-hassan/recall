@@ -18,3 +18,10 @@ No microphone, transcription, audio playback or AI backend. Playback advances a 
 
 ## Local preview
 `python3 -m http.server 4173 --bind 127.0.0.1 --directory dist`
+
+## Version 3: course workspace
+The root page is now a course selector with AI Alignment and Computer Vision, each with three real lecture titles and dates. Course overviews connect the lecture topics; Lecture 02 opens the existing immersive experience at `lecture.html`. All other lecture timelines are explicit placeholders.
+
+Sources can be added as course-wide or lecture-specific PDFs/URLs. Six original PDFs are bundled. PDF additions use IndexedDB and metadata uses localStorage; nothing syncs to a server. URLs are syntax-checked but never scraped. Recording is an explicitly labeled timer-only simulation. The expanded lecture moment includes a disabled contextual chat button marked Coming soon.
+
+Validation: JavaScript syntax checks; browser checks for course and lecture navigation, original PDF viewer, PDF upload/lecture association and persistence across reload, and the contextual chat placeholder.
