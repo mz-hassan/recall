@@ -20,7 +20,7 @@ npm run db:start
 Then start the app:
 
 ```sh
-npm run dev        # Vite + one shared Fastify API, default 127.0.0.1:3001
+npm run dev        # Vite + one shared Fastify API, default 127.0.0.1:3001 (API_PORT in .env)
 npm run typecheck
 npm test          # graph and live lecture tests, including nested test directories
 npm run build

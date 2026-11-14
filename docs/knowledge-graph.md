@@ -39,7 +39,7 @@ In another terminal:
 npm run dev
 ```
 
-Open the URL Vite prints, choose **AI Alignment → Knowledge graph**. The API listens on `127.0.0.1:3001`; Vite proxies `/api`. These are local development services. They are not configured as a public authenticated deployment.
+Open the URL Vite prints, choose **AI Alignment → Knowledge graph**. The API listens on `127.0.0.1:3001` (set `API_PORT` in `.env` to change it); Vite proxies `/api` to the same port. These are local development services. They are not configured as a public authenticated deployment.
 
 The shared API starts live lecture independently of MongoDB. If graph database initialization fails, graph requests return an unavailable message while live lecture stays usable. Start MongoDB and restart the API to restore graph indexing. Both features use the DeepSeek settings from `.env`.
 
