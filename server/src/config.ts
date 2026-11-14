@@ -3,7 +3,8 @@ import { z } from 'zod';
 // Server-only configuration. Never import this module into browser code.
 const ConfigSchema = z.object({
   HOST: z.string().default('127.0.0.1'),
-  PORT: z.coerce.number().int().min(1).max(65535).default(3001),
+  // The API's own port. Named API_PORT, not PORT, so the Vite proxy reads the same unambiguous value.
+  API_PORT: z.coerce.number().int().min(1).max(65535).default(3001),
   MONGODB_URI: z.string().default('mongodb://127.0.0.1:27017'),
   MONGODB_DB: z.string().default('recall'),
   LLM_PROVIDER: z.enum(['fixture', 'deepseek', 'gemini']).default('fixture'),
@@ -42,7 +43,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   }
   const value = parsed.data;
   return {
-    host: value.HOST, port: value.PORT,
+    host: value.HOST, port: value.API_PORT,
     mongo: { uri: value.MONGODB_URI, database: value.MONGODB_DB },
     llm: {
       provider: value.LLM_PROVIDER, model: value.LLM_MODEL,

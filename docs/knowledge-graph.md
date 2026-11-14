@@ -39,7 +39,7 @@ In another terminal:
 npm run dev
 ```
 
-Open the URL Vite prints, choose **AI Alignment → Knowledge graph**. The API listens on `127.0.0.1:3001`; Vite proxies `/api`. These are local development services. They are not configured as a public authenticated deployment.
+Open the URL Vite prints, choose **AI Alignment → Knowledge graph**. The API listens on `127.0.0.1:3001` (set `API_PORT` in `.env` to change it); Vite proxies `/api` to the same port. These are local development services. They are not configured as a public authenticated deployment.
 
 The shared API starts live lecture independently of MongoDB. If graph database initialization fails, graph requests return an unavailable message while live lecture stays usable. Start MongoDB and restart the API to restore graph indexing. Both features use the DeepSeek settings from `.env`.
 
@@ -68,6 +68,8 @@ npm run graph:complete -- 3 2
 The old graph remains visible while the replacement is processed. Failed jobs can be retried from the graph page after fixing the cause. If files changed, send a higher revision instead. The command acknowledges the job; it does not wait for extraction. Check the graph page for completion/error status. No API key means jobs fail with a configuration message; there is no fake graph fallback.
 
 ## Handoff for the live lecture teammate
+
+The focused implementation guide, including backend placement, retry behavior, response handling, and an acceptance checklist, is in [Live lecture → knowledge graph handoff](live-lecture-graph-handoff.md).
 
 1. Finish saving the lecture's transcript, slides, and manifest entry. Write temporary files and rename them into place, then save the manifest last. Do not send events for in-progress chunks.
 2. Use the manifest lecture number as `lectureId` (string). Preserve `courseId: "ai"` for this dataset. Assign a **positive, monotonically increasing integer revision per lecture**, starting at `1`.

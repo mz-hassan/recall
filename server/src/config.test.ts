@@ -10,7 +10,7 @@ test('defaults to the fixture provider on localhost with no keys', () => {
 });
 
 test('blank values from .env.example count as unset', () => {
-  const config = loadConfig({ PORT: '', LLM_PROVIDER: '', DEEPSEEK_API_KEY: '' });
+  const config = loadConfig({ API_PORT: '', LLM_PROVIDER: '', DEEPSEEK_API_KEY: '' });
   assert.equal(config.port, 3001);
   assert.equal(config.llm.provider, 'fixture');
 });
@@ -21,11 +21,16 @@ test('a real provider requires its API key', () => {
 });
 
 test('rejects an invalid port', () => {
-  assert.throws(() => loadConfig({ PORT: '70000' }), /PORT/);
+  assert.throws(() => loadConfig({ API_PORT: '70000' }), /API_PORT/);
+});
+
+test('the API port comes from API_PORT, never the generic PORT other tools set', () => {
+  assert.equal(loadConfig({ API_PORT: '8787' }).port, 8787);
+  assert.equal(loadConfig({ PORT: '5180' }).port, 3001);
 });
 
 test('MongoDB and model settings preserve the shared local configuration', () => {
-  const config = loadConfig({ LLM_PROVIDER: 'deepseek', DEEPSEEK_API_KEY: ' test-key ', PORT: '3001', MONGODB_DB: 'recall' });
+  const config = loadConfig({ LLM_PROVIDER: 'deepseek', DEEPSEEK_API_KEY: ' test-key ', API_PORT: '3001', MONGODB_DB: 'recall' });
   assert.equal(config.llm.deepseekApiKey, 'test-key');
   assert.deepEqual(config.mongo, { uri: 'mongodb://127.0.0.1:27017', database: 'recall' });
 });
