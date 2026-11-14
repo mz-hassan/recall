@@ -13,6 +13,7 @@
     "predev": "node scripts/prepare-assets.mjs",
     "prebuild": "node scripts/prepare-assets.mjs",
     "typecheck": "tsc -p tsconfig.json",
+    "eval:segmentation": "node --env-file-if-exists=.env server/src/features/lecture/segmentation/eval.ts",
     "test": "node --test"
   },
   "dependencies": {

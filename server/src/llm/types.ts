@@ -19,6 +19,14 @@ export type GenerateStructuredRequest<T> = {
   /** Application schema. Every result is validated against it before it is returned. */
   schema: z.ZodType<T>;
   signal?: AbortSignal;
+  /** Optional generation hints; adapters ignore what their model does not support. */
+  options?: {
+    temperature?: number;
+    /** Budget for the visible answer. Adapters add headroom when the model reasons first. */
+    maxOutputTokens?: number;
+    /** How much the model may think before answering. Fast, frequent tasks should use 'off'. */
+    reasoning?: 'off' | 'low' | 'high';
+  };
 };
 
 export type Usage = { inputTokens: number; outputTokens: number };
@@ -41,7 +49,7 @@ export interface ModelProvider {
 
 /** Thrown when a provider cannot produce a valid result. Harnesses keep the previous result or raw text. */
 export class ProviderError extends Error {
-  readonly code: 'unsupported_modality' | 'invalid_output' | 'no_fixture' | 'not_implemented' | 'aborted';
+  readonly code: 'unsupported_modality' | 'invalid_output' | 'no_fixture' | 'not_implemented' | 'aborted' | 'request_failed';
   constructor(code: ProviderError['code'], message: string) {
     super(message);
     this.name = 'ProviderError';

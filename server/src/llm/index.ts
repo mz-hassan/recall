@@ -1,9 +1,11 @@
 import type { Config } from '../config.ts';
+import { createDeepSeekProvider, DEFAULT_DEEPSEEK_MODEL } from './deepseek.ts';
 import { createFixtureProvider } from './fixture.ts';
 import { ProviderError, type ModelProvider } from './types.ts';
 
 export * from './types.ts';
 export { createFixtureProvider } from './fixture.ts';
+export { createDeepSeekProvider } from './deepseek.ts';
 
 /** Picks the configured adapter. Swapping providers changes config, not feature code. */
 export function createProvider(config: Config['llm']): ModelProvider {
@@ -11,9 +13,12 @@ export function createProvider(config: Config['llm']): ModelProvider {
     case 'fixture':
       return createFixtureProvider();
     case 'deepseek':
-      // Added in D3 (segmentation), when the first real model call is needed.
-      throw new ProviderError('not_implemented', 'The DeepSeek adapter is not implemented yet. Use LLM_PROVIDER=fixture.');
+      return createDeepSeekProvider({
+        apiKey: config.deepseekApiKey!, // loadConfig guarantees it when the provider is deepseek
+        model: config.model ?? DEFAULT_DEEPSEEK_MODEL,
+        ...(config.deepseekBaseUrl && { baseUrl: config.deepseekBaseUrl }),
+      });
     case 'gemini':
-      throw new ProviderError('not_implemented', 'The Gemini adapter is not implemented yet. Use LLM_PROVIDER=fixture.');
+      throw new ProviderError('not_implemented', 'The Gemini adapter is not implemented yet. Use LLM_PROVIDER=fixture or deepseek.');
   }
 }
