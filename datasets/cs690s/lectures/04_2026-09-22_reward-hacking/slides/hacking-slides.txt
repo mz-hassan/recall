@@ -1,0 +1,201 @@
+CS 690: AI Alignment
+Prof. Scott Niekum
+Reward (Mis)specification and Hacking
+
+Reward misspecification + hacking
+
+Let’s try to design a reward function
+
+Goodhart’s law
+When a measure becomes a target, it ceases to be a good measure
+
+Formalizing reward hacking
+Skalse, Joar, et al. "Defining and characterizing reward gaming." Advances in Neural
+Information Processing Systems 35 (2022): 9460-9471.
+
+Sparse and dense rewards
+0 0 0 100 70 80 90 100
+0 0 0 0 70 80 90 90
+0 0 0 0 70 80 80 80
+0 0 0 0 70 70 70 70
+Sparse Dense
+
+Potential-based reward shaping
+Shaped reward function:
+Where:
+Guaranteed not to change optimal policy!
+Ng, Andrew Y., Daishi Harada, and Stuart Russell. "Policy invariance under
+reward transformations: Theory and application to reward shaping." ICML.
+Vol. 99. 1999.
+
+…is equivalent to value function initialization
+•
+Value function initialization can be “learned away”
+•
+Specifying a good value function is approximately as hard as
+specifying a good policy!
+•
+The point of reward is to define the task, not the behavior
+
+Simple, sparse rewards can be hacked too
+•
+Used an “evolvable motherboard” to perform
+evolutionary search over circuits
+•
+Attempted to evolve an oscillator
+•
+Learned a radio instead that listened to (and
+repeated) oscillations from a nearby PC!
+Bird, J. and Layzell, P. (2002). The evolved radio and its implications for modelling the
+evolution of novel sensors. In Proceedings of the 2002 Congress on Evolutionary
+Computation. CEC’02 (Cat. No. 02TH8600), volume 2, pages 1836–1841. IEEE.
+
+How bad is an incomplete specification?
+“We assume that the reward function given to the agent only has support on J < L
+attributes”
+“Our main result identifies conditions such that any misalignment is costly: starting from any
+initial state, optimizing any fixed incomplete proxy eventually leads the principal to be
+arbitrarily worse off”
+“In the worst-case scenario, the robot moves in a way that subtracts an arbitrarily large
+amount from one of the unmentioned attributes, while gaining infinitesimally in one of the
+proxy attribute”
+Zhuang, Simon, and Dylan Hadfield-Menell. "Consequences of misaligned
+AI." Advances in Neural Information Processing Systems 33 (2020):
+15763-15773.
+
+Reward hacking is sensitive to model size
+Pan, Alexander, Kush Bhatia, and Jacob Steinhardt. "The effects of reward
+misspecification: Mapping and mitigating misaligned models." arXiv
+preprint arXiv:2201.03544 (2022).
+
+How often does misspecification really happen?
+Knox, W. B.; Allievi, A.; Banzhaf, H.; Schmitt, F.; and Stone, P. 2023. Reward (mis) design
+for autonomous driving. Artificial Intelligence, 316: 103829.
+
+Overfitting: “Correct” specifications aren’t enough?
+•
+Reward overfitting: Is the standard human practice of reward design problematic?
+•
+Often iteratively while observing behaviors that they generate
+•
+Can overfit to particular algorithms and hyperparameters
+•
+Won’t generalize to new algorithms / parameter settings
+•
+Goal misgeneralization: Can “correct” specifications for one setting break under distribution
+shift?
+•
+Example: policy may have overfit to a feature that was perfectly correlated with good
+performance in training distribution, but not test distribution
+•
+May cause it to do dangerous things in test distribution when correlation is not longer perfect
+
+Reward function overfitting
+Booth, Serena, et al. "The perils of trial-and-error reward design: misdesign through
+overfitting and invalid task specifications." Proceedings of the AAAI Conference on
+Artificial Intelligence. Vol. 37. No. 5. 2023.
+
+Reward function overfitting
+Hungry-Thirsty domain
+
+Reward function overfitting
+Hungry-Thirsty domain
+
+Is reward function performance affected by learning context?
+
+Reward function overfitting: human study
+•
+Experts often design invalid reward functions
+•
+83% of time successfully design valid RF for “close” configuration of food and water
+•
+But only 47% valid when far apart! Agent gets obsessed with drinking water.
+•
+Experts overfit to algorithms
+•
+68% settled on a final RF that was worse than a previous RF for some of the algorithms
+•
+Hard to say exactly how “overfit” should be defined here — what’s the base distribution
+of learning contexts that should be considered? Ones from baselines in the literature?
+Ones the expert explored during design? Something else?
+
+Reward function overfitting: human study
+•
+97% shaped rewards even though not told to explicitly
+•
+Often shaped incorrectly — weighting based on myopic “instantaneous goodness” rather
+than imagining how the RF will be optimized by RL.
+•
+“It’s best to be ¬H ∧ ¬T, so I’ll set that to the max, 1. Being ¬T is better than being ¬H.
+Worst is at H∧T; setting that to -1” —> in one case lead to always drinking
+•
+Only 30% considered long-term cumulative rewards
+•
+“A positive reward for H ∧ ¬T is not the way to go. A combination with a negative reward
+for H ∧ T makes it worse, since it would rather accumulate positive rewards at the water
+instead of searching for food.”
+
+Reward function overfitting: practical consequences
+•
+When would this really matter?
+•
+What can be done?
+
+Goal misgeneralization
+•
+Optimizing for a correlate of good performance that works at
+training time, but not test time due to distribution shift
+•
+Another view: multiple hypotheses fit the training data well, but
+not all generalize well to test data
+
+Goal misgeneralization
+•
+Monster domain
+•
+Gets obsessed with picking up shields even when monsters aren’t around.
+•
+Domain shift = longer episodes, so that most monsters are killed by the end
+•
+Fixed by greater training diversity
+•
+Tree gridworld
+•
+Domain shift caused by the agent itself! Chopping down trees lowers respawn rate
+•
+Takes a long time to recover from the always-chop policy
+
+Goal misgeneralization
+
+Goal misgeneralization
+•
+LLM evaluation of linear expressions
+•
+Learns to always ask questions because some variables are always unknown during
+training
+•
+At test time, all variables are known, but still asks unnecessary questions
+•
+Cultural transmission
+•
+Need to reach target locations in certain order
+•
+Bad correlation! Training: learns to follow optimal partner; Test: continues to follow
+pessimal partner
+•
+Rewards are part of agent observation, so should be able to recognize (in principle)
+that it is doing the wrong thing (due to RNN policy that can remember history)
+
+Extrapolating to catastrophic risk?
+
+Mitigation
+•
+Diverse training data
+•
+Maintaining uncertainty
+•
+Understanding inductive biases
+•
+Interpretability
+•
+Model-assisted detection

@@ -1,0 +1,294 @@
+
+SLIDE 1
+CS 690: Human-Centric Machine Learning
+Prof. Scott Niekum
+Interactive RL
+
+SLIDE 2
+Reward design is hard, demonstrations are hard
+What about feedback?
+
+SLIDE 3
+Feedback: Clicker training
+
+SLIDE 4
+TAMER
+Training:Before training: After training:
+Knox and Stone, ICDL 2008
+
+SLIDE 5
+TAMER
+
+
+SLIDE 6
+TAMER
+
+
+SLIDE 7
+TAMER
+Magnetic  
+control
+Toy  
+tantrum
+Look  
+awayGo to
+
+SLIDE 8
+COACH
+TAMER feedback interpretation: (correlated with)  Q
+⇤
+( s, a )
+<latexit sha1_base64="t27J8xNBZRbBtdtMdIWQJI+7noc=">AAAB73icbVBNS8NAEJ3Ur1q/oh69LBahipSkCnosevHYgv2ANpbNdtMu3Wzi7kYooX/CiwdFvPp3vPlv3LY5aOuDgcd7M8zM82POlHacbyu3srq2vpHfLGxt7+zu2fsHTRUlktAGiXgk2z5WlDNBG5ppTtuxpDj0OW35o9up33qiUrFI3OtxTL0QDwQLGMHaSO36w1lJnePTnl10ys4MaJm4GSlChlrP/ur2I5KEVGjCsVId14m1l2KpGeF0UugmisaYjPCAdgwVOKTKS2f3TtCJUfooiKQpodFM/T2R4lCpceibzhDroVr0puJ/XifRwbWXMhEnmgoyXxQkHOkITZ9HfSYp0XxsCCaSmVsRGWKJiTYRFUwI7uLLy6RZKbsX5Ur9sli9yeLIwxEcQwlcuIIq3EENGkCAwzO8wpv1aL1Y79bHvDVnZTOH8AfW5w+D4I74</latexit>
+COACH feedback interpretation: (correlated with) A
+⇡
+( s, a )
+<latexit sha1_base64="Mbw6bsbi6Jd/qt9xcAC0010ulSg=">AAAB83icbVBNSwMxEJ2tX7V+VT16CRahgpTdKuix6sVjBfsB3bVk07QNzWZDkhXK0r/hxYMiXv0z3vw3pu0etPXBwOO9GWbmhZIzbVz328mtrK6tb+Q3C1vbO7t7xf2Dpo4TRWiDxDxW7RBrypmgDcMMp22pKI5CTlvh6Hbqt56o0iwWD2YsaRDhgWB9RrCxkn/9mPqSTcr6DJ92iyW34s6AlomXkRJkqHeLX34vJklEhSEca93xXGmCFCvDCKeTgp9oKjEZ4QHtWCpwRHWQzm6eoBOr9FA/VraEQTP190SKI63HUWg7I2yGetGbiv95ncT0r4KUCZkYKsh8UT/hyMRoGgDqMUWJ4WNLMFHM3orIECtMjI2pYEPwFl9eJs1qxTuvVO8vSrWbLI48HMExlMGDS6jBHdShAQQkPMMrvDmJ8+K8Ox/z1pyTzRzCHzifPxygkRM=</latexit>
+MacGlashan, James, et al. "Interactive learning from policy-dependent human 
+feedback." International conference on machine learning. PMLR, 2017.
+
+SLIDE 9
+)VNBOTMFBSOGSPNSJDITPDJBMDVFT
+
+
+SLIDE 10
+Gestures and Body Pose Head Pose, Facial Expressions
+Eye GazeAudio
+Argh!
+5ZQFTPG)VNBO4PDJBM$VFT
+
+SLIDE 11
+Implicit human feedback
+•Occurs naturally
+•Is not necessarily intended to inﬂuence behavior
+•Can be used with no additional burden on user 
+
+SLIDE 12
+EMPATHIC: Learning from implicit feedback
+Y. Cui, Q. Zhang, A. Allievi, P . Stone, S. Niekum, and W. Knox. 
+The EMPATHIC Framework for Task Learning from Implicit Human Feedback.
+Conference on Robot Learning (CoRL), November 2020. 
+Steps of EMPATHIC:
+•Incentivize human participant
+•Collected reaction data under 
+known GT reward (or other task 
+statistic of interest)
+•Learn human reward model (or 
+other task statistic)
+•Transfer to new tasks
+
+SLIDE 13
+Facial Action 
+Units {𝜑FAU}
+Head Pose 
+OpenFace 2.0
+Toolkit
+Image Frames  
+Xt0 ... Xt+
+Feature Extraction 
+Window of Aggregated Frames 
+Reward  
+Classification
+Cross Entropy Loss
+(binary + ternary)
+Auxiliary TaskMean Square Error
+flattenAnnotations 
+AT-k .. AT+l
+Fourier 
+Transform
+Head-motion 
+Features {𝜑head} 
+MLP hidden layers 
+Feature Extraction (𝚽)
+Game Frames 
+(1.2 FPS)
+Image Frames 
+(30 FPS)
+Aggregated 
+Frames 
+(6 FPS)
+max pool
+flatten
+flatten
+encode
+concat
+Time
+t
+t- t+
+Facial Action Units
+z
+o
+(Label: reward class y)
+lk
+t0
+TT+1T-1T-k T+2... ...... T+l...............
+Learning the Reaction Mapping
+Reaction Mapping
+13
+
+SLIDE 14
+Task Domains
+Robotaxi
+Robotic Trash Sorting
+14
+
+SLIDE 15
+15
+Mapping of reaction features 
+to task statistic(s)
+Multi-modal  
+Reaction Feature Extraction 
+ +     -
+Binary classification
+Positivity score: P(+) over 
+entire trajectory
+P(+)
+time
+P(+)
+time
+P(+)
+time
+Ranking by Avg. P(+)
+1
+2
+3
+How to leverage the learned mapping from Robotaxi?
+39
+
+SLIDE 16
+EMPATHIC: Learning from implicit feedback — deployment
+
+
+SLIDE 17
+Subject ID 
+Overall Ranking (avg. positivity)
+Robotic Trash Sorting Performance
+Kendall’s Tau for per-subject ranking
+17
+
+
+SLIDE 18
+)VNBO(B[FSFWFBMT*OUFOUJPOT
+Argyle, M. Non-verbal communication in human social interaction. 1972. 
+Hayhoe, M & Ballard, D. Eye movements in natural behavior. Trends in cognitive sciences, 9(4), 2005. 
+
+
+SLIDE 19
+(B[F1BUUFSOTJO)VNBO%FNPOTUSBUJPOTGPS3PCPUT
+User Study and Data Collection 
+●Tobii Pro Glasses 2 Eye Tracker 
+●20 subjects:  
+   - 10 expert robot users 
+   - 10 novice robot users      
+●Demonstration Types:  
+    -  Kinesthetic Demonstrations  (~124 mins) 
+    -  Video Demonstrations          (~27 mins) 
+●Tasks:  
+        - Placement (single-step) 
+         - Pouring (multi-step)
+Keyframe-based Kinesthetic Teaching (KT)
+Observational/Video Demonstrations
+8x
+4x
+Saran, A., E. S. Short, A. Thomaz, and S. Niekum. Understanding teacher gaze patterns for robot learning. CoRL, 2019.
+
+SLIDE 20
+“Place the green ladle to the left of red plate” 
+“Place the green ladle to the right of yellow bowl” 
+Placement Task
+6OEFSTUBOEJOH)VNBO(B[FPG%FNPOTUSBUPSTGPS&NCPEJFE3PCPUT
+Saran, A., E. S. Short, A. Thomaz, and S. Niekum. Understanding teacher gaze patterns for robot learning. CoRL, 2019.
+OR
+
+SLIDE 21
+.PTU(B[F'JYBUJPOTBSFPO0CKFDUTPG*OUFSFTUVOEFS"NCJHVPVT%FNPT
+Saran, A., E. S. Short, A. Thomaz, and S. Niekum. Understanding teacher gaze patterns for robot learning. CoRL, 2019.
+Two instructions: 
+# 1: “Place the green ladle to the right of yellow bowl” 
+# 2: “Place the green ladle to the left of red plate” 
+#1 #2
+
+SLIDE 22
+Instruction: Place Green Ladle to the right of Yellow Bowl
+More fixations on the yellow bowl
+Gaze Fixations during Ambiguous Placement Demonstrations
+
+SLIDE 23
+"UUFOUJPOPO0CKFDUTPG*OUFSFTUGPSUIFOFYU"DUJPO
+Gaze indicates where the human 
+might shoot next
+Gaze on food that should be eaten and 
+dynamite which should be avoided
+AsterixCentipede
+
+
+SLIDE 24
+3-BHFOUBUUFOUJPOTIPVMEtDPWFSuSFHJPOT
+BUUFOEFECZIVNBOHB[F
+… while also attending to other regions
+
+SLIDE 25
+(B[FBTBTVQFSWJTPSZTJHOBMGPSFYJTUJOHJNJUBUJPOMFBSOJOHNFUIPET
+Use an auxiliary coverage-based gaze loss (CGL) to guide the 
+attention of existing imitation learning methods 
+●Three Imitation Learning methods: BC, BCO, TREX 
+●20 Atari games with varying complexity, dynamics,  visual 
+features and rewards 
+●Compare with prior state-of-the-art gaze-augmentation LfD 
+methods
+Saran, A., R. Zhang, E. S. Short, and S. Niekum2020. Efficiently guiding imitation learning algorithms with human gaze. AAMAS 2021.
+
+SLIDE 26
+$(-JNQSPWFTQFSGPSNBODFGPSJNJUBUJPO
+MFBSOJOHBMHPSJUINT
+IL Algorithm % Improvement with CGL
+BC 160%
+BCO 343%
+TREX 390%
+
+SLIDE 27
+$(-"HFOUTBUUFOEUP7JTVBM'FBUVSFTGSPN
+)VNBOsT0WFSU"UUFOUJPO
+Saran, A., R. Zhang, E. S. Short, and S. Niekum2020. Efficiently guiding imitation learning algorithms with human gaze. AAMAS 2021.
+
+SLIDE 28
+7JTVBMJ[JOHMFBSOFE"HFOU1PMJDJFT
+Does not learn to actively 
+shoot the spider
+Shoots the spider when it 
+comes directly above the agent
+Actively goes and 
+shoots the spider
+BC AGIL BC +CGL
+
+SLIDE 29
+Can CGL reduce causal confusion for Imitation Learning methods?
+Correct Causal Identification
+Understanding the Performance Gains of CGL
+P . de Haan, D. Jayaraman, & S. Levine. Causal confusion in imitation learning. NeurIPS 2019.
+
+
+SLIDE 30
+$(-SFEVDFTDBVTBMDPOGVTJPODPNQBSFEUPCBTFMJOF#$BMHPSJUIN
+P . de Haan, D. Jayaraman, & S. Levine. Causal confusion in imitation learning. NeurIPS 2019.
+Confounded 
+images with 
+correlated past 
+actions as part of 
+the state space
+
+SLIDE 31
+$(-SFEVDFTDBVTBMDPOGVTJPODPNQBSFEUPCBTFMJOF#$BMHPSJUIN
+Algorithm tested with 
+confounded images
+Performance reduction with 
+confounded images (lower is 
+better)
+BC [confounded] v/s BC [original] -47.8 %
+BC+CGL [confounded] v/s BC+CGL 
+[original] -34.0 %
+CGL suffers less with 
+confounded data and 
+hence reduces causal 
+confusion compared to BC
+Saran, A., R. Zhang, E. S. Short, and S. Niekum2020. Efficiently guiding imitation learning algorithms with human gaze. AAMAS 2021.
+BC+CGL outperforms BC trained with confounded data by 571%

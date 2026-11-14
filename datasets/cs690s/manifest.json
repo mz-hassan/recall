@@ -24,6 +24,14 @@
         "status": "missing",
         "files": [],
         "note": "No usable transcript was available in the local course library."
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/intro.pdf",
+        "files": [
+          "lectures/00_2026-09-08_course-overview/slides/intro-slides.pdf",
+          "lectures/00_2026-09-08_course-overview/slides/intro-slides.txt"
+        ]
       }
     },
     {
@@ -55,6 +63,14 @@
         "status": "missing",
         "files": [],
         "note": "No September 10 transcript was found in the local library or Downloads. The authenticated Echo360 class list starts on September 17."
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/bc.pdf",
+        "files": [
+          "lectures/01_2026-09-10_behavior-cloning/slides/bc-slides.pdf",
+          "lectures/01_2026-09-10_behavior-cloning/slides/bc-slides.txt"
+        ]
       }
     },
     {
@@ -88,6 +104,14 @@
           "lectures/02_2026-09-15_limitations-of-behavior-cloning/transcripts/2026-09-15-transcript.txt"
         ],
         "note": "User-supplied transcript with speaker labels and sparse timestamps."
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/limitbc.pdf",
+        "files": [
+          "lectures/02_2026-09-15_limitations-of-behavior-cloning/slides/limitbc-slides.pdf",
+          "lectures/02_2026-09-15_limitations-of-behavior-cloning/slides/limitbc-slides.txt"
+        ]
       }
     },
     {
@@ -152,6 +176,14 @@
         "files": [
           "lectures/03_2026-09-17_reinforcement-learning/transcripts/transcript-rl.txt"
         ]
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/rl.pdf",
+        "files": [
+          "lectures/03_2026-09-17_reinforcement-learning/slides/rl-slides.pdf",
+          "lectures/03_2026-09-17_reinforcement-learning/slides/rl-slides.txt"
+        ]
       }
     },
     {
@@ -200,6 +232,14 @@
         "files": [
           "lectures/04_2026-09-22_reward-hacking/transcripts/transcript-reward-hacking.txt"
         ]
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/hacking.pdf",
+        "files": [
+          "lectures/04_2026-09-22_reward-hacking/slides/hacking-slides.pdf",
+          "lectures/04_2026-09-22_reward-hacking/slides/hacking-slides.txt"
+        ]
       }
     },
     {
@@ -232,6 +272,14 @@
         "files": [
           "lectures/05_2026-09-24_inverse-reinforcement-learning/transcripts/transcript-irl.txt"
         ]
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/irl.pdf",
+        "files": [
+          "lectures/05_2026-09-24_inverse-reinforcement-learning/slides/irl-slides.pdf",
+          "lectures/05_2026-09-24_inverse-reinforcement-learning/slides/irl-slides.txt"
+        ]
       }
     },
     {
@@ -263,6 +311,14 @@
         "status": "available",
         "files": [
           "lectures/06_2026-09-29_maximum-entropy-inverse-reinforcement-learning/transcripts/2026-09-29_maxent-irl_original.txt"
+        ]
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/maxentirl.pdf",
+        "files": [
+          "lectures/06_2026-09-29_maximum-entropy-inverse-reinforcement-learning/slides/slides.pdf",
+          "lectures/06_2026-09-29_maximum-entropy-inverse-reinforcement-learning/slides/slides.txt"
         ]
       }
     },
@@ -297,6 +353,14 @@
           "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning/transcripts/2026-10-01_bayesian-irl_original.txt",
           "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning/transcripts/2026-10-01_bayesian-irl_original.vtt"
         ]
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/bayesirl.pdf",
+        "files": [
+          "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning/slides/slides.pdf",
+          "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning/slides/slides.txt"
+        ]
       }
     },
     {
@@ -328,6 +392,14 @@
         "status": "available",
         "files": [
           "lectures/08_2026-10-06_occupancy-matching/transcripts/2026-10-06_lecture-08_original.txt"
+        ]
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/occupancy.pdf",
+        "files": [
+          "lectures/08_2026-10-06_occupancy-matching/slides/occupancy-slides.pdf",
+          "lectures/08_2026-10-06_occupancy-matching/slides/occupancy-slides.txt"
         ]
       }
     },
@@ -377,6 +449,14 @@
         "files": [
           "lectures/09_2026-10-08_interactive-rl/transcripts/2026-10-08_lecture-09_original.txt"
         ]
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/interactive.pdf",
+        "files": [
+          "lectures/09_2026-10-08_interactive-rl/slides/interactive.pdf",
+          "lectures/09_2026-10-08_interactive-rl/slides/interactive.txt"
+        ]
       }
     },
     {
@@ -418,6 +498,14 @@
           "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/transcripts/2026-10-15_lecture-10_original.txt",
           "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/transcripts/2026-10-15_lecture-10_original.vtt"
         ]
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/rlhf1.pdf",
+        "files": [
+          "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/slides/rlhf-indirect-slides.pdf",
+          "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/slides/rlhf-indirect-slides.txt"
+        ]
       }
     },
     {
@@ -452,6 +540,15 @@
           "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/transcripts/2026-10-15_lecture-10_original.vtt"
         ],
         "note": "The October 15 lecture transcript covers much of this topic. The October 20 recording had no usable transcript in the course library."
+      },
+      "slides": {
+        "status": "shared",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/rlhf1.pdf",
+        "files": [
+          "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/slides/rlhf-indirect-slides.pdf",
+          "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/slides/rlhf-indirect-slides.txt"
+        ],
+        "note": "The lecture 10 slide deck covers this topic on pages 26–47."
       }
     },
     {
@@ -484,6 +581,14 @@
         "files": [
           "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods/transcripts/2026-10-22_lecture-12_original.txt",
           "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods/transcripts/2026-10-22_lecture-12_original.vtt"
+        ]
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/rlhf2.pdf",
+        "files": [
+          "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods/slides/slides.pdf",
+          "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods/slides/slides.txt"
         ]
       }
     },
@@ -518,6 +623,14 @@
           "lectures/13_2026-10-27_performance-guarantees-for-rlhf/transcripts/2026-10-27_lecture-13_original.txt",
           "lectures/13_2026-10-27_performance-guarantees-for-rlhf/transcripts/2026-10-27_lecture-13_original.vtt"
         ]
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/guarantees.pdf",
+        "files": [
+          "lectures/13_2026-10-27_performance-guarantees-for-rlhf/slides/slides.pdf",
+          "lectures/13_2026-10-27_performance-guarantees-for-rlhf/slides/slides.txt"
+        ]
       }
     },
     {
@@ -549,6 +662,14 @@
         "status": "missing",
         "files": [],
         "note": "The course library records an empty TXT export and a header-only VTT for October 29."
+      },
+      "slides": {
+        "status": "available",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/multi.pdf",
+        "files": [
+          "lectures/14_2026-10-29_reward-design-and-inference-from-language/slides/slides.pdf",
+          "lectures/14_2026-10-29_reward-design-and-inference-from-language/slides/slides.txt"
+        ]
       }
     },
     {
@@ -580,6 +701,12 @@
         "status": "missing",
         "files": [],
         "note": "No usable transcript was available in the local course library."
+      },
+      "slides": {
+        "status": "missing",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/coop.pdf",
+        "files": [],
+        "note": "No slide deck was available in the local course library."
       }
     },
     {
@@ -611,6 +738,12 @@
         "status": "missing",
         "files": [],
         "note": "No usable transcript was available in the local course library."
+      },
+      "slides": {
+        "status": "missing",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/risk.pdf",
+        "files": [],
+        "note": "No slide deck was available in the local course library."
       }
     },
     {
@@ -658,6 +791,12 @@
         "status": "missing",
         "files": [],
         "note": "No usable transcript was available in the local course library."
+      },
+      "slides": {
+        "status": "missing",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/scalable.pdf",
+        "files": [],
+        "note": "No slide deck was available in the local course library."
       }
     },
     {
@@ -688,6 +827,12 @@
         "status": "missing",
         "files": [],
         "note": "No usable transcript was available in the local course library."
+      },
+      "slides": {
+        "status": "missing",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/case.pdf",
+        "files": [],
+        "note": "No slide deck was available in the local course library."
       }
     },
     {
@@ -719,6 +864,12 @@
         "status": "missing",
         "files": [],
         "note": "No usable transcript was available in the local course library."
+      },
+      "slides": {
+        "status": "missing",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/mech.pdf",
+        "files": [],
+        "note": "No slide deck was available in the local course library."
       }
     },
     {
@@ -750,6 +901,12 @@
         "status": "missing",
         "files": [],
         "note": "No usable transcript was available in the local course library."
+      },
+      "slides": {
+        "status": "missing",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/redteam.pdf",
+        "files": [],
+        "note": "No slide deck was available in the local course library."
       }
     },
     {
@@ -781,6 +938,12 @@
         "status": "missing",
         "files": [],
         "note": "No usable transcript was available in the local course library."
+      },
+      "slides": {
+        "status": "missing",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/adversarial.pdf",
+        "files": [],
+        "note": "No slide deck was available in the local course library."
       }
     },
     {
@@ -828,6 +991,12 @@
         "status": "missing",
         "files": [],
         "note": "No usable transcript was available in the local course library."
+      },
+      "slides": {
+        "status": "missing",
+        "source_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/lectures/deception.pdf",
+        "files": [],
+        "note": "No slide deck was available in the local course library."
       }
     }
   ]

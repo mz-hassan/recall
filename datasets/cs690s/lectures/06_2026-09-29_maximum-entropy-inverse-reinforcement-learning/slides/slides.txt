@@ -1,0 +1,131 @@
+--- PDF page 1 ---
+CS 690S: AI Alignment
+Prof. Scott Niekum
+Maximum Entropy IRL
+
+--- PDF page 2 ---
+IRL challenges
+•RL in the inner loop 
+•Where do linear features come from?
+•Underspeciﬁed inference problem: inﬁnite reward functions that explain 
+behavior equally well. Which one to choose?
+•Policies are underspeciﬁed too: many policies lead to the same 
+expected features counts. Which one to choose?
+•What if demonstrated behavior was actually suboptimal?
+•What if a feature was left out of the representation?
+•What if there were ﬁnite demonstrations and they left out an important 
+condition?
+
+--- PDF page 3 ---
+Suboptimality and policy mixtures
+•If a demonstrator acts optimally, then there trivially is some reward function 
+for which at least one optimal policy exists that matches the demonstrator’s 
+expected feature counts exactly
+•But if the demonstrations are sometimes suboptimal, then there may be no 
+single reward function with this property (aside from degenerate ones e.g. all 
+zeros, under which everything is optimal)
+•This can be thought of as the demonstrator sometimes acting optimally 
+under a diﬀerent reward function, so a mixture of reward functions (and their 
+corresponding optimal policies) would be needed to match the feature 
+counts
+•Instead, we will now consider policies that are not strictly optimal, but 
+produce trajectories in proportion to their return: 
+Ziebart, Brian D., et al. "Maximum entropy inverse 
+reinforcement learning." AAAI. V ol. 8. 2008.
+
+--- PDF page 4 ---
+Principle of maximum entropy
+•Deﬁnition: the probability distribution which best represents the current state of knowledge about a 
+system is the one with largest entropy, subject to your constraints.
+•Intuitively: Don’t overcommit in ways that aren’t supported by the data — e.g. don’t prefer one trajectory 
+over another if they have the same return.
+•Practical consequence for IRL: Tells us how to tiebreak between reward functions that explain the data 
+equally well.
+•How?: Find a reward function that matches expert feature counts under a speciﬁc trajectory distribution:
+•Why this distribution?: If you have speciﬁc expected feature counts f that you wish to match, it is 
+known that the maximum entropy trajectory distribution that matches f is of the above form for some 
+ 
+(and this is true for any maximization of entropy subject to linear constraints) 
+✓
+<latexit sha1_base64="VRbFNfU2yJrhxTioHNG9u2eQ22g=">AAAB7XicbVBNS8NAEJ3Ur1q/qh69LBbBU0mqoMeiF48V7Ae0oWy2m3btZhN2J0IJ/Q9ePCji1f/jzX/jts1BWx8MPN6bYWZekEhh0HW/ncLa+sbmVnG7tLO7t39QPjxqmTjVjDdZLGPdCajhUijeRIGSdxLNaRRI3g7GtzO//cS1EbF6wEnC/YgOlQgFo2ilVg9HHGm/XHGr7hxklXg5qUCORr/81RvELI24QiapMV3PTdDPqEbBJJ+WeqnhCWVjOuRdSxWNuPGz+bVTcmaVAQljbUshmau/JzIaGTOJAtsZURyZZW8m/ud1Uwyv/UyoJEWu2GJRmEqCMZm9TgZCc4ZyYgllWthbCRtRTRnagEo2BG/55VXSqlW9i2rt/rJSv8njKMIJnMI5eHAFdbiDBjSBwSM8wyu8ObHz4rw7H4vWgpPPHMMfOJ8/pUWPLA==</latexit>
+
+--- PDF page 5 ---
+Principle of maximum entropy
+Vs.
+
+--- PDF page 6 ---
+Principle of maximum entropy: derivation
+
+
+--- PDF page 7 ---
+Principle of maximum entropy: derivation
+
+
+--- PDF page 8 ---
+Principle of maximum entropy: derivation
+
+
+--- PDF page 9 ---
+Principle of maximum entropy: derivation
+
+
+--- PDF page 10 ---
+Principle of maximum entropy
+Vs.
+
+--- PDF page 11 ---
+Trajectory vs. action-based reasoning
+Paths 1, 2, and 3 have equal return, so all should be p=1/3 under MaxEnt
+50%
+25%
+25%
+Vs.
+
+--- PDF page 12 ---
+Trajectory probabilities
+Deterministic:
+Stochastic:
+
+--- PDF page 13 ---
+Learning a reward function
+How to compute state visitation  
+frequencies under MaxEnt policy?
+
+--- PDF page 14 ---
+Calculating state visitation frequencies
+Total unnormalized prob of all trajs that start at s_i and take action a_j
+Total unnormalized prob of all trajs that start at s_i 
+Total (weighted) exp return of all trajs that start at s_i and take action a_j
+Total (weighted) exp return of all trajs that start at s_i 
+
+--- PDF page 15 ---
+Calculating state visitation frequencies
+MaxEnt policy under reward function theta
+Total unnormalized prob of all trajs that start at s_i 
+Total (weighted) exp return of all trajs that start at s_i 
+Total unnormalized prob of all trajs that start at s_i and take action a_j
+Total (weighted) exp return of all trajs that start at s_i and take action a_j
+
+--- PDF page 16 ---
+Calculating state visitation frequencies
+Total unnormalized prob of all trajs that start at s_i and take action a_j
+Total unnormalized prob of all trajs that start at s_i 
+MaxEnt policy under reward function theta
+Prob of being in each state at each timestep t
+State visitation frequencies summed over all timesteps
+Typo! Should be D s i ,1
+<latexit sha1_base64="rmmutf6kAMpACKfxF9GZ/6a3KsI=">AAAB8XicbVBNSwMxEJ2tX7V+VT16CRbBg5TdKuixqAePFewHtsuSTbNtaJJdkqxQlv4LLx4U8eq/8ea/MW33oK0PBh7vzTAzL0w408Z1v53Cyura+kZxs7S1vbO7V94/aOk4VYQ2Scxj1QmxppxJ2jTMcNpJFMUi5LQdjm6mfvuJKs1i+WDGCfUFHkgWMYKNlR5vg0wH7Ax5k6BccavuDGiZeDmpQI5GUP7q9WOSCioN4Vjrrucmxs+wMoxwOin1Uk0TTEZ4QLuWSiyo9rPZxRN0YpU+imJlSxo0U39PZFhoPRah7RTYDPWiNxX/87qpia78jMkkNVSS+aIo5cjEaPo+6jNFieFjSzBRzN6KyBArTIwNqWRD8BZfXiatWtU7r9buLyr16zyOIhzBMZyCB5dQhztoQBMISHiGV3hztPPivDsf89aCk88cwh84nz+X+JA1</latexit>
+Total (weighted) exp return of all trajs that start at s_i and take action a_j
+Total (weighted) exp return of all trajs that start at s_i 
+Typo! Should be 
+<latexit sha1_base64="sUrxjrjwZCCxVCI2EZ/d8QYYhiY=">AAACPnicbZBNS8NAEIY3ftb6VfXoZbEIFUtJRKoXoagHjxWMFdoQNtutrtl8sDsRSswv8+Jv8ObRiwdFvHp0m+ag1oFl331mhtl5vVhwBab5bExNz8zOzZcWyotLyyurlbX1SxUlkjKbRiKSVx5RTPCQ2cBBsKtYMhJ4gnU8/2SU79wxqXgUXsAwZk5ArkM+4JSARm7FPnVT5fI67FoZPsI9lQSuP75S4qZ+/TbLcF7j1zFkuF0rKL7Hmu1ooNv1o8D1nLqVqtkw88CTwipEFRXRditPvX5Ek4CFQAVRqmuZMTgpkcCpYFm5lygWE+qTa9bVMiQBU06ar5/hbU36eBBJfULAOf3ZkZJAqWHg6cqAwI36mxvB/3LdBAaHTsrDOAEW0vGgQSIwRHjkJe5zySiIoRaESq7/iukNkYSCdrysTbD+rjwpLvcaVrPRPN+vto4LO0poE22hGrLQAWqhM9RGNqLoAb2gN/RuPBqvxofxOS6dMoqeDfQrjK9vavOs2A==</latexit>
+D s i ,t +1 =
+∑
+k
+∑
+a k,j
+D s k ,t P (a k,j |s k )P (s i |a k,j ,s k )
+
+--- PDF page 17 ---
+Learning a reward function
+How to compute?

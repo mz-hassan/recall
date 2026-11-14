@@ -1,0 +1,319 @@
+PDF slide 1
+CS 690S: AI Alignment
+Prof. Scott Niekum
+RLHF: Indirect methods
+
+PDF slide 2
+In a time before RLHF…
+
+PDF slide 3
+Problems with standard inverse reinforcement learning
+Cannot (signiﬁcantly) outperform 
+the demonstrator
+Argh!
+Policy learning in inner loop
+IRL Loop
+Reward update
+Policy learning
+
+PDF slide 4
+Standard assumption:
+D.S. Brown, W. Goo, P . Nagarajan, and S. Niekum. 
+Extrapolating Beyond Suboptimal Demonstrations via 
+Inverse Reinforcement Learning from Observations.
+International Conference on Machine Learning (ICML), June 2019.
+IRL should assume that the expert is near-optimal
+Ranked, suboptimal demonstrations provide signiﬁcant 
+computational and performance beneﬁts
+
+PDF slide 5
+Ranked demonstrations: HalfCheetah
+12.52 44.98 88.97
+
+PDF slide 6
+T-REX: Trajectory-ranked Reward Extrapolation
+•Fully supervised — no policy learning
+•No action labels required
+•Extrapolation potential
+•Works on high-dim (e.g. Atari) with ~10 demos
+
+
+PDF slide 7
+Data augmentation
+Rank 1
+Rank 2
+Rank n
+Rank n-1
+
+PDF slide 8
+Data augmentation
+Rank 1
+Rank 2
+Rank n
+Subsampling
+Rank n-1
+
+PDF slide 9
+Data augmentation
+Rank 1
+Rank 2
+Rank n
+Rank n-1
+Frame skipping
+
+PDF slide 10
+T-REX reward prediction
+HalfCheetah Hopper Ant
+Beam Rider Seaquest
+ Enduro
+
+PDF slide 11
+Ranked demonstrations: HalfCheetah
+12.52 44.98 88.97
+
+PDF slide 12
+Results: HalfCheetah 
+Best demo (88.97) T -REX (143.40)
+
+PDF slide 13
+Results: Atari 
+Best demo (600) T -REX (1495)
+
+PDF slide 14
+T-REX vs. SOTA imitation learning
+HalfCheetah Hopper
+GT GT
+
+
+PDF slide 15
+T-REX vs. SOTA imitation learning
+Ant
+GT (182.33)
+
+PDF slide 16
+T-REX vs. SOTA imitation learning
+Beamrider
+ Breakout
+
+PDF slide 17
+Frame stacks: best vs. worst reward
+Best
+Worst
+
+
+PDF slide 18
+Reward heat maps
+Max frameMin frame
+ Medium frame
+
+PDF slide 19
+Frame stacks: best vs. worst reward
+Best
+Worst
+
+PDF slide 20
+Reward heat maps
+Min frame Max frame
+
+PDF slide 21
+Robustness to pairwise ranking noise
+
+
+PDF slide 22
+D-REX: Auto-generated rankings
+Unranked
+Demonstrations
+“Ranked”
+Trajectories
+⇡
+BC
+<latexit sha1_base64="PLWCD3SgGajO2QQkkifPzCoRMSM=">AAAB73icbZBNS8NAEIYn9avWr6pHL4tF8FQSEfRY2ovHCvYD2lA220m7dLOJuxuhhP4JLx4U8erf8ea/cdvmoK0vLDy8M8POvEEiuDau++0UNja3tneKu6W9/YPDo/LxSVvHqWLYYrGIVTegGgWX2DLcCOwmCmkUCOwEk8a83nlCpXksH8w0QT+iI8lDzqixVref8EFWb8wG5YpbdRci6+DlUIFczUH5qz+MWRqhNExQrXuemxg/o8pwJnBW6qcaE8omdIQ9i5JGqP1sse+MXFhnSMJY2ScNWbi/JzIaaT2NAtsZUTPWq7W5+V+tl5rw1s+4TFKDki0/ClNBTEzmx5MhV8iMmFqgTHG7K2FjqigzNqKSDcFbPXkd2ldVz/L9daVWz+MowhmcwyV4cAM1uIMmtICBgGd4hTfn0Xlx3p2PZWvByWdO4Y+czx/jtY/b</latexit><latexit sha1_base64="PLWCD3SgGajO2QQkkifPzCoRMSM=">AAAB73icbZBNS8NAEIYn9avWr6pHL4tF8FQSEfRY2ovHCvYD2lA220m7dLOJuxuhhP4JLx4U8erf8ea/cdvmoK0vLDy8M8POvEEiuDau++0UNja3tneKu6W9/YPDo/LxSVvHqWLYYrGIVTegGgWX2DLcCOwmCmkUCOwEk8a83nlCpXksH8w0QT+iI8lDzqixVref8EFWb8wG5YpbdRci6+DlUIFczUH5qz+MWRqhNExQrXuemxg/o8pwJnBW6qcaE8omdIQ9i5JGqP1sse+MXFhnSMJY2ScNWbi/JzIaaT2NAtsZUTPWq7W5+V+tl5rw1s+4TFKDki0/ClNBTEzmx5MhV8iMmFqgTHG7K2FjqigzNqKSDcFbPXkd2ldVz/L9daVWz+MowhmcwyV4cAM1uIMmtICBgGd4hTfn0Xlx3p2PZWvByWdO4Y+czx/jtY/b</latexit><latexit sha1_base64="PLWCD3SgGajO2QQkkifPzCoRMSM=">AAAB73icbZBNS8NAEIYn9avWr6pHL4tF8FQSEfRY2ovHCvYD2lA220m7dLOJuxuhhP4JLx4U8erf8ea/cdvmoK0vLDy8M8POvEEiuDau++0UNja3tneKu6W9/YPDo/LxSVvHqWLYYrGIVTegGgWX2DLcCOwmCmkUCOwEk8a83nlCpXksH8w0QT+iI8lDzqixVref8EFWb8wG5YpbdRci6+DlUIFczUH5qz+MWRqhNExQrXuemxg/o8pwJnBW6qcaE8omdIQ9i5JGqP1sse+MXFhnSMJY2ScNWbi/JzIaaT2NAtsZUTPWq7W5+V+tl5rw1s+4TFKDki0/ClNBTEzmx5MhV8iMmFqgTHG7K2FjqigzNqKSDcFbPXkd2ldVz/L9daVWz+MowhmcwyV4cAM1uIMmtICBgGd4hTfn0Xlx3p2PZWvByWdO4Y+czx/jtY/b</latexit><latexit sha1_base64="PLWCD3SgGajO2QQkkifPzCoRMSM=">AAAB73icbZBNS8NAEIYn9avWr6pHL4tF8FQSEfRY2ovHCvYD2lA220m7dLOJuxuhhP4JLx4U8erf8ea/cdvmoK0vLDy8M8POvEEiuDau++0UNja3tneKu6W9/YPDo/LxSVvHqWLYYrGIVTegGgWX2DLcCOwmCmkUCOwEk8a83nlCpXksH8w0QT+iI8lDzqixVref8EFWb8wG5YpbdRci6+DlUIFczUH5qz+MWRqhNExQrXuemxg/o8pwJnBW6qcaE8omdIQ9i5JGqP1sse+MXFhnSMJY2ScNWbi/JzIaaT2NAtsZUTPWq7W5+V+tl5rw1s+4TFKDki0/ClNBTEzmx5MhV8iMmFqgTHG7K2FjqigzNqKSDcFbPXkd2ldVz/L9daVWz+MowhmcwyV4cAM1uIMmtICBgGd4hTfn0Xlx3p2PZWvByWdO4Y+czx/jtY/b</latexit>
+Behavioral
+Cloning
+Noise-modiﬁed
+Rollouts
+Increasing
+Noise
+D. Brown, W. Goo, and S. Niekum. 
+Ranking-Based Reward Extrapolation without Rankings
+Conference on Robot Learning (CoRL), October 2019. 
+
+PDF slide 23
+Reinforcement Learning from Human Feedback (RLHF)
+•Preference elicitation is a generic mechanism for inferring human goals / desires / priorities
+•T-REX operated from an imitation learning perspective, but trajectories can come from 
+anywhere, not just demonstrations
+•General recipe for alignment: infer human’s reward function and then optimize it with RL
+•…or as we’ll see next time, maybe just learn policies directly from preferences
+
+PDF slide 24
+RLHF for InstructGPT
+Ouyang, Long, et al. "Training language models to follow 
+instructions with human feedback." Advances in neural 
+information processing systems 35 (2022)
+
+PDF slide 25
+Learning reward functions from preferences
+
+
+PDF slide 26
+GOAL GOAL
+or
+Which shows better behavior?
+Preferences over segment pairs
+Slide credit: W. Bradley Knox
+W. Knox, S. Hatgis-Kessell, S. Booth, S. Niekum, P . Stone, A. Allievi.
+Models of Human Preference for Learning Reward Functions.
+Transactions on Machine Learning Research (TMLR), January 2024.
+
+PDF slide 27
+Preferences over segment pairs
+GOAL GOAL
+or
+Which shows better behavior?
+Slide credit: W. Bradley Knox
+W. Knox, S. Hatgis-Kessell, S. Booth, S. Niekum, P . Stone, A. Allievi.
+Models of Human Preference for Learning Reward Functions.
+Transactions on Machine Learning Research (TMLR), January 2024.
+
+PDF slide 28
+Bradley-Terry preference models
+Slide credit: W. Bradley Knox
+
+PDF slide 29
+The missing piece: the model of preference
+Slide credit: W. Bradley Knox
+
+PDF slide 30
+The missing piece: the model of preference
+Current dominant model:  
+Partial return
+,
+Slide credit: W. Bradley Knox
+
+PDF slide 31
+The missing piece: the model of preference
+Partial return:
+Assume -1 reward per 
+step. 
+Partial return is indifferent!
+Slide credit: W. Bradley Knox
+
+PDF slide 32
+The missing piece: the model of preference
+Partial return:
+Partial return prefers the 
+left segment!
+Slide credit: W. Bradley Knox
+
+PDF slide 33
+The missing piece: the model of preference
+Proposed preference model: Regret
+when all 
+transitions are 
+deterministic
+Slide credit: W. Bradley Knox
+
+PDF slide 34
+The missing piece: the model of preference
+Regret:
+Assume -1 reward per 
+step. 
+Regret prefers σ2.
+Slide credit: W. Bradley Knox
+
+PDF slide 35
+The missing piece: the model of preference
+Regret:
+Regret prefers σ2.
+Slide credit: W. Bradley Knox
+
+
+PDF slide 36
+Reward identifiability
+Definition:
+Ground  
+truth….
+Equivalent 
+(same set of optimal policies)
+Infinitely exhaustive 
+preferences dataset
+Learned
+ ∃ an algorithm that 
+guarantees …
+Given preferences generated by a preference model and a reward function,  
+where the preferences infinitely cover every segment pair, 
+does the preference dataset contain sufficient information to recover an 
+equivalent reward function?
+Slide credit: W. Bradley Knox
+
+PDF slide 37
+If                 ,            is optimal.If                  ,           is optimal.
+Reward identifiability
+Y et both create the same (noiseless) return-based preferences!
+11 9
+Slide credit: W. Bradley Knox
+
+PDF slide 38
+If                 ,            is optimal.If                  ,           is optimal.
+Reward identifiability
+11 9
+Therefore, reward is not generally 
+identifiable with noiseless preferences from 
+partial return.
+Y et both create the same (noiseless) return-based preferences!Slide credit: W. Bradley Knox
+
+PDF slide 39
+Reward identifiability
+Similarly, reward is not generally identifiable for inverse 
+reinforcement learning from (noiseless) demonstrations 
+of optimal behavior.
+Slide credit: W. Bradley Knox
+
+PDF slide 40
+Reward identifiability
+Reward is identifiable with regret-based 
+preferences for any MDP.
+Slide credit: W. Bradley Knox
+
+PDF slide 41
+The delivery domain
+w1
+w2 
+w3
+w4
+w5
+w6
+ground-truth reward
+terminates
+Slide credit: W. Bradley Knox
+
+PDF slide 42
+100 
+randomly 
+generated 
+MDPs
+Slide credit: W. Bradley Knox
+
+PDF slide 43
+Preference elicitation
+Slide credit: W. Bradley Knox
+
+PDF slide 44
+Human preferences visualized
+Recall
+Slide credit: W. Bradley Knox
+
+PDF slide 45
+Explaining human preferences with different preference models
+Mean cross-entropy test loss over 10-fold cross 
+validation (n=1812) from predicting human 
+preferences. Lower is better.
+Slide credit: W. Bradley Knox
+
+PDF slide 46
+RLHF under the regret-based model?
+Next time! — We need a few new tools
+
+PDF slide 47
+Problems with preferences?

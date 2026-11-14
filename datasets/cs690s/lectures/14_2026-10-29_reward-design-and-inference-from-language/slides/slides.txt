@@ -1,0 +1,220 @@
+PAGE 1
+CS 690S: AI Alignment
+Prof. Scott Niekum
+Reward design and inference from language
+
+PAGE 2
+Language-based reward design?
+•We know reward design is hard
+•Demonstrations and preferences require models of humans that don’t 
+necessarily capture them accurately, and require a lot of data to work well
+•Easy for reward inference to overﬁt and/or misalign to reward functions that 
+are highly unlikely from a human perspective
+•LLMs contain huge amounts of human knowledge, common sense, and priors 
+about things that people generally want
+•Can we leverage that to do better?
+
+PAGE 3
+In-context reward learning
+Kwon M, Xie SM, Bullard K, Sadigh D. Reward design with language models. 
+arXiv preprint arXiv:2303.00001. 2023 Feb 27.
+Limitations
+•Requires text-based episode 
+descriptions / parser
+•Only binary rewards
+
+PAGE 4
+EurekaMa YJ, Liang W, Wang G, Huang DA, Bastani O, Jayaraman D, Zhu Y , Fan L, 
+Anandkumar A. Eureka: Human-level reward design via coding large language 
+models. arXiv preprint arXiv:2310.12931. 2023.
+
+PAGE 5
+Eureka
+
+
+PAGE 6
+Eureka
+
+
+PAGE 7
+Eureka
+
+
+PAGE 8
+Eureka
+
+
+PAGE 9
+Eureka
+
+
+PAGE 10
+Eureka
+
+
+PAGE 11
+Eureka
+
+
+PAGE 12
+Eureka
+
+
+PAGE 13
+Eureka
+
+
+PAGE 14
+Eureka
+
+
+PAGE 15
+Eureka: vibe coding rewards?
+
+
+PAGE 16
+What if we want instantaneous novel behaviors?
+“Do the dishes”
+ “Vacuum the kitchen”
+“Dice tomatoes”
+
+PAGE 17
+Successor features
+
+
+PAGE 18
+Unsupervised Reinforcement Learning
+18
+Touati, Ahmed, and Yann Ollivier. "Learning one representation to optimize all rewards." Advances in Neural Information Processing Systems 34 (2021): 13-23. 
+Agarwal, Siddhant, et al. "Proto Successor Measure: Representing the Behavior Space of an RL Agent." arXiv preprint arXiv:2411.19418 (2024). 
+Jajoo, Pranaya, et al. "Regularized latent dynamics prediction is a strong baseline for behavioral foundation models." Workshop on Reinforcement Learning Beyond Rewards@ Reinforcement Learning Conference 2025. 2025.
+Agarwal, Siddhant, et al. "A Unified Framework for Unsupervised Reinforcement Learning Algorithms." Workshop on Reinforcement Learning Beyond Rewards@ Reinforcement Learning Conference 2025. 2025.
+Behavioral Foundation 
+Model
+Pretraining
+Given any reward function:
+Instantly produce near-optimal policy 
+under reward r:𝜋𝑧𝑟
+Reward-Free
+Transitions
+𝑠,𝑎, 𝑠′ 
+zr=minz
+𝔼[(𝜓(𝑠)𝑧 −𝑟𝑡𝑒𝑠𝑡(𝑠))2 ]
+𝜓(𝑠),𝑄𝜋𝑧
+𝑟(𝑠,𝑎), 𝜋𝑧(𝑠)
+𝑟𝑧(𝑠)=𝜓(𝑠)𝑧
+𝑧∈ ℝ𝑑
+walk
+lunge
+Inference
+
+PAGE 19
+Successor measures + FB
+Touati, Ahmed, and Yann Ollivier. "Learning one representation to optimize all rewards." Advances in Neural Information Processing Systems 34 (2021): 13-23.
+
+PAGE 20
+Forward-backward representation
+Learn F and B such that:
+
+PAGE 21
+Training FB
+
+
+PAGE 22
+RLZero
+Language
+[Ex. “Do a lunge”]
+Generalist agents that can go from language to behavior  
+without in-domain supervision
+H. Sikchi, S. Agarwal, P. Jajoo, S. Parajuli, C. Chuck, M. Rudolph, P. Stone,  A. Zhang, S. Niekum. RL Zero: Zero-Shot 
+Language to Behaviors Without Any Supervision. Neural Information Processing Systems (NeurIPS), December 2025.
+Z
+BFM
+(via FB)
+
+PAGE 23
+23
+Imagine
+8
+“Sprint like a 
+quadruped”
+Video generation models 
+trained on internet-scale 
+data learn the distribution 
+of realistic videos
+Language Instruction: “Do a Lunge”
+A video generation model finetuned on MuJoCo transitions
+Leverage Priors from Foundation Models
+How do humans know what doing a task in language means?
+
+PAGE 24
+24
+Imagine
+1. Lack of Actions
+2. Dynamically Infeasible
+3. Noisy Frames/Cross-Domain
+YouTube video of “Boat Pose (Navasana)”
+“Do a Lunge”
+
+
+PAGE 25
+Project
+1. Lack of Actions
+2. Dynamically Infeasible
+3. Noisy Frames/Cross-Domain
+{𝑠1} Proprioceptive
+ states
+Real
+observation
+from 
+pretraining 
+dataset
+CLIP/SigLIP 
+encodes frames
+{𝑠2} {𝑠3} {𝑠4} {𝑠5} {𝑠6}
+
+PAGE 26
+26
+Imitate with Behavioral Foundation Models
+11
+Idea: Match state-only visitation distribution in encoded latent space
+𝑧𝑖𝑚𝑖𝑡=𝐷𝑓(𝑑𝜋𝑧(𝑠)|| 𝑑𝐸(𝑠))
+Match Distribution of Encoded Frames
+Approximate Closed Form Solution:
+𝑧𝑖𝑚𝑖𝑡=𝔼𝑑𝐸(𝑠)[𝜓(𝑠)]
+𝑧𝑖𝑚𝑖𝑡
+
+PAGE 27
+From Language to Behaviors
+Behavioral Foundation
+Model
+Imitation/
+Distribution
+Matching
+ Imagined trajectory
+Projection
+skipping
+crawling
+lunge
+“Do a lunge”
+Language Instruction
+Imagine
+Project
+Imitate
+27
+
+PAGE 28
+28
+Zero-Shot Language to Behaviors Without Supervision
+‘Bunny Hop’ ‘Strut like a horse’‘Cartwheel’ ‘Headstand’
+No test-time learning!
+
+
+PAGE 29
+29
+Zero-Shot Video to Policy
+
+
+PAGE 30
+30
+Future directions: Language —> complex behaviors?

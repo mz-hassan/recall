@@ -1,0 +1,319 @@
+Reinforcement Learning
+CS 690S: AI Alignment
+Prof. ScottNiekum
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 1/21
+
+What is Reinforcement Learning?
+Definition: Learning through interaction with an environment to
+maximize cumulative reward
+action a
+t
+Agent Environment
+state s , reward r
+t t
+Key difference from supervised learning:
+Behavioral Cloning: (s,a∗) - learn from optimal demonstrations
+Reinforcement Learning: (s,a,s′,r) - learn from trial and error
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 2/21
+
+Markov Decision Process (MDP)
+An MDP is defined by the tuple (S,A,T,r,d ,γ):
+0
+State space S: Set of all possible states
+Action space A: Set of all possible actions
+Transition T(s,a,s′) = P(s′|s,a): Probability of next state
+Reward r(s,a): Immediate reward for action in state
+Initial distribution d : Distribution over starting states
+0
+Discount γ ∈ [0,1): Weight for future rewards
+Markov Property: Future is independent of past given present
+P(s |s ,a ,s ,...) = P(s |s ,a )
+t+1 t t t−1 t+1 t t
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 3/21
+
+Policy and Return
+Policy π: Mapping from states to actions
+Deterministic: π : S → A
+Stochastic: π(a|s) = P(a|s)
+Return R : Cumulative discounted reward from time t:
+t
+∞
+(cid:88)
+R = γkr = r +γr +γ2r +...
+t t+k t t+1 t+2
+k=0
+Why discount factor γ?
+Mathematical convenience: finite returns even with infinite horizon
+Variance: training often unstable without discounting
+Practicality: Agents don’t actually run forever!
+Goal: Find optimal policy π∗ that maximizes expected return:
+J(π) = E [R ]
+π,s0∼d0 0
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 4/21
+
+Key Challenges in RL
+(1) Credit Assignment Problem
+▶ Which actions led to a particular reward?
+▶ Delayed effects make this difficult
+(2) Exploration vs. Exploitation
+▶ Explore: Try new actions for potentially better outcomes
+▶ Exploit: Use current knowledge to maximize return
+(3) Curse of Dimensionality
+▶ Large/continuous state and action spaces
+▶ Long horizons increase complexity exponentially
+(4) Sample Efficiency
+▶ Agent generates its own data
+▶ Real-world interactions can be expensive
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 5/21
+
+More Challenges
+(5) Non-stationarity & Distribution Shift
+▶ Policy changes ⇒ state distribution changes
+▶ World may be non-stationary
+(6) Reward Design
+▶ Difficult to specify what we want
+▶ Reward hacking: unintended solutions
+(7) Partial Observability
+▶ Agent may not observe full state
+▶ Need memory or belief state
+(8) Reproducibility & Sensitivity
+▶ High variance across runs
+▶ Sensitive to hyperparameters and even hardware!
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 6/21
+
+Value Functions
+State Value Function Vπ(s): Expected return from state s under π
+(cid:34) ∞ (cid:35)
+(cid:88)
+Vπ(s) = E γkr | s = s
+π t+k t
+k=0
+Bellman Equation for Vπ (discrete case):
+Vπ(s) = (cid:88) π(a|s) (cid:88) T(s,a,s′) (cid:2) r(s,a)+γVπ(s′) (cid:3)
+a s′
+Action Value Function Qπ(s,a): Expected return from (s,a) under π
+(cid:34) ∞ (cid:35)
+(cid:88)
+Qπ(s,a) = E γkr | s = s,a = a
+π t+k t t
+k=0
+Bellman Equation for Qπ: (discrete case)
+Qπ(s,a) = (cid:88) T(s,a,s′) (cid:2) r(s,a)+γVπ(s′) (cid:3)
+s′
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 7/21
+
+Optimal Value Functions
+Optimal State Value:
+V∗(s) = maxVπ(s) = maxQ∗(s,a)
+π a
+Optimal State-Action Value:
+Q∗(s,a) = maxQπ(s,a)
+π
+Bellman Optimality Equations:
+V∗(s) = max (cid:88) T(s,a,s′) (cid:2) r(s,a)+γV∗(s′) (cid:3)
+a
+s′
+(cid:20) (cid:21)
+(cid:88)
+Q∗(s,a) = T(s,a,s′) r(s,a)+γmaxQ∗(s′,a′)
+a′
+s′
+= (cid:88) T(s,a,s′) (cid:2) r(s,a)+γV∗(s′) (cid:3)
+s′
+Optimal Policy:
+π∗(s) = argmaxQ∗(s,a)
+a
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 8/21
+
+RL Algorithm Landscape
+Value function-based
+“critic-only”: how good is a state(-action)?
+sample efficient
+often deals poorly w/partial observability, bad features
+usually discrete action
+Policy Search
+“actor-only”
+high variance, low efficiency
+often robust to partial observability, bad features
+naturally works with continuous action
+Actor-critic
+often best of both worlds
+efficient, robust
+continuous action
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 9/21
+
+RL Algorithm Landscape: Examples
+Value-Based Policy Search
+Model-Based Model-Free Policy Gradient Black-Box
+Dynamic MonteCarlo Q-Learning REINFORCE Evolution
+Programming (MC) SARSA VanillaPG Strategies
+Actor-Critic
+A2C,SAC,PPO
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 10/21
+
+Model-Based vs Model-Free
+Model-Based Methods:
+Use known/learned dynamics T(s,a,s′) and reward function r(s,a)
+Often uses dynamic programming (Value/Policy Iteration)
+Pros: Simple, exact when value function / policy is tabular
+Cons: Struggles with model errors
+Model-Free Methods:
+Learn value function or policy from experience directly
+Don’t explicitly model transition dynamics
+Pros: Works with complex/unknown dynamics
+Cons: Sample inefficient, high variance
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 11/21
+
+Monte Carlo Methods
+Idea: Estimate value by averaging complete episode returns
+For each visit to state-action pair (s,a):
+1 On ith visit to (s,a) at time t,record return:
+Ri = r +γr +γ2r +...
+s,a t t+1 t+2
+2 Update: Q(s,a) ← Q(s,a)+α[R s i ,a −Q(s,a)]
+Or simply average: Qˆ(s,a) = 1 (cid:80)N Ri
+N i=1 s,a
+Properties:
+Pros: Unbiased, simple
+Cons: High variance, needs full episodes
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 12/21
+
+Bootstrapping methods
+Key Idea: Bootstrap – update using estimate of next state’s value
+Q-Learning (off-policy):
+(cid:20) (cid:21)
+Q(s,a) ← Q(s,a)+α r +γmaxQ(s′,a′)−Q(s,a)
+a′
+SARSA (on-policy):
+Q(s,a) ← Q(s,a)+α (cid:2) r +γQ(s′,π(s′))−Q(s,a) (cid:3)
+Properties:
+Pros: Low variance, online, no full episodes needed
+Cons: Biased (unless next-state value estimate is perfect)
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 13/21
+
+Off-Policy vs On-Policy
+On-Policy (SARSA):
+Learns value of the policy currently being followed
+π must become greedy over time, or will not converge to optimal
+value function / policy (example: Cliff World)
+Better convergence guarantees with linear function approximation
+Update: Q(s,a) ← Q(s,a)+α[r +γQ(s′,π(s′))−Q(s,a)]
+Off-Policy (Q-Learning):
+Learns optimal Q∗ regardless of actions taken – can explore in any
+manner or use data from any policy
+More sample efficient – can reuse old data
+Update: Q(s,a) ← Q(s,a)+α[r +γmax Q(s′,a′)−Q(s,a)]
+a′
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 14/21
+
+Policy Gradient
+Parameterized policy f (s) → a or f (s,a) → R
+θ θ
+Example with linear function approx. w/ features ϕ:
+f (s) = θ ϕ (s)+θ ϕ (s)+...+θ ϕ (s)
+θ 1 1 2 2 n n
+Policy gradient: approximate ∂R and use to update parameters
+∂θ
+(cid:34) ∞ (cid:35)
+(cid:88)
+J(θ) = E γtr
+π t
+θ
+t=0
+(cid:88) (cid:88)
+∇ J(θ) = d (s) Qπ(s,a)∇ π (s,a)
+θ π θ θ
+s a
+θ ← θ+α∇ J(θ)
+θ
+Qπ must be approximated. Example: REINFORCE uses a Monte Carlo
+approximation of Qπ
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 15/21
+
+Actor-Critic: Best of Both Worlds
+Idea: Combine the advantages of policy search and value functions
+Actor: Directly parameterized policy, as in policy search
+Critic: Value function, as in VF-based methods
+Properties:
+Actor supports continuous actions
+Critic increases sample efficiency and reduces variance of updates
+Comes at the cost of additional complexity, but still popular in
+practice
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 16/21
+
+Example: Advantage Actor-Critic (A2C)
+Advantage Function:
+Aπ(s,a) = Qπ(s,a)−Vπ(s)
+Measures how much better action a is vs. average under π
+Algorithm iteration sketch:
+1 Update Critic V ϕ
+2 Estimate advantage: Aˆ(s,a) = r +γV ϕ (s′)−V ϕ (s)
+3 Update Actor: θ ← θ+α∇ θ logπ θ (a|s)·Aˆ(s,a)
+Key idea: Use critic as a baseline to reduce variance of updates
+Q is better to use than a sample of return, since it is an expectation
+of return
+A is better to use than Q, because it is approximately mean-zero and
+is multiplying the gradient
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 17/21
+
+Modern RL: Proximal Policy Optimization (PPO)
+Motivation: Policy gradients can take too large of steps ⇒ unstable
+Key Idea: Constrain how much the policy can change per update
+Clipped Surrogate Objective:
+(cid:104) (cid:16) (cid:17)(cid:105)
+LCLIP(θ) = E min r (θ)Aˆ ,clip(r (θ),1−ϵ,1+ϵ)Aˆ
+t t t t t
+where r (θ) =
+π
+θ
+(at|st)
+is the probability ratio
+t π
+θold
+(at|st)
+What clipping does:
+If advantage positive: clip at 1+ϵ (don’t increase prob too much)
+If advantage negative: clip at 1−ϵ (don’t decrease prob too much)
+Prevents destructive policy updates
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 18/21
+
+Modern RL: Proximal Policy Optimization (PPO)
+PPO Algorithm:
+1 Collect trajectories using π θ
+old
+2 Compute advantages Aˆ t
+3 Optimize clipped objective for K epochs
+4 Repeat
+Properties:
+Pros: Simple, stable, strong performance, works with
+continuous/discrete actions
+Cons: Sample inefficient (on-policy), hyperparameter sensitive
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 19/21
+
+Modern RL: Soft Actor-Critic (SAC)
+Motivation: Combine sample efficiency, off-policy, and robustness
+Key Idea: Maximum entropy RL – maximize reward AND policy entropy
+Modified Objective:
+(cid:88)
+J(π) = E[r(s ,a )+αH(π(·|s ))]
+t t t
+t
+where H(π) = −E[logπ(a|s)] is entropy
+Why entropy? Encourages exploration, prevents premature convergence,
+more robust
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 20/21
+
+Modern RL: Soft Actor-Critic (SAC)
+SAC Updates:
+1 Critic: Minimize soft Bellman error
+Q (s,a) ← r +γE(cid:2) Q (s′,a′)−αlogπ (a′|s′) (cid:3)
+ϕ ϕ′ θ
+2 Actor: Maximize entropy-regularized return
+θ ← argmaxE[Q (s,a)−αlogπ (a|s)]
+ϕ θ
+θ
+Properties:
+Pros: Sample efficient (off-policy), stable, strong on continuous
+control
+Cons: More complex, continuous actions only, more hyperparameters
+CS690S:AIAlignment(Prof.ScottNiekum) ReinforcementLearning 21/21
