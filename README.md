@@ -32,8 +32,17 @@ Each guide is a self-contained context to hand to a collaborator or coding agent
 | Reading breakdowns and visual explanations | [Reading agent context](docs/workstreams/readings.md) |
 | Course-wide knowledge graph | [Graph agent context](docs/workstreams/course-graph.md) |
 | Live lecture, slide retrieval, artifacts and side chat | [Live agent context](docs/workstreams/live-lecture.md) |
-| Connect live topics and artifacts to the course graph | [Integration agent context](docs/workstreams/graph-integration.md) |
 
-Read the [shared contracts and DeepSeek API guide](docs/agent-harnesses.md) before defining agent outputs. Use feature branches, keep PRs scoped to a workstream, and run the tests and production build before opening a PR. Update the relevant checklist when its acceptance criteria are met. Coordinate changes to the course shell or shared contracts with the other workstreams.
+There are three workstreams. Linking completed lecture timelines and their artifacts into the course graph is a later milestone of workstream 2, not a separate graph, timeline, or team.
+
+Start with the [code ownership and stack guide](docs/architecture.md), then read the [shared contracts and provider-neutral harness guide](docs/agent-harnesses.md) before defining agent outputs. Use feature branches, keep PRs scoped to a workstream, and run the tests and production build before opening a PR. Update the relevant checklist when its acceptance criteria are met. Coordinate changes to the course shell or shared contracts with the other workstreams.
 
 - [ ] Later: Add a course-site scraper that normalizes materials into the existing dataset manifest, preserves provenance, and marks missing resources.
+
+## Stack and implementation status
+
+Today this is a React + Vite frontend with local dataset replay. Backend services, MongoDB persistence and runtime model harnesses are not implemented yet. Keep the existing UI and animations while building features in their own modules.
+
+The agreed direction is a Node.js + TypeScript/Fastify backend, MongoDB for course data and graph references, and task-specific harnesses behind a shared model-provider interface. Keep DeepSeek as the initial configurable provider; Gemini is the planned replacement. Fixture mode must remain usable without either API or a database. See the architecture guide for module boundaries, suggested libraries, storage design and implementation order.
+
+The older Recall concept brief is reference material, not the current implementation contract. Catch-up, action extraction, annotations and personal review remain possible later features. Tiger Data and Sentient OS are optional ideas, not required dependencies. Deployment is deferred; focus on local development and the three workstreams.
