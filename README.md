@@ -1,6 +1,6 @@
 # Recall — Stay in the thought
 
-Immersive lecture companion prototype. Buildless HTML/CSS/JS; serve `dist` with a static server.
+Immersive lecture companion prototype built with React and Vite.
 
 ## Version 2
 - Dark full-screen vertical timeline, initially focused on the current concept.
@@ -16,8 +16,22 @@ CS 690S Lecture 02, September 15, 2026: Limitations of Behavior Cloning, Prof. S
 
 No microphone, transcription, audio playback or AI backend. Playback advances a simulated clock. Concept map can jump ahead. Saved moments use localStorage. Google Fonts are optional; system fallbacks work without network access.
 
-## Local preview
-`python3 -m http.server 4173 --bind 127.0.0.1 --directory dist`
+## Develop and build
+
+Use Node.js 20.19+ or 22.12+.
+
+```sh
+npm ci
+npm run dev
+npm run build
+npm run preview
+```
+
+The course library is at `/` and the immersive replay is at `/lecture.html`. Vite builds both entry points into `dist` for static hosting.
+
+- `src/library` contains the course, lecture, and sources screens.
+- `src/lecture` contains the replay, moment details, and concept map. The motion hook applies transforms every animation frame.
+- The two `content.js` modules supply the current demo data. `src/storage.js` reads the existing browser storage for courses, sources, saved moments, and PDFs.
 
 ## Version 3: course workspace
 The root page is now a course selector with AI Alignment and Computer Vision, each with three real lecture titles and dates. Course overviews connect the lecture topics; Lecture 02 opens the existing immersive experience at `lecture.html`. All other lecture timelines are explicit placeholders.
