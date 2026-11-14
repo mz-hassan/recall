@@ -4,14 +4,17 @@ Recall helps students recover context during a lecture and revisit it afterward.
 
 ## Run locally
 
-Use Node.js 22.12 or later.
+Use Node.js 22.18 or later, which runs the server's TypeScript directly.
 
 ```sh
 npm ci
-npm run dev
+npm run dev        # web (Vite) + API (Fastify on 127.0.0.1:8787), /api proxied
+npm run typecheck  # server/ and shared/
 npm test
 npm run build
 ```
+
+`npm run dev:web` and `npm run dev:server` start either half alone. The API defaults to the offline fixture model provider; copy `.env.example` to `.env` to change server settings. Check it with `curl localhost:8787/api/health`.
 
 Open AI Alignment from the course library. Each lecture appears once, with **Reading breakdowns** and **Past timeline** actions. Open the lecture title for sources and **Simulate live**. The course-level **Knowledge graph** control is intentionally disabled pending implementation.
 

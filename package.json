@@ -4,18 +4,27 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently --kill-others-on-fail --names web,api --prefix-colors cyan,magenta \"npm:dev:web\" \"npm:dev:server\"",
+    "dev:web": "vite",
+    "dev:server": "node --env-file-if-exists=.env --watch server/src/index.ts",
+    "start:server": "node --env-file-if-exists=.env server/src/index.ts",
     "build": "vite build",
     "preview": "vite preview",
     "predev": "node scripts/prepare-assets.mjs",
     "prebuild": "node scripts/prepare-assets.mjs",
+    "typecheck": "tsc -p tsconfig.json",
     "test": "node --test"
   },
   "dependencies": {
+    "fastify": "5.12.7",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
   },
   "devDependencies": {
+    "@types/node": "22.20.4",
+    "concurrently": "10.0.6",
+    "typescript": "7.0.2",
     "vite": "7.3.8"
   }
 }

@@ -62,11 +62,11 @@ If semantic retrieval is needed later, evaluate Atlas vector/hybrid search over 
 
 ## Shared foundation TODOs
 
-- [ ] Introduce TypeScript configuration for `server/` and `shared/` without forcing a frontend rewrite.
+- [x] Introduce TypeScript configuration for `server/` and `shared/` without forcing a frontend rewrite.
 - [ ] Define versioned source, moment, artifact, reading and graph schemas with fixture validation.
-- [ ] Add a local Fastify API with independently registered feature routes and a documented local start command; configure Vite's development proxy then.
+- [x] Add a local Fastify API with independently registered feature routes and a documented local start command; configure Vite's development proxy then.
 - [ ] Implement fixture provider/repositories first, then provider adapters and MongoDB repositories behind the same interfaces.
-- [ ] Add `.env.example` with blank server-only credentials when the backend exists; keep real `.env` files ignored.
+- [x] Add `.env.example` with blank server-only credentials when the backend exists; keep real `.env` files ignored.
 - [ ] Add bounded retries, cancellation, validation and per-task evaluation metadata.
 - [ ] Later: add course-site ingestion into the existing manifest and storage contracts.
 
