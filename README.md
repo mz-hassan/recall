@@ -1,41 +1,39 @@
-# Recall — Stay in the thought
+# Recall
 
-Immersive lecture companion prototype built with React and Vite.
+Recall helps students recover context during a lecture and revisit it afterward. The course library brings together assigned readings, past timelines and a planned cross-lecture knowledge graph. The live lecture interface groups incoming transcript chunks into moments that can carry summaries, equations, intuition, slides, diagrams and requested artifacts.
 
-## Version 2
-- Dark full-screen vertical timeline, initially focused on the current concept.
-- Wheel, touch and arrow-key navigation; eased motion, curved horizontal offsets, depth, scale and fading.
-- Click the focused concept to move the timeline left and expand its explanation and real lecture slide. Escape closes.
-- Separate corner concept map; source excerpts and saved moments live inside expanded details.
-- Animated SVG concept illustrations, simulated session clock, keyboard focus states, mobile layout and reduced-motion support.
+## Run locally
 
-The original interface is preserved at `/Users/mzhassan/Documents/ChatGPT/Recall/backups/v1-classic/dist` and in the first published Site version / commit 6a9a5b4d303cce316d9e2681de6e5a651662d7f4.
-
-## Source and limitations
-CS 690S Lecture 02, September 15, 2026: Limitations of Behavior Cloning, Prof. Scott Niekum. Slide PNGs are rendered from the user's original local PDF. Content is curated from its companion transcript. Approximate timestamps are marked ≈. Animated diagrams are illustrative, not original slides.
-
-No microphone, transcription, audio playback or AI backend. Playback advances a simulated clock. Concept map can jump ahead. Saved moments use localStorage. Google Fonts are optional; system fallbacks work without network access.
-
-## Develop and build
-
-Use Node.js 20.19+ or 22.12+.
+Use Node.js 22.12 or later.
 
 ```sh
 npm ci
 npm run dev
+npm test
 npm run build
-npm run preview
 ```
 
-The course library is at `/` and the immersive replay is at `/lecture.html`. Vite builds both entry points into `dist` for static hosting.
+Open AI Alignment from the course library. Each lecture appears once, with **Reading breakdowns** and **Past timeline** actions. Open the lecture title for sources and **Simulate live**. The course-level **Knowledge graph** control is intentionally disabled pending implementation.
 
-- `src/library` contains the course, lecture, and sources screens.
-- `src/lecture` contains the replay, moment details, and concept map. The motion hook applies transforms every animation frame.
-- The two `content.js` modules supply the current demo data. `src/storage.js` reads the existing browser storage for courses, sources, saved moments, and PDFs.
+## Dataset and simulation
 
-## Version 3: course workspace
-The root page is now a course selector with AI Alignment and Computer Vision, each with three real lecture titles and dates. Course overviews connect the lecture topics; Lecture 02 opens the existing immersive experience at `lecture.html`. All other lecture timelines are explicit placeholders.
+The [CS 690S dataset](datasets/cs690s/README.md) covers 23 Fall 2026 lecture entries. Its [manifest](datasets/cs690s/manifest.json) records source URLs, required and optional readings, slide PDFs and text extracts, and TXT or VTT transcripts where available. Some entries lack transcripts or reuse material from another lecture. The frontend uses the manifest to determine whether a lecture can replay. A later ingestion workstream can scrape a course website and emit this same manifest; the checked-in dataset works directly today.
 
-Sources can be added as course-wide or lecture-specific PDFs/URLs. Six original PDFs are bundled. PDF additions use IndexedDB and metadata uses localStorage; nothing syncs to a server. URLs are syntax-checked but never scraped. Recording is an explicitly labeled timer-only simulation. The expanded lecture moment includes a disabled contextual chat button marked Coming soon.
+Lecture 02 has an existing curated replay. Other past timelines with transcripts display all their chunks for browsing. Live simulation starts with one chunk and adds another on each interval. **Simulation settings** lets you change the word budget and interval. The defaults are 160 words and 5 seconds. You can also use `lecture.html?lecture=2&mode=live&words=160&interval=5`. These are simulation offsets. The DAgger example demonstrates curated enrichment, including multiple slides, an equation, intuition and a topic diagram. Side chat and artifact requests are UI entry points for future harnesses.
 
-Validation: JavaScript syntax checks; browser checks for course and lecture navigation, original PDF viewer, PDF upload/lecture association and persistence across reload, and the contextual chat placeholder.
+The asset preparation script copies the demo PDFs from the dataset on dev/build. Git tracks the dataset and slide preview images. Vite generates `dist/` for hosting.
+
+## Parallel workstreams
+
+Each guide is a self-contained context to hand to a collaborator or coding agent. Pick one, claim a checkbox in a GitHub issue or PR, and note the acceptance criteria and any contract changes.
+
+| Workstream | Starting point |
+| --- | --- |
+| Reading breakdowns and visual explanations | [Reading agent context](docs/workstreams/readings.md) |
+| Course-wide knowledge graph | [Graph agent context](docs/workstreams/course-graph.md) |
+| Live lecture, slide retrieval, artifacts and side chat | [Live agent context](docs/workstreams/live-lecture.md) |
+| Connect live topics and artifacts to the course graph | [Integration agent context](docs/workstreams/graph-integration.md) |
+
+Read the [shared contracts and DeepSeek API guide](docs/agent-harnesses.md) before defining agent outputs. Use feature branches, keep PRs scoped to a workstream, and run the tests and production build before opening a PR. Update the relevant checklist when its acceptance criteria are met. Coordinate changes to the course shell or shared contracts with the other workstreams.
+
+- [ ] Later: Add a course-site scraper that normalizes materials into the existing dataset manifest, preserves provenance, and marks missing resources.

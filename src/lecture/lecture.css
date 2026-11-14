@@ -4,3 +4,20 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .context-chat{display:flex;align-items:center;justify-content:space-between;gap:15px;border:1px solid #304b39;border-radius:9px;padding:16px 18px;margin-top:25px;background:linear-gradient(110deg,#1e332477,#0e181100)}.context-chat>div{display:flex;align-items:center;gap:13px;font-size:11px;color:#b0cdb9}.context-chat small{display:block;font-size:8px;letter-spacing:.2px;color:#658570;margin-top:5px}.context-chat .chat-spark{font-size:25px;color:#a8dbb8}.context-chat button{opacity:1;border:1px solid #496c53;border-radius:20px;font-size:10px;padding:9px 15px;color:#b7d9c2;cursor:not-allowed;white-space:nowrap}.context-chat button>span{margin-left:12px}.context-chat button small{font-size:6px;letter-spacing:1.5px;margin-top:5px;color:#6a8a73}@media(max-width:480px){.context-chat{padding:13px 12px;gap:10px}.context-chat>div{font-size:10px;gap:9px}.context-chat small{font-size:7px}.context-chat button{font-size:9px;padding:9px 11px}}
 @media(max-width:800px){.source-return{margin-right:8px}.source-return span{display:none}}
+
+.topic-diagram{list-style:none;padding:0;margin:12px 0 0;color:#c5e9d1}
+.topic-diagram li{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0;font-size:.85rem}
+.topic-diagram span{color:#8cae9b}
+.moment-chat{position:absolute;z-index:18;right:5%;bottom:4%;width:min(350px,90%);padding:1rem;background:#121c17;border:1px solid #385649;border-radius:12px;box-shadow:0 16px 40px #0008}
+.moment-chat .eyebrow{display:flex;justify-content:space-between;align-items:center;color:#a9c5b4}
+.moment-chat h2{font-size:1.05rem;margin-top:1rem}
+.moment-chat p,.chunk-copy{color:#adc4b5;line-height:1.6}
+.moment-chat input{width:100%;padding:.75rem;background:#0a100d;border:1px solid #385649;color:inherit;border-radius:6px}
+.moment-chat button:disabled{margin-top:.5rem;color:#a2b3ac}
+.replay-config{display:flex;flex-wrap:wrap;gap:1rem;align-items:end}
+.replay-config label{display:grid;gap:.4rem}
+.replay-config input{max-width:9rem;padding:.45rem;color:inherit;background:#131b17;border:1px solid #385649}
+.replay-config button,.replay-config a{padding:.45rem;border:1px solid #385649;border-radius:6px}
+.replay-error{padding:4rem 8vw}
+.time-axis{overflow-y:auto}
+.time-axis button{flex-shrink:0}
