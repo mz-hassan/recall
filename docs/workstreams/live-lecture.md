@@ -16,6 +16,6 @@ Workstream 3. Own `src/lecture/` and the planned `server/src/features/lecture/`.
 - Pipeline schemas live in `shared/contracts/lecture.ts`; student-side chat/artifact schemas live in `shared/contracts/lectureInteractions.ts`. Use HTTP for commands and server-sent events for incoming moments; simulated and later audio transcript adapters feed the same event contract.
 - Use KaTeX for equations and validated SVG/chart specs for artifacts. A local explanatory topic diagram belongs to a moment. The cross-lecture knowledge graph belongs to workstream 2 on the course page.
 
-- [ ] Persist completed timeline revisions and artifact IDs; expose a completion handoff for the graph owner. Graph indexing after completion is a future TODO under workstream 2, not a fourth workstream.
+- [ ] Persist completed lecture materials and artifact IDs. After the transcript, slides, and datasource manifest are durable, call the implemented graph completion endpoint using the [live lecture → knowledge graph handoff](../live-lecture-graph-handoff.md). Keep timeline/artifact indexing as a later contract extension.
 
 Done: configurable replay emits validated, ordered moments; attachments and contextual chat use feature contracts; reconnects do not duplicate moments. See [stack and ownership](../architecture.md).

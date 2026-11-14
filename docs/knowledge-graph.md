@@ -69,6 +69,8 @@ The old graph remains visible while the replacement is processed. Failed jobs ca
 
 ## Handoff for the live lecture teammate
 
+The focused implementation guide, including backend placement, retry behavior, response handling, and an acceptance checklist, is in [Live lecture → knowledge graph handoff](live-lecture-graph-handoff.md).
+
 1. Finish saving the lecture's transcript, slides, and manifest entry. Write temporary files and rename them into place, then save the manifest last. Do not send events for in-progress chunks.
 2. Use the manifest lecture number as `lectureId` (string). Preserve `courseId: "ai"` for this dataset. Assign a **positive, monotonically increasing integer revision per lecture**, starting at `1`.
 3. Once all files are readable, send:

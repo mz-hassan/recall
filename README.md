@@ -28,7 +28,7 @@ npx playwright install chromium
 npm run test:e2e   # desktop/mobile checks against an isolated offline fixture server
 ```
 
-Sign in and add AI Alignment to your workspace. Select a lecture row to replay its timeline or open **Course material** for sources and **Simulate live**. **Knowledge graph** opens the database-backed course graph. See the [graph setup, demonstration commands, and live lecture completion contract](docs/knowledge-graph.md). No Docker is used. `npm run dev:web` runs the frontend alone; `npm run dev:server` runs the shared API. The graph needs MongoDB, but live lecture still runs if the graph database is unavailable. Start MongoDB and restart the API to enable the graph again.
+Sign in and add AI Alignment to your workspace. Select a lecture row to replay its timeline or open **Course material** for sources and **Simulate live**. **Knowledge graph** opens the database-backed course graph. See the [graph setup](docs/knowledge-graph.md) and the [live lecture → graph handoff guide](docs/live-lecture-graph-handoff.md). No Docker is used. `npm run dev:web` runs the frontend alone; `npm run dev:server` runs the shared API. The graph needs MongoDB, but live lecture still runs if the graph database is unavailable. Start MongoDB and restart the API to enable the graph again.
 
 The shared API also exposes transcript replay/streaming, model-backed topic segmentation, topic enrichment, page-exact slides and running lecture summaries. Check it at `http://localhost:3001/api/health`. To run the backend pipelines directly:
 
