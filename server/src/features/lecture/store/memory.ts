@@ -106,6 +106,13 @@ export function createMemoryStore({ maxLog = 5000 }: { maxLog?: number } = {}): 
     saveMoment(key, draft) {
       return save(state(key), draft);
     },
+    updateMoment(key, momentId, update) {
+      const lecture = state(key);
+      const current = lecture.moments.get(momentId);
+      if (!current) return undefined;
+      const { revision: _revision, ...draft } = update(current) as MomentDraft & { revision?: number };
+      return save(lecture, { ...draft, id: momentId });
+    },
     setRunningSummary(key, summary) {
       state(key).summary = summary;
     },

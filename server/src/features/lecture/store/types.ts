@@ -28,6 +28,11 @@ export interface LectureStore {
   reset(key: LectureKey, session: SessionState): void;
   appendChunk(key: LectureKey, chunk: TranscriptChunk): void;
   saveMoment(key: LectureKey, draft: MomentDraft): Moment;
+  /**
+   * Changes the latest version of a moment (a new revision), so concurrent writers such as
+   * enrichment and artifacts never overwrite each other. Undefined if the moment does not exist.
+   */
+  updateMoment(key: LectureKey, momentId: string, update: (current: Moment) => MomentDraft): Moment | undefined;
   setRunningSummary(key: LectureKey, summary: string): void;
   setSession(key: LectureKey, session: SessionState): void;
   getSession(key: LectureKey): SessionState | null;

@@ -1,0 +1,1568 @@
+--- PDF page 1 ---
+CS 690S: AI Alignment
+Prof. Scott Niekum
+Direct RLHF
+
+--- PDF page 2 ---
+Part 1: Direct Preference Optimization
+Do we really need reward inference for RLHF?
+
+Slide credits: Archit Sharma, Rafael Rafailov, Eric Mitchell
+
+--- PDF page 3 ---
+RLHF: RL From human feedback
+
+--- PDF page 4 ---
+RLHF: RL From human feedback
+
+--- PDF page 5 ---
+RLHF: RL From human feedback
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+πθ0
+
+--- PDF page 6 ---
+RLHF: RL From human feedback
+“Write a poem about jazz.”
+…
+
+X
+
+(prompts)
+
+Y
+
+(human
+demos)
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+πθ0
+
+Human!
+
+--- PDF page 7 ---
+RLHF: RL From human feedback
+“Write a poem about jazz.”
+…
+
+X
+
+(prompts)
+
+Y
+
+(human
+demos)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+πθ0
+
+πθSFT
+
+fi
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Fine-tune
+
+Human!
+
+--- PDF page 8 ---
+RLHF: RL From human feedback
+“Write a poem about jazz.”
+…
+
+X
+
+(prompts)
+
+Y
+
+(human
+demos)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+πθ0
+
+πθSFT
+
+fi
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Fine-tune
+
+Human!
+
+?
+
+--- PDF page 9 ---
+RLHF: RL From human feedback
+“Write a poem about jazz.”
+…
+
+X
+
+(prompts)
+
+Y
+
+(human
+demos)
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+Human!
+
+?
+
+Why RL at all?
+
+fi
+
+πθ0
+
+Fine-tune
+
+πθSFT
+
+--- PDF page 10 ---
+RLHF: RL From human feedback
+“Write a poem about jazz.”
+…
+
+X
+
+(prompts)
+
+Y
+
+(human
+demos)
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+Human!
+
+?
+
+Why RL at all?
+
+fi
+
+πθ0
+
+Fine-tune
+
+πθSFT
+
+• Scale annotation
+• Exceed human performance
+
+--- PDF page 11 ---
+RLHF: Learning rewards from preferences
+Feedback comes as preferences over model samples:
+Prompt
+
+Dispreferred response
+
+Preferred response
+
+--- PDF page 12 ---
+RLHF: Learning rewards from preferences
+Feedback comes as preferences over model samples:
+How do we get a reward function from this data?
+
+Prompt
+
+Dispreferred response
+
+Preferred response
+
+--- PDF page 13 ---
+RLHF: Learning rewards from preferences
+Feedback comes as preferences over model samples:
+How do we get a reward function from this data?
+
+Prompt
+
+Dispreferred response
+
+Preferred response
+
+Bradley-Terry Model connects scores (rewards?) to preferences:
+Unobserved implicit score assigned to each choice
+<latexit sha1_base64="YzqeeMBDZfwgOErIVRUZgSE6GVc=">AAAEEXichVPbbtNAEHVjLiVc2sIjLyuiSo5oIgcB5YFKVZCAxyL1JurUWq/HzqrrtbU7bhOMv4BH4GN4Q7zyBXwLEmLtWKhNoIxkaTQz58zxGTvIBNfouj+WWvaVq9euL99o37x1+87K6trdfZ3misEeS0WqDgOqQXAJe8hRwGGmgCaBgIPg5EXVPzgFpXkqd3GawSihseQRZxRNyV9b+rVOPJHGxEMuQiCZM/WReAkPyWRj6hfPseySLVJ49aoiEDmUXi5DUIGiDIoam/kewgSLSkhZETR40hCUTX/THZJqhiRpCKIsycM/xC9TBRpfKQBZekMeO/9cEmF5XuPCjiGJjBc9zCWEzSLSI//XfAnhOc2Vtu484VtnESZTlVDB30HZXjcGejpP/AK33PK42PXPSuJJGghqhseAtDlBxo2Qs2N8X1l/djwzvzeHFZdgRYMVM2w7c2iFZowE3VoEjxPqaIdWtNoJul1/teP23TrIYjJoko7VxI6/+tMLU5YnIJEJqvXRwM1wVFCFnAnzsl6uIaPshMZwZFJJE9Cjoj5ySdZNJSRRqswjkdTV84iCJlpPk8BMJhTHer5XFf/WO8oxejYquMxyBMlmi6JcEExJ9dWTkCtgKKYmoUxxo5WwMTXHQ/NvXGAKT3mma9Ub+jRu5E9m+tvGrcG8N4vJ/qP+4Gn/yZvHne1h49uydd96YDnWwNq0tq3X1o61Z7EWtD60PrU+2x/tL/ZX+9tstLXUYO5ZF8L+/hvmJ1jx</latexit>
+
+p(a
+
+b) = (s(a)
+
+s(b))
+
+[Rank Analysis of Incomplete Block Designs. Bradley & Terry, 1952.]
+
+--- PDF page 14 ---
+RLHF: Learning rewards from preferences
+Feedback comes as preferences over model samples:
+How do we get a reward function from this data?
+
+Prompt
+
+Dispreferred response
+
+Preferred response
+
+Bradley-Terry Model connects scores (rewards?) to preferences:
+Unobserved implicit score assigned to each choice
+<latexit sha1_base64="YzqeeMBDZfwgOErIVRUZgSE6GVc=">AAAEEXichVPbbtNAEHVjLiVc2sIjLyuiSo5oIgcB5YFKVZCAxyL1JurUWq/HzqrrtbU7bhOMv4BH4GN4Q7zyBXwLEmLtWKhNoIxkaTQz58zxGTvIBNfouj+WWvaVq9euL99o37x1+87K6trdfZ3misEeS0WqDgOqQXAJe8hRwGGmgCaBgIPg5EXVPzgFpXkqd3GawSihseQRZxRNyV9b+rVOPJHGxEMuQiCZM/WReAkPyWRj6hfPseySLVJ49aoiEDmUXi5DUIGiDIoam/kewgSLSkhZETR40hCUTX/THZJqhiRpCKIsycM/xC9TBRpfKQBZekMeO/9cEmF5XuPCjiGJjBc9zCWEzSLSI//XfAnhOc2Vtu484VtnESZTlVDB30HZXjcGejpP/AK33PK42PXPSuJJGghqhseAtDlBxo2Qs2N8X1l/djwzvzeHFZdgRYMVM2w7c2iFZowE3VoEjxPqaIdWtNoJul1/teP23TrIYjJoko7VxI6/+tMLU5YnIJEJqvXRwM1wVFCFnAnzsl6uIaPshMZwZFJJE9Cjoj5ySdZNJSRRqswjkdTV84iCJlpPk8BMJhTHer5XFf/WO8oxejYquMxyBMlmi6JcEExJ9dWTkCtgKKYmoUxxo5WwMTXHQ/NvXGAKT3mma9Ub+jRu5E9m+tvGrcG8N4vJ/qP+4Gn/yZvHne1h49uydd96YDnWwNq0tq3X1o61Z7EWtD60PrU+2x/tL/ZX+9tstLXUYO5ZF8L+/hvmJ1jx</latexit>
+
+p(a
+
+b) = (s(a)
+
+s(b))
+
+Train the reward model by minimizing negative log likelihood:
+
+--- PDF page 15 ---
+RLHF: Learning rewards from preferences
+X′
+
+“Write a poem about jazz.”
+…
+
+X
+
+(new prompts)
+
+(prompts)
+
+Y
+
+Human!
+
+(human
+demos)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+πθ0
+
+πθSFT
+
+fi
+
+￼
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Fine-tune
+
+Sample!
+
+i
+
+i
+i
+(x , yw, yl )
+(preference pairs)
+
+--- PDF page 16 ---
+RLHF: Learning rewards from preferences
+X′
+
+“Write a poem about jazz.”
+…
+
+X
+
+(new prompts)
+
+i
+
+i
+i
+(x , yw, yl )
+
+(prompts)
+
+Y
+
+Human!
+
+(preference pairs)
+
+(human
+demos)
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+Step 2:
+Fit a reward model to
+human preferences
+over πSFT samples
+
+πθ0
+
+πθSFT
+
+rϕ
+
+Fine-tune
+
+fi
+
+￼
+
+Fine-tune
+
+Sample!
+
+--- PDF page 17 ---
+RLHF: Learning a policy that optimizes reward
+Now we have a reward model rϕ representing goodness according to humans (allegedly)
+
+--- PDF page 18 ---
+RLHF: Learning a policy that optimizes reward
+Now we have a reward model rϕ representing goodness according to humans (allegedly)
+So we learn a policy πθ achieving high reward
+
+Sample from policy
+
+Want high reward …
+
+--- PDF page 19 ---
+RLHF: Learning a policy that optimizes reward
+Now we have a reward model rϕ representing goodness according to humans (allegedly)
+So we learn a policy πθ achieving high reward while staying close to original model πref
+
+Sample from policy
+
+Want high reward …
+
+… but keep KL to original model small!
+
+--- PDF page 20 ---
+RLHF: Learning a policy that optimizes reward
+Now we have a reward model rϕ representing goodness according to humans (allegedly)
+So we learn a policy πθ achieving high reward while staying close to original model πref
+
+Sample from policy
+
+Want high reward …
+
+… but keep KL to original model small!
+
+Avoid outputs where our reward model is inaccurate (it was trained on πref outputs!)
+
+--- PDF page 21 ---
+RLHF: Learning a policy that optimizes reward
+Now we have a reward model rϕ representing goodness according to humans (allegedly)
+So we learn a policy πθ achieving high reward while staying close to original model πref
+
+Sample from policy
+
+Want high reward …
+
+… but keep KL to original model small!
+
+Avoid outputs where our reward model is inaccurate (it was trained on πref outputs!)
+
+Optimize the whole thing with PPO
+[Proximal Policy Optimization Algorithms, Schulman, Wolski, Dhariwal, Radford, Klimov, 2017]
+
+--- PDF page 22 ---
+RLHF: RL From human feedback
+
+(new prompts)
+
+“Write a poem about jazz.”
+…
+
+X
+
+i
+
+i
+i
+(x , yw, yl )
+
+(prompts)
+
+Y
+
+Human!
+
+(preference pairs)
+
+(human
+demos)
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+Step 2:
+Fit a reward model to
+human preferences
+over πSFT samples
+
+πθ0
+
+πθSFT
+
+rϕ
+
+Fine-tune
+
+fi
+
+￼
+
+Fine-tune
+
+X′
+
+Sample!
+
+--- PDF page 23 ---
+RLHF: RL From human feedback
+
+X′
+
+(new prompts)
+
+“Write a poem about jazz.”
+…
+
+X
+
+i
+
+i
+i
+(x , yw, yl )
+
+(prompts)
+
+Y
+
+(Note: we might use X′′,
+that is, yet another set of
+unlabeled prompts)
+
+Human!
+
+(preference pairs)
+
+(human
+demos)
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+Step 2:
+Fit a reward model to
+human preferences
+over πSFT samples
+
+πθ0
+
+πθSFT
+
+rϕ
+
+Fine-tune
+
+Sample!
+
+Step 3:
+Optimize a policy to
+maximize learned rewards
+
+πθRL
+
+Optimize
+
+￼
+
+Fine-tune
+fi
+
+￼
+
+￼
+
+Fine-tune
+
+--- PDF page 24 ---
+Traditional RLHF is complex
+
+[Secrets of RLHF in Large Language Models Part I: PPO, Zheng, et al. 2023]
+
+--- PDF page 25 ---
+Direct Preference Optimization
+
+--- PDF page 26 ---
+Direct Preference Optimization
+High-level punchline
+If we parameterize our reward model correctly…
+
+--- PDF page 27 ---
+Direct Preference Optimization
+High-level punchline
+If we parameterize our reward model correctly…
+…we can extract the optimal policy for our learned reward
+model in closed form, with no additional training
+
+--- PDF page 28 ---
+Direct Preference Optimization
+High-level punchline
+If we parameterize our reward model correctly…
+…we can extract the optimal policy for our learned reward
+model in closed form, with no additional training
+The trick: use a direct correspondence between optimal
+policy and reward model!
+
+--- PDF page 29 ---
+Direct Preference Optimization: Putting it together
+Intractable closed-form optimal RLHF policy
+<latexit sha1_base64="+JoLDxRTtqKRKHFVBRPjeLCyL7U=">AAACR3icbZBLaxsxFIU1TtukTh9OuuxG1ATGIZiZ0Dw2gdBsunShTkIsZ9DId2xhzQPpTphhmH+XTbbd9S9kk0VK6bLyg9AkvSA4nHMukr4wU9Kg5/10GisvXr5aXXvdXH/z9t371sbmqUlzLaAvUpXq85AbUDKBPkpUcJ5p4HGo4CycnszysyvQRqbJdywzGMZ8nMhICo7WClqXLJOX24F2SxbLES069IiySHNR+XV14Rad2hYChlBgpSGqH3oMiowpiNB9qLMQkNfaLXbKDtNyPMFO0Gp7XW8+9Lnwl6JNltMLWj/YKBV5DAkKxY0Z+F6Gw4prlEJB3WS5gYyLKR/DwMqEx2CG1ZxDTbesM6JRqu1JkM7dfzcqHhtTxqFtxhwn5mk2M/+XDXKMDoeVTLIcIRGLi6JcUUzpDCodSQ0CVWkFF1rat1Ix4RYLWvRNC8F/+uXn4nS36+939759bh9/WeJYIx/JJ+ISnxyQY/KV9EifCHJNbsk9+eXcOHfOb+fPotpwljsfyKNpOH8ByO2x7w==</latexit>
+
+⇤
+⇡r (y | x) =
+
+1
+⇡ref (y | x) exp
+Z(x)
+
+✓
+
+1
+
+r(x, y)
+
+⇤
+Every reward function r induces an optimal policy ⇡r
+<latexit sha1_base64="mHYOnUIECUFLnMRia9oq6jUdUNI=">AAAConicdVFda9swFJW9j3beR7P1cQ8TywIJG8Eu+3oZlJXC2MPWsqUti4KRletEVP5Auh42xj+sf2Nv/TeVnVCydrsgODrn3CPpKsqVNOj7l4575+69+1vbD7yHjx4/2ek9fXZiskILmIhMZfos4gaUTGGCEhWc5Rp4Eik4jc4PWv30N2gjs/QnVjnMEr5IZSwFR0uFvYsB1SHL5bB8U43oJ8oiQE6ZyhaUxZqLutUqyhI5p+WoabchQyix1hA3Gwp9vdn7a1iOvAFt3fo6ussLmroVm/8FMShzpiDG4bW/y23oKohpuVjiyNNhr++P/a7obRCsQZ+s6yjs/WHzTBQJpCgUN2Ya+DnOaq5RCgWNxwoDORfnfAFTC1OegJnV3YgbOrDMnMaZtitF2rGbHTVPjKmSyDoTjktzU2vJf2nTAuOPs1qmeYGQitVBcaEoZrT9LzqXGgSqygIutLR3pWLJ7WTQ/qpnhxDcfPJtcLI3Dt6P3x2/7e9/Xo9jmzwnL8mQBOQD2SdfyBGZEOG8cA6db85395X71T12f6ysrrPu2SV/lcuuAILFyyU=</latexit>
+
+<latexit sha1_base64="b3NOSPiYLJO91olfsDJnAblQ3dE=">AAACrnicbVHLbtNAFB2bR4t5NMCSzYgokkNRZCMKbJAq2LBsJZJWzRhrPLlORh0/NHONbFn+PH6AHX/DOLWiknKlkY7OOfcx9yalkgaD4I/j3rv/4OHB4SPv8ZOnz45Gz18sTFFpAXNRqEJfJtyAkjnMUaKCy1IDzxIFF8n1116/+AnayCL/jk0JUcbXuUyl4GipePRrwkr5402s/YZlckXrKf1MWaq5aMOuvfLraWcNMUOosdWQdjsfg7pkClL0d3aWAPJO+/XbZsq0XG9w6k2otuVtDcvSZlu9d1GmivXQqBcbOpTt2v1+O4Ue387tZ/OG4ePROJgF26B3QTiAMRniLB79ZqtCVBnkKBQ3ZhkGJUYt1yiFgs5jlYGSi2u+hqWFOc/ARO123R2dWGZF00LblyPdsrczWp4Z02SJdWYcN2Zf68n/acsK009RK/OyQsjFTaO0UhQL2t+OrqQGgaqxgAst7axUbLhdIdoLe3YJ4f6X74LFu1n4YXZy/n58+mVYxyF5RV4Tn4TkIzkl38gZmRPhHDvnzpWzdAN34UZufGN1nSHnJfkn3M1fA3vQEw==</latexit>
+
+◆
+
+Another view of this identity
+<latexit sha1_base64="1D0LWWxHVizL+PolhAquqnBoPko=">AAACpHicbVHLbtNAFB2bR0t4NNAlm4GoyIEqshGvTaWKLmDRRSpIW5FJrfHkOhl1/NDMNbJl+cv4C3b8TcepFbUpVxrp6JxzH3NvlCtp0Pf/Oe69+w8ebm0/6j1+8vTZTv/5i1OTFVrARGQq0+cRN6BkChOUqOA818CTSMFZdHnU6me/QRuZpT+xymGW8EUqYyk4Wirs/9ljubx4G2qvYomc03JIDyiLNRd10NS/vHLYWEPIEEqsNcTN2segzJmCGL21nUWAvNFeuV8NmZaLJQ572ha3FSxHq1Xt1kOZyhZdm1asaFe0qTe7rRX67mZuO1nYH/gjfxX0Lgg6MCBdjMP+XzbPRJFAikJxY6aBn+Os5hqlUND0WGEg5+KSL2BqYcoTMLN6teSG7llmTuNM25ciXbE3M2qeGFMlkXUmHJdmU2vJ/2nTAuMvs1qmeYGQiutGcaEoZrS9GJ1LDQJVZQEXWtpZqVhyuzq0d+3ZJQSbX74LTt+Pgk+jjycfBodfu3Vsk5fkNfFIQD6TQ/KdjMmECOeV880ZOyfuG/fY/eFOrq2u0+XsklvhXlwBtHXM0g==</latexit>
+
+⇤
+r⇡ (x, y) =
+
+⇡(y | x)
+log
++
+⇡ref (y | x)
+
+But we can’t compute this
+(sums over all sequences)!
+
+log Z(x)
+
+⇤
+Every policy ⇡ is the optimal policy for some induced reward function r⇡
+<latexit sha1_base64="yHt/aPMPvu+FFdLdp99YvRQ62Ms=">AAACpHicdVHLjtMwFHXCawivAks2F6qiVqAqQbw2SCNYwIJFR9CZEXWpHPemtcZ5yL5BjaJ8GX/Bjr/BSatRmYErWTo+555j+zoutLIUhr89/8rVa9dvHNwMbt2+c/de7/6DY5uXRuJU5jo3p7GwqFWGU1Kk8bQwKNJY40l89qHVT36gsSrPvlJV4DwVq0wlSgpy1KL3cwBmwQs13DyvRvAOeIwkgOt8BTwxQtatVgFP1RI2o6bdLjjhhmqDSbOnwLN977fhZhQMoO0259FdXtTUrdj8L4jjpuAaExqe93e5DWyDuFGrNY2C1t/rh+OwK7gMoh3os11NFr1ffJnLMsWMpBbWzqKwoHktDCmpsQl4abEQ8kyscOZgJlK087obcgMDxywhyY1bGUHH7jtqkVpbpbHrTAWt7UWtJf+lzUpK3s5rlRUlYSa3ByWlBsqh/TFYKoOSdOWAkEa5u4JcCzcbcv8auCFEF598GRy/GEevx6+OXvYP3+/GccAesSdsyCL2hh2yT2zCpkx6j72P3sQ78p/6n/0v/nTb6ns7z0P2V/nf/wB39cv8</latexit>
+
+<latexit sha1_base64="0RHrX/eHFmbXK8xNv32+MU5WG3g=">AAACrnicbVFdb9MwFHXCx0b4WIFHXiyqSilDVYIY8II0wQuPm0S7aXWIHPemteZ8yL5BiaL8PP4Ab/wbnC6qRseVLB2dc+659nVSKmkwCP447r37Dx4eHD7yHj95+uxo9PzFwhSVFjAXhSr0ZcINKJnDHCUquCw18CxRcJFcf+31i5+gjSzy79iUEGV8nctUCo6Wike/JqyUP97E2m9YJle0ntLPlKWaizbs2iu/nnbWEDOEGlsNabfzMahLpiBFf2dnCSDvtF+/baZMy/UGp96EahtvMyxLm21676JMFethUC82dIjt2v15O4Ue3+7t7+YN2fFoHMyCbdG7IBzAmAx1Fo9+s1UhqgxyFIobswyDEqOWa5RCQeexykDJxTVfw9LCnGdgona77o5OLLOiaaHtyZFu2dsdLc+MabLEOjOOG7Ov9eT/tGWF6aeolXlZIeTiZlBaKYoF7f+OrqQGgaqxgAst7V2p2HC7QrQ/7NklhPtPvgsW72bhh9nJ+fvx6ZdhHYfkFXlNfBKSj+SUfCNnZE6Ec+ycO1fO0g3chRu58Y3VdYael+Sfcjd/AQMh0BM=</latexit>
+
+Key idea of DPO: train the policy π so that rπ fits the human preference data!
+
+--- PDF page 30 ---
+Direct Preference Optimization: Putting it together
+Fortunately, the reward modeling loss only depends on differences in rewards:
+
+For two different responses, the induced reward difference is:
+<latexit sha1_base64="4cQRILSNEOp89PJuFG6Su6YNUrk=">AAAF6XicrVRLbxMxEN62CZTwauHIxaKNtBFtlCBeF6SqFIkDEqXQh4ijldc7m1jxPmR7aSLLF/gF3BBXfhU/gBs/Au+jJU0faiV8Gs/rm/lmNH7KmVSdzq+5+YVa/dr1xRuNm7du37m7tHxvTyaZoLBLE56IA59I4CyGXcUUh4NUAIl8Dvv+6FVu3/8MQrIk/qgmKfQjMohZyChRVuUtL/xpIuFpnDIPqyEoYtzx2sQ7bKH1s/S8hV4izCFULvat1srJAOFQEDrl69oECEcsQOOWqfQwVlpAaE7Y0COEKYkpcD2V7pNrTViwwVDlZVwGjl8Ax68A17gyF1kcgPBtQaD/ByOmMrA4yCgESMAhEQEKE4FWrd+qyQm5NOblaLkYk6+aRlN4Nj7vuuj5DEx3cj7UNP8aFzurNwWjox0IzOwgGk2Ux4tjsAKha3Q5pnNSYxin1Z4c+ReJDSoTHY23TF7yk38iooaUcP3WeDuuWDv+b5kce734+75+bTxdrEI+dixZNOWYV5zXNpOurHJr+51x/0FeCOAeI7RmIYrWeiXjkg0igtwrLWrVf99bWum0O8VDp4VuJaw41dv2ln7jIKFZBLGinEjZ63ZS1ddEKEY5mAbOJKSEjsgAelaMSQSyr4sRG9S0mnKNwiRWqNBOR2gSSTmJfOuZ9ypnbbnyLFsvU+GLvl3XNFMQ0xIozDhSCcpvHAqYAKr4xAqECmZrRXRI7F4oewlPoJTXwFheurMsnBb2Hre7z9pP3z9Z2disGFp0HjgPHdfpOs+dDeeNs+3sOrT2oTapfal9rY/q3+rf6z9K1/m5Kua+c+LVf/4FnG8BCg==</latexit>
+
+r⇡✓ (x, yw )
+
+⇡✓ (yw | x)
+r⇡✓ (x, yl ) = log
+⇡ref (yw | x)
+|
+{z
+}
+
+ywyw
+inducedreward
+reward for
+induced
+for
+
+⇡✓ (yl | x)
+log
+⇡ref (yl | x)
+|
+{z
+}
+
+inducedreward
+reward for
+induced
+foryl yl
+
+The intractable partition function cancels out when we
+take the difference (i.e., it only depends on the prompt)!
+
+LDPO (⇡✓ , D) =
+<latexit sha1_base64="EkJ40Z4UsoID4mrDDaP3pa17+uQ=">AAAFjnicrVTbbhMxEN02CZRwS+ERCVlEERvRRFkEhZeKqhSpD0iEirQVcbTyOt7Eivci24FElj+Cz+MD+Ace8V5IkzQJrYSllcYz43NmznjtxYwK2Wr93NouFEu3bu/cKd+9d//Bw8ruozMRjTkmHRyxiF94SBBGQ9KRVDJyEXOCAo+Rc2/0PomffyNc0Cj8Iqcx6QVoEFKfYiSNy90t/KhxV8GYulAOiUTanuxN3e910AAr/KwODgBkxJc29IzX2NEAQJ8jPJdrGwAAA9oHk7rO/WQiFSe+XoiBFwBiFGLC1BzcV9uEIKeDoUzKuA4d20DHbkBXrq3qerMa/0OHxj9grtdf2YzShJPa1lVmT9cjzeukYHq11BGneHRK+npZMKNUcp7PyFIGR6tMzjXQkEzifJ5/81NgDTKgyzFctp9sAiSHGDH1UbunNt+b7Y91wt1I956nPmhXpQNLhgMFDeYSk4qT2srzYFmNx+1P2r4k3Ahvz/DrywRpY91Mb0EHAQL2jS5T3n3PrVRbzVa6wFXDyY2qla+2W/kF+xEeBySUmCEhuk4rlj2FuKSYEV2GY0FihEdoQLrGDFFARE+lA9agZjx94EfcfKEEqXf+hEKBENPAM5lJr2I5ljhXxbpj6b/tKRrGY0lCnBH5YwZkBJKHCPQpJ1iyqTEQ5tTUCvAQmVshzXO1wJL9s9ro4iyrcNU4e9l09puvP7+qHh7lCu1YT6xnlm051hvr0Dqx2lbHwoXfxafF50W7VCntlw5K77LU7a38zGNrYZVO/gCNw9tL</latexit>
+
+E(x,yw ,yl )⇠D [log (r⇡✓ (x, yw )
+
+r⇡✓ (x, yl ))]
+
+DPO: a simple classification loss for optimizing the RLHF objective!
+
+--- PDF page 31 ---
+The big picture of DPO
+
+X′
+
+(new prompts)
+
+“Write a poem about jazz.”
+…
+
+X
+
+i
+
+i
+i
+(x , yw, yl )
+
+(prompts)
+
+Y
+
+Human!
+
+(preference pairs)
+
+(human
+demos)
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+Step 2:
+Fit a reward model to
+human preferences
+over πSFT samples
+
+πθ0
+
+πθSFT
+
+rϕ
+
+Fine-tune
+
+Sample!
+
+Step 3:
+Optimize a policy to
+maximize learned rewards
+
+πθRL
+
+Optimize
+
+￼
+
+Fine-tune
+fi
+
+Fine-tune
+
+--- PDF page 32 ---
+The big picture of DPO
+
+X′
+
+(new prompts)
+
+“Write a poem about jazz.”
+…
+
+X
+
+i
+
+i
+i
+(x , yw, yl )
+
+(prompts)
+
+Y
+
+Human!
+
+(preference pairs)
+
+(human
+demos)
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+Step 2:
+Fit a reward model to
+human preferences
+over πSFT samples
+
+πθ0
+
+πθSFT
+
+rϕ
+
+Fine-tune
+
+Sample!
+
+Step 3:
+Optimize a policy to
+maximize learned rewards
+
+πθRL
+
+Optimize
+
+￼
+
+Fine-tune
+fi
+
+Fine-tune
+
+--- PDF page 33 ---
+The big picture of DPO
+
+X′
+
+(new prompts)
+
+“Write a poem about jazz.”
+…
+
+X
+
+i
+
+i
+i
+(x , yw, yl )
+
+(prompts)
+Human!
+
+Y
+
+(preference pairs)
+
+(human
+demos)
+
+Step 0:
+Unsupervised pre-training
+(tons of data; >1T tokens)
+
+Step 1:
+Supervised ne-tuning
+on human demos
+
+Step 2:
+Fit a reward model to
+human preferences
+over πSFT samples
+
+πθ0
+
+πθSFT
+
+rπθ
+
+Fine-tune
+
+Sample!
+Fine-tune
+
+Trivial transform
+
+fi
+
+￼
+
+Instead of rϕ, use
+induced reward rπθ
+
+πθRL
+
+--- PDF page 34 ---
+The big picture of DPO
+In other words, skip the
+complexity of:
+-
+
+Fitting value function
+
+-
+
+Sampling from policy
+during training
+
+-
+
+Storing replay buffer of
+trajectories
+
+-
+
+…
+
+--- PDF page 35 ---
+Results: Overview
+Summariza on helpfulness win rates vs ground truth
+0.7
+
+DPO
+
+Best of 128
+
+PPO
+
+PFT
+
+SFT
+
+Dialogue helpfulness win rates vs ground truth
+DPO
+
+Best of 128
+
+PFT
+
+0.6
+0.5
+0.4
+0.3
+0.2
+
+ti
+
+DPO performs similarly to other RL-based baselines, while being
+substantially simpler, computationally cheaper, and stabler
+
+Base
+
+--- PDF page 36 ---
+Strong models trained with DPO
+
+https://mistral.ai/news/mixtral-of-experts/
+
+Zephyr: Direct Distillation of LLM Alignment. Tunstall et, al.,
+2023.
+
+Almost all the top models on the OpenLLM
+Leaderboard in 2024 used DPO!
+
+Camels in a Changing Climate: Enhancing LM
+Adaptation with Tulu 2. Ivison, et al., 2023
+
+--- PDF page 37 ---
+Part 2: Contrastive Preference Learning
+Can the DPO trick work for sequential settings?
+
+Slide credits: Joey Hejna
+
+--- PDF page 38 ---
+)=
+
+exp ∑
+𝑡
+
+𝑎
+
+𝑡
+𝑠
+
+exp ∑ ( ,
+𝑡
+
+𝑎
+
+𝑠
+
+𝑟
+
+𝑡
+
+𝑡
+
+≻
+𝑟
+
+𝑡
+
+−
+
+𝑡
+
+𝑎
+
+𝑠
+
+(
+
++
+
++
+
+𝑡
+
+𝜎
+
+𝑟
+
+𝑟
+
+𝑡
+
+W. Bradley Knox, Stephane Hatgis-Kessell, Serena Booth, Scott Niekum, Peter Stone, Alessandro Allievi
+
+𝜎
+
+𝑃
+
+Models of Human Preference for Learning Reward Functions
+
++
+
+)
+
++
++
+( , ) + exp ∑
+
+( −,
+
+−)
+
+--- PDF page 39 ---
+W. Bradley Knox, Stephane Hatgis-Kessell, Serena Booth, Scott Niekum, Peter Stone, Alessandro Allievi
+
+Regret-based Model of Preferences:
+
+∗
+
+(
+
++
+
+)=
+
+−
+
+≻
+
+exp ∑
+exp ∑
+
+∗
+
++
+
+( ,
+
++
+
+∗( +, +) + exp ∑
+
+)
+∗( −, −)
+
+𝑡
+𝑎
+
+𝑠
+
+𝐴
+
+𝑡
+
+𝑡
+
+𝑡
+𝑎
+
+𝑠
+
+𝐴
+
+𝑡
+
+𝑡
+𝑡
+𝑎
+
+𝑠
+𝜎
+
+𝐴
+
+𝐴
+
+𝑡
+
+𝑡
+
+…but no efficient algorithm to learn from it!
+
+𝜎
+
+𝑃
+
+Models of Human Preference for Learning Reward Functions
+
+--- PDF page 40 ---
+[log
+
+min−
+
+(
+
++
+
+≻
+
+)]
+
+−
+
+min−
+
+1. Advantage Learning
+
+[
+
+( , )
+
+log ( | )]
+
+2. Policy Extraction
+
+Problem: (Ziebart 2010)
+∗
+
+(
+
+∗
+
+( , )
+
+)=
+
+⟹
+
+∫
+
+∗
+
+( , )
+
+=1
+
+𝑎
+
+𝑠
+
+𝐴
+
+𝑎
+
+𝑑
+
+𝑒
+𝑠
+
+𝑎
+
+𝜎
+
+𝜎
+
+𝜋
+
+𝑎
+
+𝑠
+𝑎
+
+𝑠
+
+𝐴
+
+𝑃
+
+𝑒
+𝔼
+
+𝔼
+
+𝐴
+
+𝐷
+
+𝐷
+
+𝐴
+
+𝑒
+
+𝑠
+
+𝐴
+
+𝜋
+
+To be optimal, our learned advantage must be normalized.
+𝑎
+
+𝜋
+
+A Naïve Approach
+
+--- PDF page 41 ---
+Solution: Just learn
+∗
+
+(
+
+∗
+
+(
+
++
+
+∗
+
+( , )
+
+)=
+
+⟹ log (
+
+( , )
+
++
+
+|
+
+)
+
+∗( + | +) + exp ∑ log ∗( − | −)
+
+exp ∑ log
+
+Contrastive Preference Learning
+
+𝑡
+
+𝑠
+
+𝑡
+𝑎
+
+𝜋
+𝑡
+
+𝑡
+
+𝑡
+𝑎
+
+𝑠
+
+𝐴
+
+𝑎
+𝑠
+
+𝑠
+𝑎
+
+𝐴
+𝜋
+
+𝑠
+
+𝑎
+
+𝜋
+
+𝑒
+
+𝑠
+
+𝑠
+
+𝑠
+
+𝑡
+
+𝑡
+
+𝑡
+𝜎
+
+𝜎
+𝑎
+
+𝑎
+
+𝜋
+
+𝑡
+𝑡
+𝑎
+
+𝜋
+
+𝑠
+
+𝑎
+𝔼
+
+𝜋
+
+𝐷
+
+𝑡
+
+𝑡
+
+𝑡
+
+𝑠
+
+𝑎
+
+𝜋
+𝑡
+
+𝜋
+𝜋
+𝑃
+
+|
+
+)
+
++ | +) + exp ∑ log
+
+𝑡
+
+exp ∑ log (
+
++
+
+𝑡
+
+log
+
+𝑡
+
+𝑡
+
+min−
+
++
+
+exp ∑ log (
+
+𝜋
+𝜋
+
++
+
+exp ∑ log (
+
+)=
+
+∗
+
+)=
+∗
+
+−
+
+≻
+
+∗
+
+(
+
+− | −)
+
+--- PDF page 42 ---
+Contrastive Preference Learning
+
+--- PDF page 43 ---
+Theoretical Properties
+Prop 1. CPL always learns the optimal policy for some reward function.
+Idea: show that using the normalized advantage function as the reward function
+results in the same policy.
+
+Theorem 1. Given unbounded regret-based comparison data, CPL converges to the
+optimal policy.
+Idea: Given identifiability of regret-based preferences, CPL loss can equal zero.
+This implies the advantage functions are the same.
+
+--- PDF page 44 ---
+DPO is a special case of CPL, where we learn a contextual bandit policy in the
+KL-constrained setting:
+∗
+
+(
+
+)= (
+
+)
+
+∗
+
+( , )−
+
+∗
+
+(
+( )
+⟹ log
+(
+
+)
+= ( , )−
+)
+
+∗
+
+( )=
+
+∗
+
+( , )
+
+𝑠
+
+𝑎
+
+𝑠
+
+𝐴
+
+𝑠
+
+𝑉
+
+𝑎
+
+𝑠
+
+𝑟
+
+𝑠
+
+𝑎
+
+𝑎
+
+𝜋
+
+𝑠
+
+𝑉
+
+𝑎
+
+𝑠
+
+𝑟
+
+𝑒
+
+𝑠
+
+𝑎
+
+𝜇
+
+𝑠
+
+𝜇
+
+So DPO actually uses the regret interpretation of preference from this perspective!
+
+𝑎
+
+𝜋
+
+CPL vs. DPO
+
+--- PDF page 45 ---
+Open problems and fundamental limitations of RLHF
+
+Casper, Stephen, et al. "Open problems and fundamental limitations of reinforcement learning
+from human feedback." arXiv preprint arXiv:2307.15217 (2023).
+
+--- PDF page 46 ---
+Challenges: Human feedback
+Misaligned Humans: Evaluators may Pursue the Wrong Goals
+• Tractable: Selecting representative humans and getting them to provide quality feedback is di cult
+• Tractable: Some evaluators have harmful biases and opinions
+• Tractable: Individual human evaluators can poison data
+Good Oversight is Di cult
+• Tractable: Humans make simple mistakes due to limited time, attention, or care
+• Tractable: Partial observability limits human evaluators
+• Fundamental: Humans cannot evaluate performance on di cult tasks well
+• Fundamental: Humans can be misled, so their evaluations can be gamed
+Data Quality
+• Tractable: Data collection can introduce harmful biases
+• Fundamental: There is an inherent cost/quality tradeo when collecting human feedback
+• Tractable: Individual human evaluators can poison data
+
+ffi
+
+ffi
+
+ffi
+
+ff
+
+ff
+
+ff
+
+ffi
+
+Limitations of Feedback Types
+• Fundamental: RLHF su ers from a tradeo between the richness and e ciency of feedback types
+• Comparisons
+• Scalar feedback
+• Corrections
+• Language
+
+--- PDF page 47 ---
+Challenges: Reward model
+Problem Misspeci cation
+
+• Fundamental: An individual human’s values are di cult to represent with a reward function
+• Fundamental: A single reward function cannot represent a diverse society of humans
+Reward Misgeneralization and Hacking
+
+• Fundamental: Reward models can misgeneralize to be poor reward proxies, even from correctly-labeled training data
+• Fundamental: Optimizing for an imperfect reward proxy leads to reward hacking
+Evaluating Reward Models
+
+ffi
+
+ffi
+
+fi
+
+• Tractable: Evaluating reward models is di cult and expensive
+
+--- PDF page 48 ---
+Challenges: Policy learning
+Robust Reinforcement Learning is Di cult
+
+• Tractable: It is (still) challenging to optimize policies e ectively
+• Tractable: Policies tend to be adversarially exploitable
+Policy Misgeneralization
+
+• Fundamental: Policies can perform poorly in deployment even if rewards seen during training were perfectly correct
+• Fundamental: Optimal RL agents tend to seek power
+Distributional Challenges
+
+• Tractable: The pretrained model introduces biases into policy optimization
+• Tractable: RL contributes to mode collapse
+Challenges with Jointly Training the Reward Model and Policy
+
+fi
+
+ff
+
+ffi
+
+ffi
+
+ffi
+
+• Tractable: Joint training induces distribution shifts
+• Tractable: It is di cult to balance e ciency and avoiding over tting by the policy

@@ -43,7 +43,17 @@ export const TranscriptChunk = z.object({
 });
 export type TranscriptChunk = z.infer<typeof TranscriptChunk>;
 
-export const Slide = z.object({ page: z.number().int().positive(), url: z.string() });
+/**
+ * A slide shown during a moment. `kind: 'image'` = `url` is a picture of the page; `kind: 'pdf'` =
+ * `url` opens the slide PDF at that page (`...pdf#page=N`), for decks without pre-rendered images.
+ * `confidence: 'low'` = the match is a best guess; show it as "probably" rather than as certain.
+ */
+export const Slide = z.object({
+  page: z.number().int().positive(),
+  url: z.string(),
+  kind: z.enum(['image', 'pdf']).default('image'),
+  confidence: z.enum(['high', 'low']).optional(),
+});
 export const Equation = z.object({ expression: z.string(), explanation: z.string() });
 export const Artifact = z.object({ id: z.string(), kind: z.string(), title: z.string(), url: z.string() });
 export const TopicGraph = z.object({

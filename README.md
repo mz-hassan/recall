@@ -16,7 +16,7 @@ npm run build
 
 `npm run dev:web` and `npm run dev:server` start either half alone. The API defaults to the offline fixture model provider; copy `.env.example` to `.env` to change server settings. Check it with `curl localhost:8787/api/health`.
 
-To use DeepSeek, set `LLM_PROVIDER=deepseek`, `LLM_MODEL=deepseek-flash` and your own `DEEPSEEK_API_KEY` in `.env`. `npm run eval:segmentation -- --lecture 2` replays a lecture through the configured model and prints the topics it finds, with token use and latency.
+To use DeepSeek, set `LLM_PROVIDER=deepseek`, `LLM_MODEL=deepseek-flash` and your own `DEEPSEEK_API_KEY` in `.env`. `npm run eval:segmentation -- --lecture 2` replays a lecture through the configured model and prints the topics it finds, with token use and latency. `npm run eval:lecture -- --lecture 2` runs the whole pipeline (topics plus summaries, intuition, equations, slide pages, diagrams and the running lecture summary); add `--out results.json` to save it.
 
 Open AI Alignment from the course library. Each lecture appears once, with **Reading breakdowns** and **Past timeline** actions. Open the lecture title for sources and **Simulate live**. The course-level **Knowledge graph** control is intentionally disabled pending implementation.
 

@@ -1,0 +1,464 @@
+--- PDF page 1 ---
+CS 690S: AI Alignment
+Prof. Scott Niekum
+RLHF: Indirect methods
+
+--- PDF page 2 ---
+In a time before RLHF…
+
+--- PDF page 3 ---
+Problems with standard inverse reinforcement learning
+Policy learning in inner loop
+
+Cannot (signi cantly) outperform
+the demonstrator
+
+IRL Loop
+Argh!
+Reward update
+
+fi
+
+Policy learning
+
+--- PDF page 4 ---
+Standard assumption:
+IRL should assume that the expert is near-optimal
+
+Ranked, suboptimal demonstrations provide signi cant
+computational and performance bene ts
+
+fi
+
+fi
+
+D.S. Brown, W. Goo, P. Nagarajan, and S. Niekum.
+Extrapolating Beyond Suboptimal Demonstrations via
+Inverse Reinforcement Learning from Observations.
+International Conference on Machine Learning (ICML), June 2019.
+
+--- PDF page 5 ---
+Ranked demonstrations: HalfCheetah
+
+12.52
+
+44.98
+
+88.97
+
+--- PDF page 6 ---
+T-REX: Trajectory-ranked Reward Extrapolation
+
+• Fully supervised — no policy learning
+• No action labels required
+• Extrapolation potential
+• Works on high-dim (e.g. Atari) with ~10 demos
+
+--- PDF page 7 ---
+Data augmentation
+Rank 1
+Rank 2
+
+Rank n-1
+Rank n
+
+--- PDF page 8 ---
+Data augmentation
+Rank 1
+Rank 2
+
+Rank n-1
+Rank n
+
+Subsampling
+
+--- PDF page 9 ---
+Data augmentation
+Rank 1
+Rank 2
+
+Rank n-1
+Rank n
+
+Frame skipping
+
+--- PDF page 10 ---
+T-REX reward prediction
+
+HalfCheetah
+
+Hopper
+
+Ant
+
+Beam Rider
+
+Seaquest
+
+Enduro
+
+--- PDF page 11 ---
+Ranked demonstrations: HalfCheetah
+
+12.52
+
+44.98
+
+88.97
+
+--- PDF page 12 ---
+Results: HalfCheetah
+
+Best demo (88.97)
+
+T-REX (143.40)
+
+--- PDF page 13 ---
+Results: Atari
+
+Best demo (600)
+
+T-REX (1495)
+
+--- PDF page 14 ---
+T-REX vs. SOTA imitation learning
+
+GT
+
+HalfCheetah
+
+GT
+
+Hopper
+
+--- PDF page 15 ---
+T-REX vs. SOTA imitation learning
+GT
+
+Ant
+
+(182.33)
+
+--- PDF page 16 ---
+T-REX vs. SOTA imitation learning
+
+Beamrider
+
+Breakout
+
+--- PDF page 17 ---
+Frame stacks: best vs. worst reward
+
+Worst
+
+Best
+
+--- PDF page 18 ---
+Reward heat maps
+
+Min frame
+
+Medium frame
+
+Max frame
+
+--- PDF page 19 ---
+Frame stacks: best vs. worst reward
+
+Worst
+
+Best
+
+--- PDF page 20 ---
+Reward heat maps
+
+Min frame
+
+Max frame
+
+--- PDF page 21 ---
+Robustness to pairwise ranking noise
+
+--- PDF page 22 ---
+D-REX: Auto-generated rankings
+
+⇡BC
+
+Increasing
+Noise
+
+<latexit sha1_base64="PLWCD3SgGajO2QQkkifPzCoRMSM=">AAAB73icbZBNS8NAEIYn9avWr6pHL4tF8FQSEfRY2ovHCvYD2lA220m7dLOJuxuhhP4JLx4U8erf8ea/cdvmoK0vLDy8M8POvEEiuDau++0UNja3tneKu6W9/YPDo/LxSVvHqWLYYrGIVTegGgWX2DLcCOwmCmkUCOwEk8a83nlCpXksH8w0QT+iI8lDzqixVref8EFWb8wG5YpbdRci6+DlUIFczUH5qz+MWRqhNExQrXuemxg/o8pwJnBW6qcaE8omdIQ9i5JGqP1sse+MXFhnSMJY2ScNWbi/JzIaaT2NAtsZUTPWq7W5+V+tl5rw1s+4TFKDki0/ClNBTEzmx5MhV8iMmFqgTHG7K2FjqigzNqKSDcFbPXkd2ldVz/L9daVWz+MowhmcwyV4cAM1uIMmtICBgGd4hTfn0Xlx3p2PZWvByWdO4Y+czx/jtY/b</latexit>
+
+Behavioral
+Cloning
+
+Noise-modi ed
+Rollouts
+
+Unranked
+Demonstrations
+
+“Ranked”
+Trajectories
+
+fi
+
+D. Brown, W. Goo, and S. Niekum.
+Ranking-Based Reward Extrapolation without Rankings
+Conference on Robot Learning (CoRL), October 2019.
+
+--- PDF page 23 ---
+Reinforcement Learning from Human Feedback (RLHF)
+• Preference elicitation is a generic mechanism for inferring human goals / desires / priorities
+• T-REX operated from an imitation learning perspective, but trajectories can come from
+anywhere, not just demonstrations
+
+• General recipe for alignment: infer human’s reward function and then optimize it with RL
+• …or as we’ll see next time, maybe just learn policies directly from preferences
+
+--- PDF page 24 ---
+RLHF for InstructGPT
+
+Ouyang, Long, et al. "Training language models to follow
+instructions with human feedback." Advances in neural
+information processing systems 35 (2022)
+
+--- PDF page 25 ---
+Learning reward functions from preferences
+
+--- PDF page 26 ---
+Preferences over segment pairs
+Which shows better behavior?
+GOAL
+
+GOAL
+
+or
+
+W. Knox, S. Hatgis-Kessell, S. Booth, S. Niekum, P. Stone, A. Allievi.
+Models of Human Preference for Learning Reward Functions.
+Transactions on Machine Learning Research (TMLR), January 2024.
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 27 ---
+Preferences over segment pairs
+Which shows better behavior?
+GOAL
+
+GOAL
+
+or
+
+W. Knox, S. Hatgis-Kessell, S. Booth, S. Niekum, P. Stone, A. Allievi.
+Models of Human Preference for Learning Reward Functions.
+Transactions on Machine Learning Research (TMLR), January 2024.
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 28 ---
+Bradley-Terry preference models
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 29 ---
+The missing piece: the model of preference
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 30 ---
+The missing piece: the model of preference
+
+Current dominant model:
+Partial return
+
+,
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 31 ---
+The missing piece: the model of preference
+
+Partial return:
+
+Assume -1 reward per
+step.
+Partial return is indifferent!
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 32 ---
+The missing piece: the model of preference
+
+Partial return:
+
+Partial return prefers the
+left segment!
+Slide credit: W. Bradley Knox
+
+--- PDF page 33 ---
+The missing piece: the model of preference
+
+Proposed preference model: Regret
+
+when all
+transitions are
+deterministic
+Slide credit: W. Bradley Knox
+
+--- PDF page 34 ---
+The missing piece: the model of preference
+
+Regret:
+
+Assume -1 reward per
+step.
+Regret prefers σ2.
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 35 ---
+The missing piece: the model of preference
+
+Regret:
+
+Regret prefers σ2.
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 36 ---
+Reward identifiability
+Definition:
+Ground
+truth….
+Equivalent
+(same set of optimal policies)
+
+Learned
+
+∃ an algorithm that
+guarantees …
+
+Infinitely exhaustive
+preferences dataset
+
+Given preferences generated by a preference model and a reward function,
+where the preferences infinitely cover every segment pair,
+does the preference dataset contain sufficient information to recover an
+equivalent reward function?
+Slide credit: W. Bradley Knox
+
+--- PDF page 37 ---
+Reward identifiability
+
+11
+
+If
+
+,
+
+9
+
+is optimal.
+
+If
+
+,
+
+is optimal.
+
+Yet both create the same (noiseless) return-based preferences!
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 38 ---
+Reward identifiability
+
+Therefore, reward is not generally
+identifiable with noiseless preferences from
+partial return.
+11
+
+If
+
+,
+
+9
+
+is optimal.
+
+If
+
+,
+
+is optimal.
+
+Yet both create the same (noiseless) return-based preferences!
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 39 ---
+Reward identifiability
+
+Similarly, reward is not generally identifiable for inverse
+reinforcement learning from (noiseless) demonstrations
+of optimal behavior.
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 40 ---
+Reward identifiability
+
+Reward is identifiable with regret-based
+preferences for any MDP.
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 41 ---
+The delivery domain
+w1
+w2
+w3
+w4
+w5
+terminates
+w6
+
+ground-truth reward
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 42 ---
+Slide credit: W. Bradley Knox
+
+100
+randomly
+generated
+MDPs
+
+--- PDF page 43 ---
+Preference elicitation
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 44 ---
+Human preferences visualized
+Recall
+
+Slide credit: W. Bradley Knox
+
+--- PDF page 45 ---
+Explaining human preferences with different preference models
+
+Mean cross-entropy test loss over 10-fold cross
+validation (n=1812) from predicting human
+preferences. Lower is better.
+Slide credit: W. Bradley Knox
+
+--- PDF page 46 ---
+RLHF under the regret-based model?
+
+Next time! — We need a few new tools
+
+--- PDF page 47 ---
+Problems with preferences?

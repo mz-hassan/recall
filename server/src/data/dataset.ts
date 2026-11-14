@@ -23,7 +23,12 @@ const ManifestSchema = z.object({
     required: z.array(Material).default([]),
     optional: z.array(Material).default([]),
     transcript: z.object({ status: z.string(), files: z.array(z.string()).default([]) }),
-    slides: z.object({ status: z.string(), source_url: z.string().optional(), files: z.array(z.string()).default([]) }),
+    slides: z.object({
+      status: z.string(),
+      source_url: z.string().optional(),
+      files: z.array(z.string()).default([]),
+      note: z.string().optional(),
+    }),
   })),
 });
 export type Manifest = z.infer<typeof ManifestSchema>;
@@ -61,10 +66,15 @@ export async function findLecture(courseId: string, lectureId: string): Promise<
   return manifest.lectures.find(lecture => String(lecture.number) === lectureId);
 }
 
-/** Reads a file by its manifest path (relative to the course dataset). Paths outside it are refused. */
-export async function readDatasetFile(courseId: string, relativePath: string): Promise<string> {
+/** Absolute path of a manifest path (relative to the course dataset). Paths outside it are refused. */
+export function datasetFilePath(courseId: string, relativePath: string): string {
   const root = courseRoot(courseId);
   const resolved = path.resolve(root, relativePath);
   if (!resolved.startsWith(root + path.sep)) throw new DatasetError(`Path escapes the dataset: ${relativePath}`);
-  return readFile(resolved, 'utf8');
+  return resolved;
+}
+
+/** Reads a text file by its manifest path. */
+export async function readDatasetFile(courseId: string, relativePath: string): Promise<string> {
+  return readFile(datasetFilePath(courseId, relativePath), 'utf8');
 }

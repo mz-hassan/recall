@@ -1,0 +1,252 @@
+--- PDF page 1 ---
+CS 690S: AI Alignment
+Prof. Scott Niekum
+Occupancy Matching
+
+--- PDF page 2 ---
+Final project proposals
+• Can work with up to 2 other people (or 3, with a higher bar)
+• Example projects could include: extending an algorithm in a novel way; comparing several algorithms on
+an interesting problem; designing a new approach to attack a problem relevant to the class.
+
+• In all cases, there should be a novel intellectual contribution, as well as empirical results on a problem of
+interest.
+
+• Writeup should include:
+• A clear description of the problem you are investigating, both abstractly and in context of a particular
+experimental domain
+
+• References to a few papers that are relevant to the subject of interest
+• A proposed plan to address your problem, which should outline what method(s) you plan to develop,
+implement, compare, or extend (and how)
+
+• A testable hypothesis
+• An experiment to test your hypothesis and a clear evaluation criteria to determine the outcome of your
+experiment / hypothesis
+
+--- PDF page 3 ---
+IRL problems so far
+• RL in the inner loop
+• Over tting to noisy estimates of expert feature counts
+• Doesn’t scale to large problems: restricted to linear rewards with carefully
+designed features
+
+• Indirect - if we want a policy to match expert, why solve an intermediate problem
+
+fi
+
+of reward inference?
+
+--- PDF page 4 ---
+Background: Maximum Causal Entropy IRL
+
+--- PDF page 5 ---
+Background: Occupancy measures
+
+--- PDF page 6 ---
+Why occupancy measures matter
+
+--- PDF page 7 ---
+Preventing overfitting: convex regularizer
+Maximum Causal Entropy IRL
+
+Regularizer
+
+⇤
+<latexit sha1_base64="ApE0kaWebCRJL2eLIfcfNmYu17o=">AAACNXicbVDLThsxFPWkPNLwCu2yG4sIKUEimqGVYIOUlk0XLHgFImWSyOM4YOHxWPYdlJE1P9VN/6MruuiiCLHlF/CELCBwJEtH59yH74mU4AZ8/69X+jA3v7BY/lhZWl5ZXauufzo3Saopa9NEJLoTEcMEl6wNHATrKM1IHAl2EV0fFP7FDdOGJ/IMMsV6MbmUfMQpAScNqoehMry/Vc8aeB+HwMagY2tSlQ/sGIdc4jAmcBVF9iTv21NXwWNm8Pc8x+O+DSFReYa3cTGkPm4MqjW/6U+A35JgSmpoiqNB9U84TGgaMwlUEGO6ga+gZ4kGTgXLK2FqmCL0mlyyrqOSuOU9O7k6x5tOGeJRot2TgCfqyw5LYmOyOHKVxQ1m1ivE97xuCqO9nuVSpcAkfV40SgWGBBcR4iHXjILIHCFUc/dXTK+IJhRc0BUXQjB78ltyvtMMvjZ3jr/VWj+mcZTRF7SB6ihAu6iFfqIj1EYU/UK36D+68357/7x77+G5tORNez6jV/AenwCwC6tg</latexit>
+
+Expert
+performance
+
+Entropy-regularized
+RL
+
+>
+
+(y) = supx2RS⇥A x y
+
+(x)
+Ho, Jonathan, and Stefano Ermon. "Generative adversarial imitation
+learning." Advances in neural information processing systems 29 (2016).
+
+--- PDF page 8 ---
+Detour: convex conjugates
+slope = y
+
+Economic view:
+If it costs f(x) to make x widgets and I
+can sell them for y each, then f*(y) is the
+max pro t I can make
+
+f(x)
+
+ML view:
+If I have a regularizer f(x) and utility function
+uy(x) = xy, then f*(y) tells me the value of the
+best regularized utility I can achieve by
+choosing the best “weight” x for a xed y:
+f*(y) = supx uy(x) - f(x)
+
+f*(y)
+
+⇤
+
+f (y) = sup xy
+fi
+
+fi
+
+<latexit sha1_base64="2F78L8/9kaln2JBBe/aG8bOmhJk=">AAACAnicbVDLSsNAFJ3UV62vqCtxM1iEVrAkVdCNUHTjsoJ9QBvDZDpph04mYWYiDaG48VfcuFDErV/hzr9x2mah1QMXDufcy733eBGjUlnWl5FbWFxaXsmvFtbWNza3zO2dpgxjgUkDhywUbQ9JwignDUUVI+1IEBR4jLS84dXEb90TIWnIb1USESdAfU59ipHSkmvu+XdHpaQML2BXxpE7gqMEHkO/NCq7ZtGqWFPAv8TOSBFkqLvmZ7cX4jggXGGGpOzYVqScFAlFMSPjQjeWJEJ4iPqkoylHAZFOOn1hDA+10oN+KHRxBafqz4kUBVImgac7A6QGct6biP95nVj5505KeRQrwvFskR8zqEI4yQP2qCBYsUQThAXVt0I8QAJhpVMr6BDs+Zf/kma1Yp9UqjenxdplFkce7IMDUAI2OAM1cA3qoAEweABP4AW8Go/Gs/FmvM9ac0Y2swt+wfj4Br3PlRY=</latexit>
+
+x
+
+f (x)
+
+--- PDF page 9 ---
+Detour: convex conjugates
+slope = y
+
+Economic view:
+If it costs f(x) to make x widgets and I
+can sell them for y each, then f*(y) is the
+max pro t I can make
+
+f(x)
+
+ML view:
+If I have a regularizer f(x) and utility function
+uy(x) = xy, then f*(y) tells me the value of the
+best regularized utility I can achieve by
+choosing the best “weight” x for a xed y:
+f*(y) = supx uy(x) - f(x)
+
+f*(y)
+
+⇤
+
+f (y) = sup xy
+fi
+
+fi
+
+<latexit sha1_base64="2F78L8/9kaln2JBBe/aG8bOmhJk=">AAACAnicbVDLSsNAFJ3UV62vqCtxM1iEVrAkVdCNUHTjsoJ9QBvDZDpph04mYWYiDaG48VfcuFDErV/hzr9x2mah1QMXDufcy733eBGjUlnWl5FbWFxaXsmvFtbWNza3zO2dpgxjgUkDhywUbQ9JwignDUUVI+1IEBR4jLS84dXEb90TIWnIb1USESdAfU59ipHSkmvu+XdHpaQML2BXxpE7gqMEHkO/NCq7ZtGqWFPAv8TOSBFkqLvmZ7cX4jggXGGGpOzYVqScFAlFMSPjQjeWJEJ4iPqkoylHAZFOOn1hDA+10oN+KHRxBafqz4kUBVImgac7A6QGct6biP95nVj5505KeRQrwvFskR8zqEI4yQP2qCBYsUQThAXVt0I8QAJhpVMr6BDs+Zf/kma1Yp9UqjenxdplFkce7IMDUAI2OAM1cA3qoAEweABP4AW8Go/Gs/FmvM9ac0Y2swt+wfj4Br3PlRY=</latexit>
+
+x
+
+f (x)
+
+--- PDF page 10 ---
+Detour: convex conjugates
+slope = y
+
+Economic view:
+If it costs f(x) to make x widgets and I
+can sell them for y each, then f*(y) is the
+max pro t I can make
+
+f(x)
+
+(Negative) ML view:
+If I have a regularizer f(x) and cost function
+cy(x) = xy, then f*(y) tells me the value of the
+largest regularized cost an adversary can force
+by choosing the worst “weight” x for a xed y:
+f*(y) = supx cy(x) - f(x)
+
+f*(y)
+
+⇤
+
+f (y) = sup xy
+fi
+
+fi
+
+<latexit sha1_base64="2F78L8/9kaln2JBBe/aG8bOmhJk=">AAACAnicbVDLSsNAFJ3UV62vqCtxM1iEVrAkVdCNUHTjsoJ9QBvDZDpph04mYWYiDaG48VfcuFDErV/hzr9x2mah1QMXDufcy733eBGjUlnWl5FbWFxaXsmvFtbWNza3zO2dpgxjgUkDhywUbQ9JwignDUUVI+1IEBR4jLS84dXEb90TIWnIb1USESdAfU59ipHSkmvu+XdHpaQML2BXxpE7gqMEHkO/NCq7ZtGqWFPAv8TOSBFkqLvmZ7cX4jggXGGGpOzYVqScFAlFMSPjQjeWJEJ4iPqkoylHAZFOOn1hDA+10oN+KHRxBafqz4kUBVImgac7A6QGct6biP95nVj5505KeRQrwvFskR8zqEI4yQP2qCBYsUQThAXVt0I8QAJhpVMr6BDs+Zf/kma1Yp9UqjenxdplFkce7IMDUAI2OAM1cA3qoAEweABP4AW8Go/Gs/FmvM9ac0Y2swt+wfj4Br3PlRY=</latexit>
+
+x
+
+f (x)
+
+--- PDF page 11 ---
+A generalized view of IRL
+
+Regularizer
+
+⇤
+<latexit sha1_base64="ApE0kaWebCRJL2eLIfcfNmYu17o=">AAACNXicbVDLThsxFPWkPNLwCu2yG4sIKUEimqGVYIOUlk0XLHgFImWSyOM4YOHxWPYdlJE1P9VN/6MruuiiCLHlF/CELCBwJEtH59yH74mU4AZ8/69X+jA3v7BY/lhZWl5ZXauufzo3Saopa9NEJLoTEcMEl6wNHATrKM1IHAl2EV0fFP7FDdOGJ/IMMsV6MbmUfMQpAScNqoehMry/Vc8aeB+HwMagY2tSlQ/sGIdc4jAmcBVF9iTv21NXwWNm8Pc8x+O+DSFReYa3cTGkPm4MqjW/6U+A35JgSmpoiqNB9U84TGgaMwlUEGO6ga+gZ4kGTgXLK2FqmCL0mlyyrqOSuOU9O7k6x5tOGeJRot2TgCfqyw5LYmOyOHKVxQ1m1ivE97xuCqO9nuVSpcAkfV40SgWGBBcR4iHXjILIHCFUc/dXTK+IJhRc0BUXQjB78ltyvtMMvjZ3jr/VWj+mcZTRF7SB6ihAu6iFfqIj1EYU/UK36D+68357/7x77+G5tORNez6jV/AenwCwC6tg</latexit>
+
+Expert
+performance
+
+Entropy-regularized
+RL
+
+>
+
+(y) = supx2RS⇥A x y
+
+(x)
+Ho, Jonathan, and Stefano Ermon. "Generative adversarial imitation
+learning." Advances in neural information processing systems 29 (2016).
+
+--- PDF page 12 ---
+A unification of imitation learning
+
+--- PDF page 13 ---
+Special case: no regularization
+
+--- PDF page 14 ---
+Apprenticeship learning
+Apprenticeship learning (Abbeel and Ng 2004) is (surprisingly!) regularized occupancy matching:
+
+for function class
+
+then:
+
+De ne:
+
+fi
+
+So what’s the problem?
+
+--- PDF page 15 ---
+The problem with apprenticeship learning
+• If expert’s true reward function isn’t in the representable class, then we can get poor performance
+• Just because learned policy looks as good as expert on a restricted set of cost functions, doesn’t
+mean we’ve learned the expert policy. Not smooth regularization — very sharp, in fact.
+
+• Thus, requires very careful feature design
+• Can we do better?
+
+--- PDF page 16 ---
+The GAIL regularizer
+
+--- PDF page 17 ---
+GAIL: GAN connection
+
+--- PDF page 18 ---
+GAIL: GAN connection
+
+--- PDF page 19 ---
+GAIL saddle point
+
+--- PDF page 20 ---
+GAIL
+
+--- PDF page 21 ---
+GAIL Takeaways
+• Direct: no need to solve intermediate reward inference problem
+• Less prone to over tting to nite / noisy demonstrations, via regularization
+• Scalable to large problems via function approximation
+• No feature design or linearity assumptions required
+• Exact imitation possible due to working directly with (s,a) occupancies
+
+fi
+
+fi
+
+rather than features
+
+--- PDF page 22 ---
+Dual RL and ReCOIL

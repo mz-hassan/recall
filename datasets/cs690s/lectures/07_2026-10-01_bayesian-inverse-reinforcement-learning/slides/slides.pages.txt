@@ -1,0 +1,405 @@
+--- PDF page 1 ---
+CS 690S: AI Alignment
+Prof. Scott Niekum
+Safe Imitation and Bayesian IRL
+
+--- PDF page 2 ---
+What does it mean for a learning agent to be “safe”?
+• Formal safety: A self-driving car that will provably never crash if some model holds
+• Risk-sensitive safety: A stock market agent with bounded value-at-risk
+• Robust safety: An image classi er resistant to data poisoning or adversarial examples
+• Monotonic safety: An RL-based advertising policy that always improves with high probability
+• Safe exploration: A walking robot that can explore new gaits without falling over
+
+More complete taxonomy: D. Amodei, C. Olah, J. Steinhardt, P. Christiano, J. Schulman, and D. Mané.
+
+fi
+
+"Concrete problems in AI safety."
+
+--- PDF page 3 ---
+A proposed de nition of safety:
+
+Safety = Correctness + Con dence
+Correctness: Meeting or exceeding a measure of performance
+
+fi
+
+fi
+
+fi
+
+Con dence: A (probabilistic) guarantee of correctness
+
+--- PDF page 4 ---
+Safe Imitation Learning:
+
+Probability
+
+Upper bound the policy loss of the robot vs. human demonstrator with
+high con dence, without knowing the ground-truth reward function.
+
+fi
+
+Reward Functions
+
+--- PDF page 5 ---
+Inverse reinforcement learning: feature matching
+(Abbeel and Ng 2004)
+
+Policy value under linear reward function:
+
+(Discounted) feature expectations:
+Goal: nd a reward function whose optimal
+policy matches expert’s feature expectations
+
+fi
+
+If expert’s feature expectations are matched,
+then total return is also identical
+
+--- PDF page 6 ---
+Hoeffding-style bound (w.r.t. projection IRL algorithm)
+(Abbeel and Ng 2004, Syed and Schapire 2008)
+
+--- PDF page 7 ---
+Assumption:
+Worst-case reasoning is the best we can do if we don’t
+know the ground-truth reward function
+
+It is much more ef cient to consider the likelihood of
+reward functions when assessing risk
+
+fi
+
+fi
+
+fi
+
+D.S. Brown and S. Niekum.
+Ef cient Probabilistic Performance Bounds for Inverse Reinforcement Learning.
+AAAI Conference on Arti cial Intelligence, February 2018.
+
+D.S. Brown, Y. Cui, and S. Niekum.
+Risk-Aware Active Inverse Reinforcement Learning.
+Conference on Robot Learning (CoRL), October 2018.
+
+--- PDF page 8 ---
+Rethinking feature expectations
+
+Problem 1: Hoeffding method bounds the features expectations,
+which in turn, bounds loss under a worst-case reward function,
+regardless of its likelihood given the demonstrations
+Problem 2: Feature expectation methods cannot learn from
+state-action pairs that aren’t part of a full trajectory
+
+--- PDF page 9 ---
+Bayesian Inverse Reinforcement Learning (BIRL)
+[Ramachandran and Amir 2007]
+
+•
+
+Use MCMC to sample from posterior:
+
+•
+
+Assume demonstrations follow softmax policy with temperature c:
+
+--- PDF page 10 ---
+Sampling
+
+from
+
+a
+
+distribution
+CD F
+
+PDF
+
+↳
+1
+
+.
+
+0
+
+5----------30 /
+
+Li
+30
+
+%
+
+-2=
+
+oy
+
+know
+
+CDF
+
+Un uniform
+2
+
+If
+
+~CDF
+
+...
+
+not
+
+-
+
+-
+
+-
+
+-
+
+-
+
+-
+
+-
+
+I
+
+x
+
+·
+or
+
+We
+
+-
+
+=
+0
+
+*
+
+If
+
+-
+
+-
+
+(U)
+
+then
+,
+
+sample :
+
+Y
+
+--- PDF page 11 ---
+
+
+--- PDF page 12 ---
+
+
+--- PDF page 13 ---
+
+
+--- PDF page 14 ---
+
+
+--- PDF page 15 ---
+
+
+--- PDF page 16 ---
+
+
+--- PDF page 17 ---
+
+
+--- PDF page 18 ---
+
+
+--- PDF page 19 ---
+Bayesian Inverse Reinforcement Learning (BIRL)
+[Ramachandran and Amir 2007]
+
+•
+
+Use MCMC to sample from posterior:
+
+•
+
+Assume demonstrations follow softmax policy with temperature c:
+
+--- PDF page 20 ---
+Safe Imitation Learning:
+
+Probability
+
+Upper bound the policy loss of the robot vs. human demonstrator with
+high con dence, without knowing the ground-truth reward function.
+
+fi
+
+Reward Functions
+
+--- PDF page 21 ---
+Background: ↵ -value at risk
+<latexit sha1_base64="uAKVOmshAhr5jmWqurZYSRUqZlg=">AAAB7nicbVBNS8NAEJ34WetX1aOXxSJ4KkkV9Fj04rGC/YA2lMl20y7dbMLuRiihP8KLB0W8+nu8+W/ctDlo64OBx3szzMwLEsG1cd1vZ219Y3Nru7RT3t3bPzisHB23dZwqylo0FrHqBqiZ4JK1DDeCdRPFMAoE6wSTu9zvPDGleSwfzTRhfoQjyUNO0Vip00eRjLE8qFTdmjsHWSVeQapQoDmofPWHMU0jJg0VqHXPcxPjZ6gMp4LNyv1UswTpBEesZ6nEiGk/m587I+dWGZIwVrakIXP190SGkdbTKLCdEZqxXvZy8T+vl5rwxs+4TFLDJF0sClNBTEzy38mQK0aNmFqCVHF7K6FjVEiNTSgPwVt+eZW06zXvslZ/uKo2bos4SnAKZ3ABHlxDA+6hCS2gMIFneIU3J3FenHfnY9G65hQzJ/AHzucPw0ePMA==</latexit>
+
+0.95 VaR
+Worst 5% outcomes
+
+Best 95% outcomes
+
++ Single-sided con dence bound
+
+-$500
+
+fi
+
+fi
+
+“With high con dence, you won’t lose more than $500 more than
+95% of the time when using this investing strategy”
+
+--- PDF page 22 ---
+Background: ↵ -value at risk
+<latexit sha1_base64="uAKVOmshAhr5jmWqurZYSRUqZlg=">AAAB7nicbVBNS8NAEJ34WetX1aOXxSJ4KkkV9Fj04rGC/YA2lMl20y7dbMLuRiihP8KLB0W8+nu8+W/ctDlo64OBx3szzMwLEsG1cd1vZ219Y3Nru7RT3t3bPzisHB23dZwqylo0FrHqBqiZ4JK1DDeCdRPFMAoE6wSTu9zvPDGleSwfzTRhfoQjyUNO0Vip00eRjLE8qFTdmjsHWSVeQapQoDmofPWHMU0jJg0VqHXPcxPjZ6gMp4LNyv1UswTpBEesZ6nEiGk/m587I+dWGZIwVrakIXP190SGkdbTKLCdEZqxXvZy8T+vl5rwxs+4TFLDJF0sClNBTEzy38mQK0aNmFqCVHF7K6FjVEiNTSgPwVt+eZW06zXvslZ/uKo2bos4SnAKZ3ABHlxDA+6hCS2gMIFneIU3J3FenHfnY9G65hQzJ/AHzucPw0ePMA==</latexit>
+
+0.95 VaR
+Worst 5% outcomes
+
+Best 95% outcomes
+
++ Single-sided con dence bound
+
+“With probability 1
+
+, no more than 1
+
+<latexit sha1_base64="RMkfy7Sl6FeH0wwOtgInosPkvOY=">AAAB73icbZBNS8NAEIYn9avWr6pHL4tF8GJJRNBj0YvHCrYW2lA2m0m7dLOJuxuhhP4JLx4U8erf8ea/cdvmoK0vLDy8M8POvEEquDau++2UVlbX1jfKm5Wt7Z3dver+QVsnmWLYYolIVCegGgWX2DLcCOykCmkcCHwIRjfT+sMTKs0TeW/GKfoxHUgecUaNtTreWS9EYWi/WnPr7kxkGbwCalCo2a9+9cKEZTFKwwTVuuu5qfFzqgxnAieVXqYxpWxEB9i1KGmM2s9n+07IiXVCEiXKPmnIzP09kdNY63Ec2M6YmqFerE3N/2rdzERXfs5lmhmUbP5RlAliEjI9noRcITNibIEyxe2uhA2poszYiCo2BG/x5GVon9c9y3cXtcZ1EUcZjuAYTsGDS2jALTShBQwEPMMrvDmPzovz7nzMW0tOMXMIf+R8/gBsWI+O</latexit>
+
+<latexit sha1_base64="RMkfy7Sl6FeH0wwOtgInosPkvOY=">AAAB73icbZBNS8NAEIYn9avWr6pHL4tF8GJJRNBj0YvHCrYW2lA2m0m7dLOJuxuhhP4JLx4U8erf8ea/cdvmoK0vLDy8M8POvEEquDau++2UVlbX1jfKm5Wt7Z3dver+QVsnmWLYYolIVCegGgWX2DLcCOykCmkcCHwIRjfT+sMTKs0TeW/GKfoxHUgecUaNtTreWS9EYWi/WnPr7kxkGbwCalCo2a9+9cKEZTFKwwTVuuu5qfFzqgxnAieVXqYxpWxEB9i1KGmM2s9n+07IiXVCEiXKPmnIzP09kdNY63Ec2M6YmqFerE3N/2rdzERXfs5lmhmUbP5RlAliEjI9noRcITNibIEyxe2uhA2poszYiCo2BG/x5GVon9c9y3cXtcZ1EUcZjuAYTsGDS2jALTShBQwEPMMrvDmPzovz7nzMW0tOMXMIf+R8/gBsWI+O</latexit>
+
+↵% of the outcomes will be worse than X”
+<latexit sha1_base64="6O3gJp1/qXNphpK3GMjx+yG+L6s=">AAAB8HicbZBNS8NAEIYnftb6VfXoZbEUPJVEBD0WvXisYD+kCWWy3bRLN5uwuxFK6K/w4kERr/4cb/4bt20O2vrCwsM7M+zMG6aCa+O6387a+sbm1nZpp7y7t39wWDk6buskU5S1aCIS1Q1RM8ElaxluBOumimEcCtYJx7ezeueJKc0T+WAmKQtiHEoecYrGWo8+inSExK/1K1W37s5FVsEroAqFmv3Klz9IaBYzaahArXuem5ogR2U4FWxa9jPNUqRjHLKeRYkx00E+X3hKatYZkChR9klD5u7viRxjrSdxaDtjNCO9XJuZ/9V6mYmug5zLNDNM0sVHUSaIScjsejLgilEjJhaQKm53JXSECqmxGZVtCN7yyavQvqh7lu8vq42bIo4SnMIZnIMHV9CAO2hCCyjE8Ayv8OYo58V5dz4WrWtOMXMCf+R8/gD2KI/X</latexit>
+
+fi
+
+Goal: Solve for X and check if it is below acceptable risk level
+
+--- PDF page 23 ---
+(Active) Safe IRL
+Bayesian IRL
+Calculate policy losses
+
+RMAP →
+Ri →
+P(R|D)
+
+Expert
+Demos
+
+RMAP
+
+Ri
+
+fi
+
+Active
+Query
+
+Info-theoretic or
+risk-based criteria
+
+Policy Loss
+
+Calculate Value at Risk
+
+Plus a single-sided
+con dence bound
+
+--- PDF page 24 ---
+Results: ef ciency (no active learning)
+
+fi
+
+fi
+
+Four orders of magnitude more data ef cient!
+
+--- PDF page 25 ---
+Risk-sensitive preferences
+
+Demonstration: avoids cars, no lane pref
+
+Avoids cars, but prefers right lane
+
+Stays on road, but ignores other cars
+
+Seeks collisions
+
+--- PDF page 26 ---
+Risk-sensitive preferences (feature count-based)
+
+Demonstration: avoids cars, no lane pref
+
+3
+
+1
+
+2
+
+Avoids cars, but prefers right lane
+
+Stays on road, but ignores other cars
+
+Seeks collisions
+
+--- PDF page 27 ---
+Risk-sensitive preferences (our approach)
+
+Demonstration: avoids cars, no lane pref
+
+1
+
+2
+
+3
+
+Avoids cars, but prefers right lane
+
+Stays on road, but ignores other cars
+
+Seeks collisions
+
+--- PDF page 28 ---
+Y. Cui and S. Niekum.
+Active Reward Learning from Critiques.
+IEEE International Conference on Robotics and
+Automation (ICRA), May 2018.
+
+?
+
+--- PDF page 29 ---
+Y. Cui and S. Niekum.
+Active Reward Learning from Critiques.
+IEEE International Conference on Robotics and
+Automation (ICRA), May 2018.
+
+!
+
+--- PDF page 30 ---
+Probability
+
+Probability
+
+Y. Cui and S. Niekum.
+Active Reward Learning from Critiques.
+IEEE International Conference on Robotics and
+Automation (ICRA), May 2018.
+
+Reward Functions
+
+Reward Functions

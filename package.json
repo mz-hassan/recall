@@ -14,6 +14,8 @@
     "prebuild": "node scripts/prepare-assets.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "eval:segmentation": "node --env-file-if-exists=.env server/src/features/lecture/segmentation/eval.ts",
+    "eval:lecture": "node --env-file-if-exists=.env server/src/features/lecture/eval.ts",
+    "extract:slides": "node scripts/extract-slide-pages.mjs",
     "test": "node --test"
   },
   "dependencies": {

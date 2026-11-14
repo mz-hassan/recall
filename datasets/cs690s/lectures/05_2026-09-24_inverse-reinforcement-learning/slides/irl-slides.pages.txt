@@ -1,0 +1,392 @@
+--- PDF page 1 ---
+CS 690S: AI Alignment
+Prof. Scott Niekum
+Inverse reinforcement learning
+
+--- PDF page 2 ---
+How to learn from human data?
+• Behavioral Cloning
+• Quadratic regret in worst case; bad performance out of expert distribution
+• Can’t learn from additional data collected by the agent
+• DAgger / TAMER / COACH
+• Provides data/feedback on-policy
+• Still can’t learn from additional data collected by the agent
+• Inverse reinforcement learning
+• Infers reward function from demonstrations so that RL can be used
+
+--- PDF page 3 ---
+Inverse reinforcement learning
+Helicopter tricks
+[Abbeel et al. 2007]
+
+Littledog walking
+[Kolter et al. 2007]
+
+--- PDF page 4 ---
+Inverse reinforcement learning
+actions
+states
+
+transition dynamics
+
+MDP: (S, A, T, , D, R)
+discount rate start state reward function
+distribution
+
+Policy:
+Value function: V (s0 ) =
+⇡
+
+1
+X
+t=0
+
+What if we have an MDP/R?
+
+t
+
+R(st )
+
+--- PDF page 5 ---
+Inverse reinforcement learning
+1. Collect user demonstration (s0 , a0 ), (s1 , a1 ), . . . , (sn , an )
+E
+and assume it is sampled from the expert’s policy, ⇡
+2. Explain expert demos by nding R such that:
+P
+P1 t ⇤
+1
+t ⇤
+E
+E[ t=0 R (st )|⇡] 8⇡
+E[ t=0 R (st )|⇡ ]
+⇤
+
+Es0 ⇠D [V
+
+⇡E
+
+(s0 )]
+
+⇡
+
+Es0 ⇠D [V (s0 )] 8⇡
+
+How can search be made tractable?
+
+fi
+
+fi
+
+Abbeel, Pieter, and Andrew Y. Ng. "Apprenticeship learning via
+inverse reinforcement learning." Proceedings of the twenty- rst
+international conference on Machine learning. 2004.
+
+--- PDF page 6 ---
+Linear rewards and feature matching
+De ne R as a linear combination of features:
+⇤
+
+⇤
+
+R (s) = w
+Then,
+P1
+E[ t=0
+
+t
+
+T
+
+:S!R
+
+(s) , where
+⇤
+
+R (st )|⇡] = E[
+
+P1
+
+T
+
+t
+
+t=0
+
+= w E[
+
+P1
+
+n
+
+w
+
+t=0
+
+T
+
+(st )|⇡]
+
+t
+
+(st )|⇡]
+
+Thus, the value of a policy is a weighted sum of the expected features µ(⇡)
+
+fi
+
+fi
+
+This implies that (approximate) feature matching is suf cient for
+(approximately) expert-level performance
+
+--- PDF page 7 ---
+Aside: Feature matching
+
+When might feature matching fail?
+
+--- PDF page 8 ---
+A simplified optimization problem
+Originally - Explain expert demos by nding R such that:
+P
+P1 t ⇤
+1
+t ⇤
+E
+E[ t=0 R (st )|⇡] 8⇡
+E[ t=0 R (st )|⇡ ]
+⇤
+
+Use expected features:
+P1 t ⇤
+E[ t=0 R (st )|⇡]
+Restated - nd
+
+such that:
+⇤
+
+E
+
+fi
+
+fi
+
+w µ(⇡ )
+
+⇤
+
+w µ(⇡)
+
+8⇡
+
+--- PDF page 9 ---
+Iterative reward search
+Goal: Find
+
+⇤
+
+such that: w µ(⇡ )
+E
+
+⇤
+
+w µ(⇡) 8⇡
+
+1. Initialize ⇡0 to any policy
+Iterate for i =1, 2, … :
+2. Find
+s.t. expert maximally outperforms all previously
+examined policies ⇡0...i 1 :
+
+max
+⇤
+⇤
+
+✏,w :kw k2 1
+
+✏
+
+s.t.
+
+⇤
+
+w µ(⇡ )
+
+3. Use RL to calc. optimal policy
+4. Stop if ✏  threshold
+
+E
+
+⇤
+
+w µ(⇡j ) + ✏
+
+associated with w
+
+⇤
+
+SVM
+solver
+
+--- PDF page 10 ---
+A (rough) illustration
+µE
+<latexit sha1_base64="w0HBOF5vjPlch9smpfuz2apRLBI=">AAAB7XicbVDLSgNBEOz1GeMr6tHLYBA8hd0o6DEogscI5gHJEmYns8mYeSwzs0II+QcvHhTx6v9482+cTfagiQUNRVU33V1Rwpmxvv/trayurW9sFraK2zu7e/ulg8OmUakmtEEUV7odYUM5k7RhmeW0nWiKRcRpKxrdZH7riWrDlHyw44SGAg8kixnB1knNrkh7t8VeqexX/BnQMglyUoYc9V7pq9tXJBVUWsKxMZ3AT2w4wdoywum02E0NTTAZ4QHtOCqxoCaczK6dolOn9FGstCtp0Uz9PTHBwpixiFynwHZoFr1M/M/rpDa+CidMJqmlkswXxSlHVqHsddRnmhLLx45gopm7FZEh1phYF1AWQrD48jJpVivBeaV6f1GuXedxFOAYTuAMAriEGtxBHRpA4BGe4RXePOW9eO/ex7x1xctnjuAPvM8f2e6Opg==</latexit>
+
+w1
+<latexit sha1_base64="mEW0NWWu0qP0yr8wtGCLMS7BAIs=">AAAB63icbVBNS8NAEJ3Ur1q/qh69LBbBU0mqoMeiF48V7Ae0oWy2m3bp7ibsTpRS+he8eFDEq3/Im//GpM1BWx8MPN6bYWZeEEth0XW/ncLa+sbmVnG7tLO7t39QPjxq2SgxjDdZJCPTCajlUmjeRIGSd2LDqQokbwfj28xvP3JjRaQfcBJzX9GhFqFgFDPpqe+V+uWKW3XnIKvEy0kFcjT65a/eIGKJ4hqZpNZ2PTdGf0oNCib5rNRLLI8pG9Mh76ZUU8WtP53fOiNnqTIgYWTS0kjm6u+JKVXWTlSQdiqKI7vsZeJ/XjfB8NqfCh0nyDVbLAoTSTAi2eNkIAxnKCcpocyI9FbCRtRQhmk8WQje8surpFWrehfV2v1lpX6Tx1GEEziFc/DgCupwBw1oAoMRPMMrvDnKeXHenY9Fa8HJZ47hD5zPH0CPjbc=</latexit>
+
+<latexit sha1_base64="1Jn4jiTPtMkNS0yt1tg/OdoDNw8=">AAAB7nicbVBNSwMxEJ34WetX1aOXYBE8ld0q6LHoxWMF+wHtUrJptg3NZkOSFcrSH+HFgyJe/T3e/Ddm2z1o64OBx3szzMwLleDGet43Wlvf2NzaLu2Ud/f2Dw4rR8dtk6SashZNRKK7ITFMcMlallvBukozEoeCdcLJXe53npg2PJGPdqpYEJOR5BGnxDqp01djPqiXB5WqV/PmwKvEL0gVCjQHla/+MKFpzKSlghjT8z1lg4xoy6lgs3I/NUwROiEj1nNUkpiZIJufO8PnThniKNGupMVz9fdERmJjpnHoOmNix2bZy8X/vF5qo5sg41Kllkm6WBSlAtsE57/jIdeMWjF1hFDN3a2Yjokm1LqE8hD85ZdXSbte8y9r9YerauO2iKMEp3AGF+DDNTTgHprQAgoTeIZXeEMKvaB39LFoXUPFzAn8Afr8AXRcjvw=</latexit>
+
+2
+
+µ ⇡0
+<latexit sha1_base64="kaymMqGdHwLSIpSniyxTKBLbm2c=">AAAB8nicbVBNS8NAEJ34WetX1aOXxSJ4KkkV9Fj04rGC/YAkhM120y7d3YTdjVBCf4YXD4p49dd489+4bXPQ1gcDj/dmmJkXZ5xp47rfztr6xubWdmWnuru3f3BYOzru6jRXhHZIylPVj7GmnEnaMcxw2s8UxSLmtBeP72Z+74kqzVL5aCYZDQUeSpYwgo2V/EDkURFkLHKnUa3uNtw50CrxSlKHEu2o9hUMUpILKg3hWGvfczMTFlgZRjidVoNc0wyTMR5S31KJBdVhMT95is6tMkBJqmxJg+bq74kCC60nIradApuRXvZm4n+en5vkJiyYzHJDJVksSnKOTIpm/6MBU5QYPrEEE8XsrYiMsMLE2JSqNgRv+eVV0m02vMtG8+Gq3rot46jAKZzBBXhwDS24hzZ0gEAKz/AKb45xXpx352PRuuaUMyfwB87nD1CKkUU=</latexit>
+
+<latexit sha1_base64="vEyqvwyR+TXw+f4pCtSdVyAWzzs=">AAAB7nicbVBNSwMxEJ31s9avqkcvwSJ4KrtV0GPRi8cK9gPapWTTbBuaZEOSFcrSH+HFgyJe/T3e/Ddm2z1o64OBx3szzMyLFGfG+v63t7a+sbm1Xdop7+7tHxxWjo7bJkk1oS2S8ER3I2woZ5K2LLOcdpWmWEScdqLJXe53nqg2LJGPdqpoKPBIspgRbJ3U6asxGwTlQaXq1/w50CoJClKFAs1B5as/TEgqqLSEY2N6ga9smGFtGeF0Vu6nhipMJnhEe45KLKgJs/m5M3TulCGKE+1KWjRXf09kWBgzFZHrFNiOzbKXi/95vdTGN2HGpEotlWSxKE45sgnKf0dDpimxfOoIJpq5WxEZY42JdQnlIQTLL6+Sdr0WXNbqD1fVxm0RRwlO4QwuIIBraMA9NKEFBCbwDK/w5invxXv3Phata14xcwJ/4H3+AHLXjvs=</latexit>
+
+1
+
+--- PDF page 11 ---
+A (rough) illustration
+µE
+<latexit sha1_base64="w0HBOF5vjPlch9smpfuz2apRLBI=">AAAB7XicbVDLSgNBEOz1GeMr6tHLYBA8hd0o6DEogscI5gHJEmYns8mYeSwzs0II+QcvHhTx6v9482+cTfagiQUNRVU33V1Rwpmxvv/trayurW9sFraK2zu7e/ulg8OmUakmtEEUV7odYUM5k7RhmeW0nWiKRcRpKxrdZH7riWrDlHyw44SGAg8kixnB1knNrkh7t8VeqexX/BnQMglyUoYc9V7pq9tXJBVUWsKxMZ3AT2w4wdoywum02E0NTTAZ4QHtOCqxoCaczK6dolOn9FGstCtp0Uz9PTHBwpixiFynwHZoFr1M/M/rpDa+CidMJqmlkswXxSlHVqHsddRnmhLLx45gopm7FZEh1phYF1AWQrD48jJpVivBeaV6f1GuXedxFOAYTuAMAriEGtxBHRpA4BGe4RXePOW9eO/ex7x1xctnjuAPvM8f2e6Opg==</latexit>
+
+w2
+
+µ ⇡1
+
+<latexit sha1_base64="rQHY28r8zgTRp8BVqQujJJxN/p4=">AAAB63icbVBNS8NAEJ3Ur1q/qh69LBbBU0mqoMeiF48V7Ae0oWy2m3bp7ibsTpRS+he8eFDEq3/Im//GpM1BWx8MPN6bYWZeEEth0XW/ncLa+sbmVnG7tLO7t39QPjxq2SgxjDdZJCPTCajlUmjeRIGSd2LDqQokbwfj28xvP3JjRaQfcBJzX9GhFqFgFDPpqV8r9csVt+rOQVaJl5MK5Gj0y1+9QcQSxTUySa3tem6M/pQaFEzyWamXWB5TNqZD3k2ppopbfzq/dUbOUmVAwsikpZHM1d8TU6qsnagg7VQUR3bZy8T/vG6C4bU/FTpOkGu2WBQmkmBEssfJQBjOUE5SQpkR6a2EjaihDNN4shC85ZdXSatW9S6qtfvLSv0mj6MIJ3AK5+DBFdThDhrQBAYjeIZXeHOU8+K8Ox+L1oKTzxzDHzifP0IUjbg=</latexit>
+
+<latexit sha1_base64="H1ghMintePPw+R0aIVqMvySYMZM=">AAAB83icbVDLSgMxFM34rPVVdekmWARXZaYKuiy6cVnBPqAzDJk004YmmZCHUIb+hhsXirj1Z9z5N2baWWjrgQuHc+7l3nsSyag2vv/tra1vbG5tV3aqu3v7B4e1o+OuzqzCpIMzlql+gjRhVJCOoYaRvlQE8YSRXjK5K/zeE1GaZuLRTCWJOBoJmlKMjJPCkNs4DyWNg1k1rtX9hj8HXCVBSeqgRDuufYXDDFtOhMEMaT0IfGmiHClDMSOzamg1kQhP0IgMHBWIEx3l85tn8NwpQ5hmypUwcK7+nsgR13rKE9fJkRnrZa8Q//MG1qQ3UU6FtIYIvFiUWgZNBosA4JAqgg2bOoKwou5WiMdIIWxcTEUIwfLLq6TbbASXjebDVb11W8ZRAafgDFyAAFyDFrgHbdABGEjwDF7Bm2e9F+/d+1i0rnnlzAn4A+/zB4qJkVo=</latexit>
+
+<latexit sha1_base64="1Jn4jiTPtMkNS0yt1tg/OdoDNw8=">AAAB7nicbVBNSwMxEJ34WetX1aOXYBE8ld0q6LHoxWMF+wHtUrJptg3NZkOSFcrSH+HFgyJe/T3e/Ddm2z1o64OBx3szzMwLleDGet43Wlvf2NzaLu2Ud/f2Dw4rR8dtk6SashZNRKK7ITFMcMlallvBukozEoeCdcLJXe53npg2PJGPdqpYEJOR5BGnxDqp01djPqiXB5WqV/PmwKvEL0gVCjQHla/+MKFpzKSlghjT8z1lg4xoy6lgs3I/NUwROiEj1nNUkpiZIJufO8PnThniKNGupMVz9fdERmJjpnHoOmNix2bZy8X/vF5qo5sg41Kllkm6WBSlAtsE57/jIdeMWjF1hFDN3a2Yjokm1LqE8hD85ZdXSbte8y9r9YerauO2iKMEp3AGF+DDNTTgHprQAgoTeIZXeEMKvaB39LFoXUPFzAn8Afr8AXRcjvw=</latexit>
+
+2
+
+µ ⇡0
+<latexit sha1_base64="kaymMqGdHwLSIpSniyxTKBLbm2c=">AAAB8nicbVBNS8NAEJ34WetX1aOXxSJ4KkkV9Fj04rGC/YAkhM120y7d3YTdjVBCf4YXD4p49dd489+4bXPQ1gcDj/dmmJkXZ5xp47rfztr6xubWdmWnuru3f3BYOzru6jRXhHZIylPVj7GmnEnaMcxw2s8UxSLmtBeP72Z+74kqzVL5aCYZDQUeSpYwgo2V/EDkURFkLHKnUa3uNtw50CrxSlKHEu2o9hUMUpILKg3hWGvfczMTFlgZRjidVoNc0wyTMR5S31KJBdVhMT95is6tMkBJqmxJg+bq74kCC60nIradApuRXvZm4n+en5vkJiyYzHJDJVksSnKOTIpm/6MBU5QYPrEEE8XsrYiMsMLE2JSqNgRv+eVV0m02vMtG8+Gq3rot46jAKZzBBXhwDS24hzZ0gEAKz/AKb45xXpx352PRuuaUMyfwB87nD1CKkUU=</latexit>
+
+<latexit sha1_base64="vEyqvwyR+TXw+f4pCtSdVyAWzzs=">AAAB7nicbVBNSwMxEJ31s9avqkcvwSJ4KrtV0GPRi8cK9gPapWTTbBuaZEOSFcrSH+HFgyJe/T3e/Ddm2z1o64OBx3szzMyLFGfG+v63t7a+sbm1Xdop7+7tHxxWjo7bJkk1oS2S8ER3I2woZ5K2LLOcdpWmWEScdqLJXe53nqg2LJGPdqpoKPBIspgRbJ3U6asxGwTlQaXq1/w50CoJClKFAs1B5as/TEgqqLSEY2N6ga9smGFtGeF0Vu6nhipMJnhEe45KLKgJs/m5M3TulCGKE+1KWjRXf09kWBgzFZHrFNiOzbKXi/95vdTGN2HGpEotlWSxKE45sgnKf0dDpimxfOoIJpq5WxEZY42JdQnlIQTLL6+Sdr0WXNbqD1fVxm0RRwlO4QwuIIBraMA9NKEFBCbwDK/w5invxXv3Phata14xcwJ/4H3+AHLXjvs=</latexit>
+
+1
+
+--- PDF page 12 ---
+A (rough) illustration
+µE
+<latexit sha1_base64="w0HBOF5vjPlch9smpfuz2apRLBI=">AAAB7XicbVDLSgNBEOz1GeMr6tHLYBA8hd0o6DEogscI5gHJEmYns8mYeSwzs0II+QcvHhTx6v9482+cTfagiQUNRVU33V1Rwpmxvv/trayurW9sFraK2zu7e/ulg8OmUakmtEEUV7odYUM5k7RhmeW0nWiKRcRpKxrdZH7riWrDlHyw44SGAg8kixnB1knNrkh7t8VeqexX/BnQMglyUoYc9V7pq9tXJBVUWsKxMZ3AT2w4wdoywum02E0NTTAZ4QHtOCqxoCaczK6dolOn9FGstCtp0Uz9PTHBwpixiFynwHZoFr1M/M/rpDa+CidMJqmlkswXxSlHVqHsddRnmhLLx45gopm7FZEh1phYF1AWQrD48jJpVivBeaV6f1GuXedxFOAYTuAMAriEGtxBHRpA4BGe4RXePOW9eO/ex7x1xctnjuAPvM8f2e6Opg==</latexit>
+
+µ ⇡2
+
+µ ⇡1
+
+<latexit sha1_base64="6w5yME7F7i92xgv0FM39nvMQtw8=">AAAB83icbVDLSgMxFM34rPVVdekmWARXZaYKuiy6cVnBPqAzDJk004YmmZCHUIb+hhsXirj1Z9z5N2baWWjrgQuHc+7l3nsSyag2vv/tra1vbG5tV3aqu3v7B4e1o+OuzqzCpIMzlql+gjRhVJCOoYaRvlQE8YSRXjK5K/zeE1GaZuLRTCWJOBoJmlKMjJPCkNs4DyWNm7NqXKv7DX8OuEqCktRBiXZc+wqHGbacCIMZ0noQ+NJEOVKGYkZm1dBqIhGeoBEZOCoQJzrK5zfP4LlThjDNlCth4Fz9PZEjrvWUJ66TIzPWy14h/ucNrElvopwKaQ0ReLEotQyaDBYBwCFVBBs2dQRhRd2tEI+RQti4mIoQguWXV0m32QguG82Hq3rrtoyjAk7BGbgAAbgGLXAP2qADMJDgGbyCN896L96797FoXfPKmRPwB97nD4wPkVs=</latexit>
+
+<latexit sha1_base64="H1ghMintePPw+R0aIVqMvySYMZM=">AAAB83icbVDLSgMxFM34rPVVdekmWARXZaYKuiy6cVnBPqAzDJk004YmmZCHUIb+hhsXirj1Z9z5N2baWWjrgQuHc+7l3nsSyag2vv/tra1vbG5tV3aqu3v7B4e1o+OuzqzCpIMzlql+gjRhVJCOoYaRvlQE8YSRXjK5K/zeE1GaZuLRTCWJOBoJmlKMjJPCkNs4DyWNg1k1rtX9hj8HXCVBSeqgRDuufYXDDFtOhMEMaT0IfGmiHClDMSOzamg1kQhP0IgMHBWIEx3l85tn8NwpQ5hmypUwcK7+nsgR13rKE9fJkRnrZa8Q//MG1qQ3UU6FtIYIvFiUWgZNBosA4JAqgg2bOoKwou5WiMdIIWxcTEUIwfLLq6TbbASXjebDVb11W8ZRAafgDFyAAFyDFrgHbdABGEjwDF7Bm2e9F+/d+1i0rnnlzAn4A+/zB4qJkVo=</latexit>
+
+<latexit sha1_base64="1Jn4jiTPtMkNS0yt1tg/OdoDNw8=">AAAB7nicbVBNSwMxEJ34WetX1aOXYBE8ld0q6LHoxWMF+wHtUrJptg3NZkOSFcrSH+HFgyJe/T3e/Ddm2z1o64OBx3szzMwLleDGet43Wlvf2NzaLu2Ud/f2Dw4rR8dtk6SashZNRKK7ITFMcMlallvBukozEoeCdcLJXe53npg2PJGPdqpYEJOR5BGnxDqp01djPqiXB5WqV/PmwKvEL0gVCjQHla/+MKFpzKSlghjT8z1lg4xoy6lgs3I/NUwROiEj1nNUkpiZIJufO8PnThniKNGupMVz9fdERmJjpnHoOmNix2bZy8X/vF5qo5sg41Kllkm6WBSlAtsE57/jIdeMWjF1hFDN3a2Yjokm1LqE8hD85ZdXSbte8y9r9YerauO2iKMEp3AGF+DDNTTgHprQAgoTeIZXeEMKvaB39LFoXUPFzAn8Afr8AXRcjvw=</latexit>
+
+2
+
+µ ⇡0
+<latexit sha1_base64="kaymMqGdHwLSIpSniyxTKBLbm2c=">AAAB8nicbVBNS8NAEJ34WetX1aOXxSJ4KkkV9Fj04rGC/YAkhM120y7d3YTdjVBCf4YXD4p49dd489+4bXPQ1gcDj/dmmJkXZ5xp47rfztr6xubWdmWnuru3f3BYOzru6jRXhHZIylPVj7GmnEnaMcxw2s8UxSLmtBeP72Z+74kqzVL5aCYZDQUeSpYwgo2V/EDkURFkLHKnUa3uNtw50CrxSlKHEu2o9hUMUpILKg3hWGvfczMTFlgZRjidVoNc0wyTMR5S31KJBdVhMT95is6tMkBJqmxJg+bq74kCC60nIradApuRXvZm4n+en5vkJiyYzHJDJVksSnKOTIpm/6MBU5QYPrEEE8XsrYiMsMLE2JSqNgRv+eVV0m02vMtG8+Gq3rot46jAKZzBBXhwDS24hzZ0gEAKz/AKb45xXpx352PRuuaUMyfwB87nD1CKkUU=</latexit>
+
+<latexit sha1_base64="vEyqvwyR+TXw+f4pCtSdVyAWzzs=">AAAB7nicbVBNSwMxEJ31s9avqkcvwSJ4KrtV0GPRi8cK9gPapWTTbBuaZEOSFcrSH+HFgyJe/T3e/Ddm2z1o64OBx3szzMyLFGfG+v63t7a+sbm1Xdop7+7tHxxWjo7bJkk1oS2S8ER3I2woZ5K2LLOcdpWmWEScdqLJXe53nqg2LJGPdqpoKPBIspgRbJ3U6asxGwTlQaXq1/w50CoJClKFAs1B5as/TEgqqLSEY2N6ga9smGFtGeF0Vu6nhipMJnhEe45KLKgJs/m5M3TulCGKE+1KWjRXf09kWBgzFZHrFNiOzbKXi/95vdTGN2HGpEotlWSxKE45sgnKf0dDpimxfOoIJpq5WxEZY42JdQnlIQTLL6+Sdr0WXNbqD1fVxm0RRwlO4QwuIIBraMA9NKEFBCbwDK/w5invxXv3Phata14xcwJ/4H3+AHLXjvs=</latexit>
+
+1
+
+--- PDF page 13 ---
+Performance bounds for IRL
+If | |
+
+| |1 ≤ 1, then
+
+𝒘
+
+Worst-case bound that assumes the reward function maximally
+penalizes the largest deviation in feature counts
+
+--- PDF page 14 ---
+Performance bounds for IRL
+
+--- PDF page 15 ---
+Concentration
+inequalities
+Concentration inequalities
+Chernoﬀ-Hoeﬀding Inequality
+Probabilistic bound on how a random variable deviates
+from its expectation
+No distributional assumptions
+With probability at least 1-σ: "
+!
+n
+log(1/σ)
+1
+µ ≥ n i=1 Xi − b
+2n
+
+Can use with importance sampled returns to bound value
+of a policy from oﬀ-policy samples
+Significantly tighter bounds exist under certain conditions
+(Thomas et. al 2015)
+
+--- PDF page 16 ---
+Naive IRL challenges
+• RL in the inner loop
+• Where do linear features come from?
+• Underspeci ed inference problem: in nite reward functions that explain
+behavior equally well. Which one to choose?
+
+• Guarantees performance matching, not reward function recovery
+• Policies are underspeci ed too: many policies lead to the same
+expected features counts. Which one to choose?
+
+• What if demonstrated behavior was actually suboptimal?
+
+fi
+
+fi
+
+fi
+
+• Cannot surpass expert
+
+--- PDF page 17 ---
+Suboptimality and policy mixtures
+• If a demonstrator acts optimally, then there trivially is some reward function
+
+for which at least one optimal policy exists that matches the demonstrator’s
+expected feature counts exactly
+
+• Caveat: the RL step might not nd this policy if there are multiple
+optimal policies under the reward function
+
+• But if the demonstrations are sometimes suboptimal, then there may be no
+single reward function with this property (aside from degenerate ones e.g.,
+all zeros, under which any policy is optimal)
+
+• This can be thought of as the demonstrator acting optimally under di erent
+
+reward functions at di erent times, so a mixture of reward functions (and
+their corresponding optimal policies) might be needed to match the mixture
+of feature counts
+
+ff
+
+fi
+
+ff
+
+• Thus, the algorithm in Abbeel/Ng returns a mixture policy
+
+--- PDF page 18 ---
+Limitations of Abbeel/Ng (2004)
+
+--- PDF page 19 ---
+Game theoretic formulation
+
+--- PDF page 20 ---
+Surpassing the expert
+
+--- PDF page 21 ---
+No-expert setting

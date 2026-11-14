@@ -1,4 +1,5 @@
 import type { LectureKey, ReplayOptions, SessionState } from '../../../../shared/contracts/lecture.ts';
+import type { Enricher } from './enrichment/harness.ts';
 import { createReplaySession, type ReplaySession, type Timers } from './replay.ts';
 import { createPassthroughSegmenter } from './segmentation/passthrough.ts';
 import type { Segmenter } from './segmentation/types.ts';
@@ -21,35 +22,59 @@ export class SessionNotFoundError extends Error {
 
 export type LectureService = ReturnType<typeof createLectureService>;
 
-/** Runs one replay session per lecture and wires transcript → segmenter → store. */
-export function createLectureService({ store, createSegmenter = createPassthroughSegmenter, timers, onError }: {
+type Run = { replay: ReplaySession; enricher: Enricher | null; controller: AbortController };
+
+/**
+ * Runs one replay session per lecture and wires transcript → segmenter → store, with an optional
+ * enricher that fills in each topic as it closes.
+ */
+export function createLectureService({ store, createSegmenter = createPassthroughSegmenter, createEnricher, timers, onError }: {
   store: LectureStore;
   createSegmenter?: () => Segmenter;
+  createEnricher?: () => Enricher;
   timers?: Timers;
   onError?: (error: unknown) => void;
 }) {
-  const sessions = new Map<string, ReplaySession>();
+  const runs = new Map<string, Run>();
   const id = (key: LectureKey) => key.courseId + '/' + key.lectureId;
 
   function requireSession(key: LectureKey): ReplaySession {
-    const session = sessions.get(id(key));
-    if (!session) throw new SessionNotFoundError(key);
-    return session;
+    const run = runs.get(id(key));
+    if (!run) throw new SessionNotFoundError(key);
+    return run.replay;
+  }
+
+  function stopRun(run: Run | undefined) {
+    if (!run) return;
+    run.replay.stop();
+    run.enricher?.stop();
+    run.controller.abort();
   }
 
   return {
     hasTranscript,
 
-    /** (Re)starts a replay. Resolves once the first chunk (or, for 'instant', every chunk) is processed. */
+    /** (Re)starts a replay. Resolves once the first chunk (or, for 'instant', every chunk) is segmented. */
     async startReplay(key: LectureKey, options: ReplayOptions): Promise<SessionState> {
       const source = await loadTranscriptChunks(key, options);
       if (!source?.chunks.length) throw new LectureNotFoundError(key);
-      sessions.get(id(key))?.stop();
-      const session = createReplaySession({ key, chunks: source.chunks, options, store, segmenter: createSegmenter(), timers, onError });
-      sessions.set(id(key), session);
-      session.start();
-      await session.idle();
-      return session.state();
+      stopRun(runs.get(id(key)));
+      const controller = new AbortController();
+      const enricher = createEnricher?.() ?? null;
+      const replay = createReplaySession({ key, chunks: source.chunks, options, store, segmenter: createSegmenter(), timers, onError });
+      runs.set(id(key), { replay, enricher, controller });
+      // Subscribe before the replay starts so no closing topic is missed.
+      enricher?.start({ key, store, signal: controller.signal });
+      replay.start();
+      await replay.idle();
+      return replay.state();
+    },
+    /** Resolves when segmentation and enrichment have caught up with everything published so far. */
+    async idle(key: LectureKey): Promise<void> {
+      const run = runs.get(id(key));
+      if (!run) return;
+      await run.replay.idle();
+      await run.enricher?.idle();
     },
     play(key: LectureKey): SessionState {
       const session = requireSession(key);
@@ -62,11 +87,11 @@ export function createLectureService({ store, createSegmenter = createPassthroug
       return session.state();
     },
     getSession(key: LectureKey): ReplaySession | undefined {
-      return sessions.get(id(key));
+      return runs.get(id(key))?.replay;
     },
     close() {
-      for (const session of sessions.values()) session.stop();
-      sessions.clear();
+      for (const run of runs.values()) stopRun(run);
+      runs.clear();
     },
   };
 }
