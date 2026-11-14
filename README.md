@@ -12,6 +12,8 @@ npm run dev        # web (Vite) + API (Fastify on 127.0.0.1:8787), /api proxied
 npm run typecheck  # server/ and shared/
 npm test
 npm run build
+npx playwright install chromium
+npm run test:e2e   # desktop/mobile checks against an isolated offline fixture server
 ```
 
 `npm run dev:web` and `npm run dev:server` start either half alone. The API defaults to the offline fixture model provider; copy `.env.example` to `.env` to change server settings. Check it with `curl localhost:8787/api/health`.
@@ -24,7 +26,7 @@ Open AI Alignment from the course library. Each lecture appears once, with **Rea
 
 The [CS 690S dataset](datasets/cs690s/README.md) covers 23 Fall 2026 lecture entries. Its [manifest](datasets/cs690s/manifest.json) records source URLs, required and optional readings, slide PDFs and text extracts, and TXT or VTT transcripts where available. Some entries lack transcripts or reuse material from another lecture. The frontend uses the manifest to determine whether a lecture can replay. A later ingestion workstream can scrape a course website and emit this same manifest; the checked-in dataset works directly today.
 
-Lecture 02 has an existing curated replay. Other past timelines with transcripts display all their chunks for browsing. Live simulation opens paused with the first chunk visible. Press **Play** to advance through a six-chunk preview, one chunk every eight seconds by default. **Simulation settings** lets you adjust the 160-word budget, interval, and chunk limit or select the full transcript. You can also use `lecture.html?lecture=2&mode=live&words=160&interval=8&limit=6`. These are simulation offsets. The DAgger example demonstrates curated enrichment, including multiple slides, an equation, intuition and a topic diagram. Side chat and artifact requests are UI entry points for future harnesses.
+Lecture 02 has an existing curated past replay. Live simulation uses the server's topic stream and resumes an existing run; a new run starts paused with a six-chunk preview at 160 words per chunk and an eight-second interval. **Restart replay** starts over, and **Simulation settings** applies changed options to a new run. Expand a moment for contextual chat, cited chart or animated-diagram requests, and KaTeX equations. Artifacts survive browser reloads within the current in-memory server session, including later topic revisions. See [student-side implementation and checks](src/lecture/README.md). The offline authored demo remains available at `lecture.html?lecture=2&mode=live&transport=fixture`.
 
 The asset preparation script copies the demo PDFs from the dataset on dev/build. Git tracks the dataset and slide preview images. Vite generates `dist/` for hosting.
 
@@ -46,7 +48,7 @@ Start with the [code ownership and stack guide](docs/architecture.md), then read
 
 ## Stack and implementation status
 
-Today this is a React + Vite frontend with local dataset replay. Backend services, MongoDB persistence and runtime model harnesses are not implemented yet. Keep the existing UI and animations while building features in their own modules.
+The React + Vite frontend now connects to a TypeScript/Fastify backend for transcript replay, topic segmentation, contextual chat and validated visual artifacts. Fixture and DeepSeek providers share the same interface. MongoDB persistence, automatic enrichment and course graph integration remain later work. Keep the existing UI and animations while building features in their own modules.
 
 The agreed direction is a Node.js + TypeScript/Fastify backend, MongoDB for course data and graph references, and task-specific harnesses behind a shared model-provider interface. Keep DeepSeek as the initial configurable provider; Gemini is the planned replacement. Fixture mode must remain usable without either API or a database. See the architecture guide for module boundaries, suggested libraries, storage design and implementation order.
 

@@ -21,3 +21,48 @@
 .replay-error{padding:4rem 8vw}
 .time-axis{overflow-y:auto}
 .time-axis button{flex-shrink:0}
+.lecture-stream-status{position:fixed;top:93px;right:54px;z-index:26;display:flex;align-items:center;gap:12px;font-size:10px;color:#8cae9b}
+.lecture-stream-status button{padding:5px 8px;border:1px solid #385649;border-radius:6px;color:#c5e9d1;font-size:10px}
+.lecture-stream-note{margin-top:12px;color:#8cae9b;font-size:11px;line-height:1.6}
+@media(max-height:750px) and (min-width:801px){.lecture-stream-status{top:70px}}
+@media(max-width:800px){.lecture-stream-status{top:78px;right:24px;font-size:9px;gap:8px}.lecture-stream-status button{font-size:9px;padding:4px 6px}}
+.lecture-stream-status{flex-wrap:wrap;max-width:calc(100vw - 48px);justify-content:flex-end}
+.context-chat button{cursor:pointer}
+.moment-chat{max-height:min(650px,calc(100dvh - 220px));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.moment-chat .eyebrow{position:sticky;top:0;z-index:1;padding:8px 0;background:#121c17}
+.moment-chat label{display:grid;gap:6px;margin-top:12px;color:#a9c5b4;font-size:11px}
+.moment-chat select,.moment-chat textarea{width:100%;border:1px solid #385649;border-radius:6px;background:#0a100d;color:inherit;padding:10px;font:inherit}
+.moment-chat textarea{min-height:80px;resize:vertical}
+.lecture-chat-send,.lecture-chat-suggestion{padding:8px 10px;border:1px solid #385649;border-radius:6px;margin-top:10px;font-size:11px}
+.lecture-chat-send{display:block;width:100%;color:#c5e9d1}
+.lecture-chat-error{color:#e4b6a2!important;margin-top:12px;font-size:12px}
+.lecture-chat-answer{border-top:1px solid #385649;margin-top:16px;padding-top:14px}
+.lecture-chat-answer small{font-size:10px;color:#8cae9b}
+.lecture-chat-copy{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;margin:12px 0}
+.lecture-chat-answer nav{display:grid;gap:8px}
+.lecture-chat-answer nav button{border:1px solid #385649;border-radius:6px;padding:8px;text-align:left;color:#c5e9d1;font-size:11px;overflow-wrap:anywhere}
+.replay-error>button,.replay-error>a:not(.brand){display:inline-block;border:1px solid #385649;border-radius:6px;padding:10px;margin:16px 12px 0 0}
+.lecture-equation>div{overflow-x:auto;margin:12px 0;padding:5px 0;color:#d4e8dc}
+.lecture-artifact-request{margin:20px 0}
+.lecture-artifact-request button,.lecture-animation-controls button,.lecture-artifact-visual nav button,.lecture-artifact-error button{border:1px solid #385649;border-radius:8px;padding:9px 12px;font-size:11px;color:#c5e9d1}
+.lecture-artifact-request form{display:grid;gap:12px;border:1px solid #385649;border-radius:10px;padding:16px;margin-top:12px}
+.lecture-artifact-request label{display:grid;gap:7px;color:#a9c5b4;font-size:12px}
+.lecture-artifact-request textarea,.lecture-artifact-request select{background:#0a100d;color:inherit;border:1px solid #385649;border-radius:6px;padding:10px;font:inherit;width:100%}
+.lecture-artifact-request textarea{min-height:90px;resize:vertical}
+.lecture-artifact-request p,.lecture-artifact-error{font-size:12px;line-height:1.6;color:#b6cdbf;margin:10px 0;overflow-wrap:anywhere}
+.lecture-artifact-request [role=alert],.lecture-artifact-error{color:#e4b6a2}
+.lecture-artifact-visual{margin:24px 0;border:1px solid #385649;border-radius:12px;padding:18px;background:#101a15;overflow-wrap:anywhere}
+.lecture-artifact-visual h3{font:500 21px/1.3 Manrope,sans-serif;letter-spacing:-.4px}
+.lecture-artifact-visual small{display:block;color:#8cae9b;font-size:10px;margin:8px 0}
+.lecture-artifact-visual p,.lecture-artifact-visual li{font-size:12px;line-height:1.7;color:#adc4b5;margin-top:10px}
+.lecture-artifact-svg{display:block;width:100%;height:auto;margin:15px 0}
+.lecture-artifact-visual .lecture-artifact-basis{font-size:10px;color:#ddcba9}
+.lecture-artifact-legend{display:flex;flex-wrap:wrap;gap:8px 24px;padding-left:18px}
+.lecture-artifact-visual summary{cursor:pointer;color:#c5e9d1;font-size:11px;margin-top:14px}
+.lecture-artifact-table{overflow-x:auto}
+.lecture-artifact-visual table{border-collapse:collapse;width:100%;font-size:11px;margin-top:12px;color:#adc4b5}
+.lecture-artifact-visual th,.lecture-artifact-visual td{padding:8px;text-align:left;border-bottom:1px solid #385649}
+.lecture-artifact-visual nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.lecture-artifact-visual nav button{text-align:left;overflow-wrap:anywhere;max-width:100%}
+.lecture-animation-controls{display:flex;flex-wrap:wrap;gap:8px}
+.lecture-animation-node rect{transition:fill .3s,stroke .3s}

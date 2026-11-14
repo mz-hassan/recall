@@ -5,6 +5,7 @@ import type { LectureStore } from './store/types.ts';
 import { streamRoutes } from './routes/stream.ts';
 import { enrichmentFixture } from './enrichment/fixture.ts';
 import { ENRICHMENT_TASK } from './enrichment/schema.ts';
+import { interactRoutes } from './routes/interact.ts';
 import { segmentationFixture } from './segmentation/fixture.ts';
 import { SEGMENTATION_TASK } from './segmentation/schema.ts';
 
@@ -15,9 +16,9 @@ export { createModelEnricher } from './enrichment/harness.ts';
 export type { LectureStore } from './store/types.ts';
 
 /** Registers every live lecture route. */
-export async function lectureFeature(app: FastifyInstance, deps: { service: LectureService; store: LectureStore }) {
+export async function lectureFeature(app: FastifyInstance, deps: { service: LectureService; store: LectureStore; provider: ModelProvider }) {
   await app.register(streamRoutes, deps);
-  // Student-side routes (chat, artifacts) register here as one line: routes/interact.ts.
+  await app.register(interactRoutes, deps);
 }
 
 /** Gives the offline fixture provider deterministic answers for this feature's model tasks. */

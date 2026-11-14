@@ -38,7 +38,7 @@ export async function buildApp({ provider, logger = false, lectureStore, lecture
   await app.register(async api => {
     api.get('/health', async () => ({ ok: true, provider: provider.name, model: provider.model }));
     await api.register(datasetRoutes);
-    await api.register(lectureFeature, { service, store });
+    await api.register(lectureFeature, { service, store, provider });
   }, { prefix: '/api' });
 
   return app;
