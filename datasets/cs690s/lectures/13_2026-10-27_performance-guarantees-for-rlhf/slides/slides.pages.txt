@@ -1,0 +1,544 @@
+--- PDF page 1 ---
+CS 690S: AI Alignment
+Prof. Scott Niekum
+Alignment guarantees
+
+--- PDF page 2 ---
+So far: RLHF and hope it works
+
+Can we do better and provide alignment guarantees?
+
+--- PDF page 3 ---
+Example: Empirical alignment (InstructGPT)
+
+SFT: Collected human demonstrations
+for GPT-3 ne-tuning
+RLHF: Collected human preferences
+over outputs to infer reward function,
+and then performed RL
+
+fi
+
+Evaluation: User studies show strong
+empirical results, but no guarantees
+
+--- PDF page 4 ---
+Why is alignment hard?
+Reward misspeci cation
+• Dif cult to capture and balance complex preferences
+• Edge cases, side effects, and reward hacking
+• Challenging to infer from demonstrations
+
+Policy learning failures
+• Poor choice of state/action representation
+• RL algorithm can perform arbitrarily poorly
+• Distribution shift
+
+Veri cation dif culty
+• Exhaustive testing not typically possible
+
+fi
+
+fi
+
+fi
+
+fi
+
+• Lack of ground truth data to compare against
+
+--- PDF page 5 ---
+What is an alignment guarantee?
+
+Guarantee = Metric + Con dence + Assumptions
+Metric: A measure of alignment / performance
+• E.g. Return of a policy under the (unknown) ground truth reward function
+
+Con dence: A bound (often probabilistic) on a statistic of the metric
+• E.g. 95% con dence bound on the expected return
+
+Assumptions: The assumptions under which con dence is accurate
+
+fi
+
+fi
+
+fi
+
+fi
+
+• E.g. Reward is a linear function of known features
+
+--- PDF page 6 ---
+Some varieties of alignment guarantees
+Stronger guarantees
+
+Empirical
+
+Probabilistic
+
+Formal
+
+InstructGPT:
+Fine-tuning on preferences+RL
+
+Bayesian REX:
+Bounded policy loss
+under reward inference
+
+Value Alignment Veri cation:
+Exact alignment test in
+several settings
+
+Ouyang et. al
+Training language models to follow
+instructions with human feedback.
+arXiv:2203.02155, January 2022
+
+Brown et. al
+Safe Imitation Learning via Fast Bayesian
+Reward Inference from Preferences.
+ICML, July 2020.
+
+Brown et. al
+Value Alignment Veri cation.
+ICML, July 2021.
+
+fi
+
+fi
+
+More assumptions
+
+--- PDF page 7 ---
+Central claim:
+Strong guarantees aren’t always possible, but value alignment
+research should aim to provide the strongest guarantees that
+any given setting allows, with as few assumptions as possible.
+
+--- PDF page 8 ---
+Are alignment guarantees needed?
+Practicality and deployability
+
+Safety and social harm prevention
+
+Existential risk
+
+Opinion: If we can’t provide alignment guarantees, then the core motivations
+for alignment research can’t be fully addressed
+
+--- PDF page 9 ---
+Value alignment guarantees
+
+fi
+
+fi
+
+Formal
+
+fi
+
+Ef cient “driver’s test” that certi es agent alignment
+Value alignment veri cation
+
+--- PDF page 10 ---
+Ef cient value alignment veri cation: A driver’s test for AI
+
+• What if we want to verify reward or policy alignment of a
+semi-blackbox agent?
+• We don’t want to require policy rollouts, due to both
+safety and ef ciency concerns.
+• Can we design a driver’s test — a small set of (various
+types of) questions to ask an agent that verify alignment?
+
+fi
+
+fi
+
+fi
+
+D.S. Brown, J. Schneider, A. Dragan, and S. Niekum.
+Value Alignment Verification.
+International Conference on Machine Learning, July 2021.
+
+--- PDF page 11 ---
+Value alignment veri cation
+
+fi
+
+How to efficiently test whether an agent is aligned with a human’s intent?
+
+--- PDF page 12 ---
+Assumptions
+
+Non-Restrictive
+• Agent being tested behaves rationally
+
+0
+
+⇤
+⇡ (s) 2 arg max QR0 (s, a)
+a
+<latexit sha1_base64="Xuk9+bTKvzjmHsU8AUsBBT3u3ls=">AAACDXicbVBNS8NAEN3U7/oV9ehlsYpVpCRV0KPoxaOKtYUmhsl22y7dbMLuRiyhf8CLf8WLB0W8evfmv3Hb5uDXg4HHezPMzAsTzpR2nE+rMDE5NT0zO1ecX1hcWrZXVq9VnEpCayTmsWyEoChngtY005w2EkkhCjmth73ToV+/pVKxWFzpfkL9CDqCtRkBbaTA3vQStl1WO9hjAnsgO14EdwHgi5vdILvcHpTVHuwEdsmpOCPgv8TNSQnlOA/sD68VkzSiQhMOSjVdJ9F+BlIzwumg6KWKJkB60KFNQwVEVPnZ6JsB3jJKC7djaUpoPFK/T2QQKdWPQtMZge6q395Q/M9rprp95GdMJKmmgowXtVOOdYyH0eAWk5Ro3jcEiGTmVky6IIFoE2DRhOD+fvkvua5W3P1K9eKgdHySxzGL1tEGKiMXHaJjdIbOUQ0RdI8e0TN6sR6sJ+vVehu3Fqx8Zg39gPX+BTGHmbw=</latexit>
+
+• Reward function is linear combination of features
+
+Restrictive
+• Human and agent share same features
+
+--- PDF page 13 ---
+Reward function halfspaces
+
+Fuel
+Efficiency
+
+Close to speed
+limit
+
+13
+
+--- PDF page 14 ---
+Test Generation
+
+Fuel
+Efficiency
+
+Close to speed
+limit
+
+Passing rewards
+14
+
+--- PDF page 15 ---
+Test Generation
+
+Fuel
+Efficiency
+
+Close to speed
+limit
+
+Passing rewards
+15
+
+--- PDF page 16 ---
+Test Generation
+
+Fuel
+Efficiency
+
+Close to speed
+limit
+
+Aligned Reward Set
+
+16
+
+--- PDF page 17 ---
+Test Generation
+
+Fuel
+Efficiency
+
+Redundant
+Close to speed
+limit
+
+Aligned Reward Set
+
+17
+
+--- PDF page 18 ---
+Test Generation
+
+Fuel
+Efficiency
+
+Close to speed
+limit
+
+Aligned Reward Set
+
+18
+
+--- PDF page 19 ---
+Alignment test conditions
+
+wRobot
+
+Reward function weights
+
+<latexit sha1_base64="+rJfO/xkqYeVAWB70Fc9hPjP1+A=">AAAB8HicbVDLSgNBEOyNrxhfUY9eBoPgKexGQY9BLx6jmIckS5idTJIh81hmZpWw5Cu8eFDEq5/jzb9xkuxBEwsaiqpuuruimDNjff/by62srq1v5DcLW9s7u3vF/YOGUYkmtE4UV7oVYUM5k7RumeW0FWuKRcRpMxpdT/3mI9WGKXlvxzENBR5I1mcEWyc9PHXTOxUpO+kWS37ZnwEtkyAjJchQ6xa/Oj1FEkGlJRwb0w782IYp1pYRTieFTmJojMkID2jbUYkFNWE6O3iCTpzSQ32lXUmLZurviRQLY8Yicp0C26FZ9Kbif147sf3LMGUyTiyVZL6on3BkFZp+j3pMU2L52BFMNHO3IjLEGhPrMiq4EILFl5dJo1IOzsqV2/NS9SqLIw9HcAynEMAFVOEGalAHAgKe4RXePO29eO/ex7w152Uzh/AH3ucPNbmQrA==</latexit>
+
+Exact reward alignment
+
+Reward samples
+Trajectory preferences
+
+Exact policy alignment
+✏=0
+
+Value samples
+
+<latexit sha1_base64="OykwbguPGXwUFGSvRTfcC6rLX64=">AAAB83icbVBNSwMxEJ2tX7V+VT16CRbBU9mtgl6EohePFewHdJeSTbNtaDYJSVYopX/DiwdFvPpnvPlvTNs9aOuDgcd7M8zMixVnxvr+t1dYW9/Y3Cpul3Z29/YPyodHLSMzTWiTSC51J8aGciZo0zLLaUdpitOY03Y8upv57SeqDZPi0Y4VjVI8ECxhBFsnhSFVhnEp0A3ye+WKX/XnQKskyEkFcjR65a+wL0mWUmEJx8Z0A1/ZaIK1ZYTTaSnMDFWYjPCAdh0VOKUmmsxvnqIzp/RRIrUrYdFc/T0xwakx4zR2nSm2Q7PszcT/vG5mk+towoTKLBVksSjJOLISzQJAfaYpsXzsCCaauVsRGWKNiXUxlVwIwfLLq6RVqwYX1drDZaV+m8dRhBM4hXMI4ArqcA8NaAIBBc/wCm9e5r14797HorXg5TPH8Afe5w/2iJD5</latexit>
+
+Action samples
+
+⇤
+⇡Robot (s)
+<latexit sha1_base64="91qOZQbskRqFFbv+9BdQarSwZpo=">AAAB+XicbVBNS8NAEJ34WetX1KOXxSJUDyWpgh6LXjxWsR/QxrDZbtqlm2zY3RRK6D/x4kERr/4Tb/4bt20O2vpg4PHeDDPzgoQzpR3n21pZXVvf2CxsFbd3dvf27YPDphKpJLRBBBeyHWBFOYtpQzPNaTuRFEcBp61geDv1WyMqFRPxox4n1ItwP2YhI1gbybftbsKezv3sQQRCT8rqzLdLTsWZAS0TNyclyFH37a9uT5A0orEmHCvVcZ1EexmWmhFOJ8VuqmiCyRD3acfQGEdUedns8gk6NUoPhUKaijWaqb8nMhwpNY4C0xlhPVCL3lT8z+ukOrz2MhYnqaYxmS8KU460QNMYUI9JSjQfG4KJZOZWRAZYYqJNWEUTgrv48jJpVivuRaV6f1mq3eRxFOAYTqAMLlxBDe6gDg0gMIJneIU3K7NerHfrY966YuUzR/AH1ucP5fiTLQ==</latexit>
+
+Approx. policy alignment
+✏>0
+<latexit sha1_base64="iQxt5eBAWyi4CnJXD1FTsFM/HhA=">AAAB83icbVBNSwMxEJ2tX7V+VT16CRbBU9mtgp6k6MVjBfsB3aVk02wbmk1CkhVK6d/w4kERr/4Zb/4b03YP2vpg4PHeDDPzYsWZsb7/7RXW1jc2t4rbpZ3dvf2D8uFRy8hME9okkkvdibGhnAnatMxy2lGa4jTmtB2P7mZ++4lqw6R4tGNFoxQPBEsYwdZJYUiVYVwKdIP8XrniV/050CoJclKBHI1e+SvsS5KlVFjCsTHdwFc2mmBtGeF0WgozQxUmIzygXUcFTqmJJvObp+jMKX2USO1KWDRXf09McGrMOI1dZ4rt0Cx7M/E/r5vZ5DqaMKEySwVZLEoyjqxEswBQn2lKLB87golm7lZEhlhjYl1MJRdCsPzyKmnVqsFFtfZwWanf5nEU4QRO4RwCuII63EMDmkBAwTO8wpuXeS/eu/exaC14+cwx/IH3+QP4DpD6</latexit>
+
+--- PDF page 20 ---
+De nition: Epsilon (policy) value alignment
+
+⇤
+With only action samples from ⇡Robot (s) , we only have heuristic methods to test policy alignment
+<latexit sha1_base64="91qOZQbskRqFFbv+9BdQarSwZpo=">AAAB+XicbVBNS8NAEJ34WetX1KOXxSJUDyWpgh6LXjxWsR/QxrDZbtqlm2zY3RRK6D/x4kERr/4Tb/4bt20O2vpg4PHeDDPzgoQzpR3n21pZXVvf2CxsFbd3dvf27YPDphKpJLRBBBeyHWBFOYtpQzPNaTuRFEcBp61geDv1WyMqFRPxox4n1ItwP2YhI1gbybftbsKezv3sQQRCT8rqzLdLTsWZAS0TNyclyFH37a9uT5A0orEmHCvVcZ1EexmWmhFOJ8VuqmiCyRD3acfQGEdUedns8gk6NUoPhUKaijWaqb8nMhwpNY4C0xlhPVCL3lT8z+ukOrz2MhYnqaYxmS8KU460QNMYUI9JSjQfG4KJZOZWRAZYYqJNWEUTgrv48jJpVivuRaV6f1mq3eRxFOAYTqAMLlxBDe6gDg0gMIJneIU3K7NerHfrY966YuUzR/AH1ucP5fiTLQ==</latexit>
+
+fi
+
+20
+
+--- PDF page 21 ---
+Value alignment guarantees
+
+Ef cient “driver’s test” that certi es agent alignment
+Value alignment veri cation
+
+Formal
+
+Loosen assumptions
+
+Preferences noiseless
+
+unknown
+noisy
+
+fi
+
+fi
+
+Quantify / optimize policy risk under reward uncertainty
+Bayesian reward extrapolation
+
+Probabilistic
+
+fi
+
+Features known
+
+--- PDF page 22 ---
+RLHF Alignment Guarantees:
+
+Probability
+
+Upper bound the policy loss of the agent vs. optimal policy with
+high con dence, without knowing the ground-truth reward function.
+
+Reward Functions
+
+fi
+
+𝛿
+
+With probability (1 − ) :
+
+--- PDF page 23 ---
+Quantifying reward function alignment from preferences: Bayesian REX
+Input
+
+Features
+
+⌧1
+
+<latexit sha1_base64="2EF0TanP65KcyXI/X4noKmawVfo=">AAAB9HicbVDLSgNBEOz1GeMr6tHLYBA8hd0o6DHoxWME84DsssxOZpMhsw9negNhyXd48aCIVz/Gm3/jJNmDJhY0FFXddHcFqRQabfvbWlvf2NzaLu2Ud/f2Dw4rR8dtnWSK8RZLZKK6AdVcipi3UKDk3VRxGgWSd4LR3czvjLnSIokfcZJyL6KDWISCUTSS5zaHws9dpJnvTP1K1a7Zc5BV4hSkCgWafuXL7Scsi3iMTFKte46dopdThYJJPi27meYpZSM64D1DYxpx7eXzo6fk3Ch9EibKVIxkrv6eyGmk9SQKTGdEcaiXvZn4n9fLMLzxchGnGfKYLRaFmSSYkFkCpC8UZygnhlCmhLmVsCFVlKHJqWxCcJZfXiXtes25rNUfrqqN2yKOEpzCGVyAA9fQgHtoQgsYPMEzvMKbNbZerHfrY9G6ZhUzJ/AH1ucPrp6SCg==</latexit>
+
+⌧3
+
+<latexit sha1_base64="Ioxtk9+LJ1V0egjCqmHEuLufYJA=">AAAB9HicbVDJSgNBEK2JW4xb1KOXxiB4CjOJoMegF48RzAKZYejp9CRNeha7awJhyHd48aCIVz/Gm39jZzlo4oOCx3tVVNULUik02va3VdjY3NreKe6W9vYPDo/KxydtnWSK8RZLZKK6AdVcipi3UKDk3VRxGgWSd4LR3czvjLnSIokfcZJyL6KDWISCUTSS5zaHws9dpJlfn/rlil215yDrxFmSCizR9Mtfbj9hWcRjZJJq3XPsFL2cKhRM8mnJzTRPKRvRAe8ZGtOIay+fHz0lF0bpkzBRpmIkc/X3RE4jrSdRYDojikO96s3E/7xehuGNl4s4zZDHbLEozCTBhMwSIH2hOEM5MYQyJcythA2pogxNTiUTgrP68jpp16pOvVp7uKo0bpdxFOEMzuESHLiGBtxDE1rA4Ame4RXerLH1Yr1bH4vWgrWcOYU/sD5/ALGokgw=</latexit>
+
+⌧4
+
+<latexit sha1_base64="YJjwvR0muw3YfpgczwaQLQZmf1c=">AAAB9HicbVDLSgNBEOyNrxhfUY9eBoPgKezGgB6DXjxGMA/ILsvsZJIMmX040xsIS77DiwdFvPox3vwbJ8keNLGgoajqprsrSKTQaNvfVmFjc2t7p7hb2ts/ODwqH5+0dZwqxlsslrHqBlRzKSLeQoGSdxPFaRhI3gnGd3O/M+FKizh6xGnCvZAOIzEQjKKRPLc5En7mIk39+swvV+yqvQBZJ05OKpCj6Ze/3H7M0pBHyCTVuufYCXoZVSiY5LOSm2qeUDamQ94zNKIh1162OHpGLozSJ4NYmYqQLNTfExkNtZ6GgekMKY70qjcX//N6KQ5uvExESYo8YstFg1QSjMk8AdIXijOUU0MoU8LcStiIKsrQ5FQyITirL6+Tdq3qXFVrD/VK4zaPowhncA6X4MA1NOAemtACBk/wDK/wZk2sF+vd+li2Fqx85hT+wPr8AbMtkg0=</latexit>
+
+CNN
+
+Ranked
+trajectory
+feature counts
+
+⌧2
+
+<latexit sha1_base64="cz+e5N2Enlhwh3QOe2cf+cJ37uw=">AAAB9HicbVDLSgNBEOz1GeMr6tHLYBA8hd0o6DHoxWME84DsssxOZpMhsw9negNhyXd48aCIVz/Gm3/jJNmDJhY0FFXddHcFqRQabfvbWlvf2NzaLu2Ud/f2Dw4rR8dtnWSK8RZLZKK6AdVcipi3UKDk3VRxGgWSd4LR3czvjLnSIokfcZJyL6KDWISCUTSS5zaHws9dpJlfn/qVql2z5yCrxClIFQo0/cqX209YFvEYmaRa9xw7RS+nCgWTfFp2M81TykZ0wHuGxjTi2svnR0/JuVH6JEyUqRjJXP09kdNI60kUmM6I4lAvezPxP6+XYXjj5SJOM+QxWywKM0kwIbMESF8ozlBODKFMCXMrYUOqKEOTU9mE4Cy/vEra9ZpzWas/XFUbt0UcJTiFM7gAB66hAffQhBYweIJneIU3a2y9WO/Wx6J1zSpmTuAPrM8fsCOSCw==</latexit>
+
+⌧N
+
+<latexit sha1_base64="Ba9hDPkDda3UvN1f3V0Gghs5qWg=">AAAB9HicbVBNS8NAEJ3Ur1q/qh69BIvgqSRV0GPRiyepYD+gCWGz3bZLN5u4OymU0N/hxYMiXv0x3vw3btsctPXBwOO9GWbmhYngGh3n2yqsrW9sbhW3Szu7e/sH5cOjlo5TRVmTxiJWnZBoJrhkTeQoWCdRjEShYO1wdDvz22OmNI/lI04S5kdkIHmfU4JG8r3GkAeZhyQN7qdBueJUnTnsVeLmpAI5GkH5y+vFNI2YRCqI1l3XSdDPiEJOBZuWvFSzhNARGbCuoZJETPvZ/OipfWaUnt2PlSmJ9lz9PZGRSOtJFJrOiOBQL3sz8T+vm2L/2s+4TFJkki4W9VNhY2zPErB7XDGKYmIIoYqbW206JIpQNDmVTAju8surpFWruhfV2sNlpX6Tx1GEEziFc3DhCupwBw1oAoUneIZXeLPG1ov1bn0sWgtWPnMMf2B9/gDar5In</latexit>
+
+Sampled
+weights
+
+w
+<latexit sha1_base64="K+iivrhdeUPnWoxmB5CJQNdKl6I=">AAAB6HicbVDLTgJBEOzFF+IL9ehlIjHxRHbRRI9ELx4hkUcCGzI79MLI7OxmZlZDCF/gxYPGePWTvPk3DrAHBSvppFLVne6uIBFcG9f9dnJr6xubW/ntws7u3v5B8fCoqeNUMWywWMSqHVCNgktsGG4EthOFNAoEtoLR7cxvPaLSPJb3ZpygH9GB5CFn1Fip/tQrltyyOwdZJV5GSpCh1it+dfsxSyOUhgmqdcdzE+NPqDKcCZwWuqnGhLIRHWDHUkkj1P5kfuiUnFmlT8JY2ZKGzNXfExMaaT2OAtsZUTPUy95M/M/rpCa89idcJqlByRaLwlQQE5PZ16TPFTIjxpZQpri9lbAhVZQZm03BhuAtv7xKmpWyd1Gu1C9L1ZssjjycwCmcgwdXUIU7qEEDGCA8wyu8OQ/Oi/PufCxac042cwx/4Hz+AOYDjP8=</latexit>
+
+MCMC
+step
+<latexit sha1_base64="LuhYc7lyyL0ujsllUTaz6L96lpY=">AAAB7XicbVBNS8NAEJ3Ur1q/qh69LBbBU0mqoMeiF48V7Ae0oWy2m3btZhN2J0IJ/Q9ePCji1f/jzX/jts1BWx8MPN6bYWZekEhh0HW/ncLa+sbmVnG7tLO7t39QPjxqmTjVjDdZLGPdCajhUijeRIGSdxLNaRRI3g7GtzO//cS1EbF6wEnC/YgOlQgFo2ilVg9p2vf65Ypbdecgq8TLSQVyNPrlr94gZmnEFTJJjel6boJ+RjUKJvm01EsNTygb0yHvWqpoxI2fza+dkjOrDEgYa1sKyVz9PZHRyJhJFNjOiOLILHsz8T+vm2J47WdCJSlyxRaLwlQSjMnsdTIQmjOUE0so08LeStiIasrQBlSyIXjLL6+SVq3qXVRr95eV+k0eRxFO4BTOwYMrqMMdNKAJDB7hGV7hzYmdF+fd+Vi0Fpx85hj+wPn8AUpLjvA=</latexit>
+
+<latexit sha1_base64="D9on6NZWYL8gIeRtuUAsGkMb3ww=">AAAB7XicbVBNS8NAEJ3Ur1q/qh69LBbBU0mqoMeiF48V7Ae0oWy2m3btZhN2J0IJ/Q9ePCji1f/jzX/jts1BWx8MPN6bYWZekEhh0HW/ncLa+sbmVnG7tLO7t39QPjxqmTjVjDdZLGPdCajhUijeRIGSdxLNaRRI3g7GtzO//cS1EbF6wEnC/YgOlQgFo2ilVg9p2q/1yxW36s5BVomXkwrkaPTLX71BzNKIK2SSGtP13AT9jGoUTPJpqZcanlA2pkPetVTRiBs/m187JWdWGZAw1rYUkrn6eyKjkTGTKLCdEcWRWfZm4n9eN8Xw2s+ESlLkii0WhakkGJPZ62QgNGcoJ5ZQpoW9lbAR1ZShDahkQ/CWX14lrVrVu6jW7i8r9Zs8jiKcwCmcgwdXUIc7aEATGDzCM7zCmxM7L86787FoLTj5zDH8gfP5A0vPjvE=</latexit>
+
+<latexit sha1_base64="mXSc4pyfBJAaej1tWUiUADWI3rE=">AAAB7XicbVBNS8NAEJ34WetX1aOXxSJ4Kkkr6LHoxWMF+wFtKJvtpl27yYbdiVBC/4MXD4p49f9489+4bXPQ1gcDj/dmmJkXJFIYdN1vZ219Y3Nru7BT3N3bPzgsHR23jEo1402mpNKdgBouRcybKFDyTqI5jQLJ28H4dua3n7g2QsUPOEm4H9FhLELBKFqp1UOa9mv9UtmtuHOQVeLlpAw5Gv3SV2+gWBrxGJmkxnQ9N0E/oxoFk3xa7KWGJ5SN6ZB3LY1pxI2fza+dknOrDEiotK0YyVz9PZHRyJhJFNjOiOLILHsz8T+vm2J47WciTlLkMVssClNJUJHZ62QgNGcoJ5ZQpoW9lbAR1ZShDahoQ/CWX14lrWrFq1Wq95fl+k0eRwFO4QwuwIMrqMMdNKAJDB7hGV7hzVHOi/PufCxa15x85gT+wPn8AU1TjvI=</latexit>
+
+⌧N
+<latexit sha1_base64="k9VAmflgudrE+/yP42+VyhuOKj0=">AAAB7XicbVBNS8NAEJ3Ur1q/qh69LBbBU0lqQY9FLx4r2FpoQ9lsN+3azSbsToQS+h+8eFDEq//Hm//GbZuDtj4YeLw3w8y8IJHCoOt+O4W19Y3NreJ2aWd3b/+gfHjUNnGqGW+xWMa6E1DDpVC8hQIl7ySa0yiQ/CEY38z8hyeujYjVPU4S7kd0qEQoGEUrtXtI0369X664VXcOskq8nFQgR7Nf/uoNYpZGXCGT1Jiu5yboZ1SjYJJPS73U8ISyMR3yrqWKRtz42fzaKTmzyoCEsbalkMzV3xMZjYyZRIHtjCiOzLI3E//zuimGV34mVJIiV2yxKEwlwZjMXicDoTlDObGEMi3srYSNqKYMbUAlG4K3/PIqadeq3kW1dlevNK7zOIpwAqdwDh5cQgNuoQktYPAIz/AKb07svDjvzseiteDkM8fwB87nD07XjvM=</latexit>
+
+<latexit sha1_base64="I6m7g4Lef0G0YIDAz1dkLrISYNY=">AAAB7XicbVBNS8NAEJ34WetX1aOXxSJ4KkkV9Fj04kkq2A9oQ9lsN+3aTTbsToQS+h+8eFDEq//Hm//GbZuDtj4YeLw3w8y8IJHCoOt+Oyura+sbm4Wt4vbO7t5+6eCwaVSqGW8wJZVuB9RwKWLeQIGStxPNaRRI3gpGN1O/9cS1ESp+wHHC/YgOYhEKRtFKzS7StHfXK5XdijsDWSZeTsqQo94rfXX7iqURj5FJakzHcxP0M6pRMMknxW5qeELZiA54x9KYRtz42ezaCTm1Sp+EStuKkczU3xMZjYwZR4HtjCgOzaI3Ff/zOimGV34m4iRFHrP5ojCVBBWZvk76QnOGcmwJZVrYWwkbUk0Z2oCKNgRv8eVl0qxWvPNK9f6iXLvO4yjAMZzAGXhwCTW4hTo0gMEjPMMrvDnKeXHenY9564qTzxzBHzifP3Y/jw0=</latexit>
+
+Ranked trajectories
+
+Ranking +
+Self-supervised
+losses
+
+Feature pre-training
+D.S. Brown, R. Coleman, R. Srinivasan, and S. Niekum.
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences.
+International Conference on Machine Learning (ICML), July 2020.
+
+Repeat N times
+P(R|D)
+
+⌧1
+⌧2
+⌧3
+⌧4
+
+RMAP
+
+Ri
+
+--- PDF page 24 ---
+Reminder: ↵ -value at risk
+<latexit sha1_base64="uAKVOmshAhr5jmWqurZYSRUqZlg=">AAAB7nicbVBNS8NAEJ34WetX1aOXxSJ4KkkV9Fj04rGC/YA2lMl20y7dbMLuRiihP8KLB0W8+nu8+W/ctDlo64OBx3szzMwLEsG1cd1vZ219Y3Nru7RT3t3bPzisHB23dZwqylo0FrHqBqiZ4JK1DDeCdRPFMAoE6wSTu9zvPDGleSwfzTRhfoQjyUNO0Vip00eRjLE8qFTdmjsHWSVeQapQoDmofPWHMU0jJg0VqHXPcxPjZ6gMp4LNyv1UswTpBEesZ6nEiGk/m587I+dWGZIwVrakIXP190SGkdbTKLCdEZqxXvZy8T+vl5rwxs+4TFLDJF0sClNBTEzy38mQK0aNmFqCVHF7K6FjVEiNTSgPwVt+eZW06zXvslZ/uKo2bos4SnAKZ3ABHlxDA+6hCS2gMIFneIU3J3FenHfnY9G65hQzJ/AHzucPw0ePMA==</latexit>
+
+0.95 VaR
+Worst 5% outcomes
+
+Best 95% outcomes
+
++ Single-sided con dence bound
+
+-$500
+
+fi
+
+fi
+
+“With high con dence, you won’t lose more than $500 more than
+95% of the time when using this investing strategy”
+
+--- PDF page 25 ---
+Producing alignment guarantees
+
+Bayesian REX
+Calculate policy losses
+P(R|D)
+
+⇡expert
+VR i
+<latexit sha1_base64="KLYaNqtZcj3QNPn5kaM+/RyNqfU=">AAACF3icbVDLSsNAFJ3UV62vqEs3g0VwY0iqoMuiG5dV7APaGCbTm3bo5MHMpFhC/sKNv+LGhSJudeffmLRZaOuBC4dz7uXee9yIM6lM81srLS2vrK6V1ysbm1vbO/ruXkuGsaDQpCEPRcclEjgLoKmY4tCJBBDf5dB2R1e53x6DkCwM7tQkAtsng4B5jBKVSY5utJzk1mHpfdKLmJPAQwRCpSk+wXPGmPA0rTh61TTMKfAisQpSRQUajv7V64c09iFQlBMpu5YZKTshQjHKIa30YgkRoSMygG5GA+KDtJPpXyk+ypQ+9kKRVaDwVP09kRBfyonvZp0+UUM57+Xif143Vt6FnbAgihUEdLbIizlWIc5Dwn0mgCo+yQihgmW3YjokglCVRZmHYM2/vEhaNcM6NWo3Z9X6ZRFHGR2gQ3SMLHSO6ugaNVATUfSIntEretOetBftXfuYtZa0YmYf/YH2+QMiK6CE</latexit>
+
+Calculate Value at Risk
+
+⇡eval
+VR i
+
+Ri
+
+Policy loss
+
+⇡eval can be any policy,
+
+Plus a single-sided
+con dence bound
+
+<latexit sha1_base64="TEyaGSefSLekYgtZHXz2AeGwjic=">AAAB8XicbVBNS8NAEJ34WetX1aOXxSJ4KkkV9Fj04rGC/cA2lM120i7dbMLuplBC/4UXD4p49d9489+4bXPQ1gcDj/dmmJkXJIJr47rfztr6xubWdmGnuLu3f3BYOjpu6jhVDBssFrFqB1Sj4BIbhhuB7UQhjQKBrWB0N/NbY1Sax/LRTBL0IzqQPOSMGis9dRPey3BMxbRXKrsVdw6ySryclCFHvVf66vZjlkYoDRNU647nJsbPqDKcCZwWu6nGhLIRHWDHUkkj1H42v3hKzq3SJ2GsbElD5urviYxGWk+iwHZG1Az1sjcT//M6qQlv/IzLJDUo2WJRmApiYjJ7n/S5QmbExBLKFLe3EjakijJjQyraELzll1dJs1rxLivVh6ty7TaPowCncAYX4ME11OAe6tAABhKe4RXeHO28OO/Ox6J1zclnTuAPnM8f74yRFg==</latexit>
+
+learned or otherwise
+
+Optimize to minimize
+risk of ⇡eval
+fi
+
+𝛿
+
+<latexit sha1_base64="TEyaGSefSLekYgtZHXz2AeGwjic=">AAAB8XicbVBNS8NAEJ34WetX1aOXxSJ4KkkV9Fj04rGC/cA2lM120i7dbMLuplBC/4UXD4p49d9489+4bXPQ1gcDj/dmmJkXJIJr47rfztr6xubWdmGnuLu3f3BYOjpu6jhVDBssFrFqB1Sj4BIbhhuB7UQhjQKBrWB0N/NbY1Sax/LRTBL0IzqQPOSMGis9dRPey3BMxbRXKrsVdw6ySryclCFHvVf66vZjlkYoDRNU647nJsbPqDKcCZwWu6nGhLIRHWDHUkkj1H42v3hKzq3SJ2GsbElD5urviYxGWk+iwHZG1Az1sjcT//M6qQlv/IzLJDUo2WJRmApiYjJ7n/S5QmbExBLKFLe3EjakijJjQyraELzll1dJs1rxLivVh6ty7TaPowCncAYX4ME11OAe6tAABhKe4RXeHO28OO/Ox6J1zclnTuAPnM8f74yRFg==</latexit>
+
+BROIL
+<latexit sha1_base64="3hvpdgr1J/pRkmMoBQDovwWC3m4=">AAACOHicbZA9bxNBEIb3AiTBgWBISbPCikSDdZcgJUWKCBq6fAg7kXzHaW49jlfe21vtzkWxVvezaPgZdChNClBEyy9g7bjI1yut9OqZGc3OWxglHcXxr2jpydNnyyurz1trL16uv2q/ftN3VW0F9kSlKntagEMlNfZIksJTYxHKQuFJMfk8q5+co3Wy0l9pajAr4UzLkRRAAeXtg5Twgmzp+3Dc5D4FZcbQ8AHv5/64+eZTI3OPFwYtNQ3/cBefgwow43s8ReOkqnQrb3fibjwXf2iShemwhQ7z9s90WIm6RE1CgXODJDaUebAkhcKmldYODYgJnOEgWA0luszPD2/4ZiBDPqpseJr4nN6e8FA6Ny2L0FkCjd392gw+VhvUNNrNvNSmJtTiZtGoVpwqPkuRD6VFQWoaDAgrw1+5GIMFQSHrWQjJ/ZMfmv5WN9nubh197Ox/WsSxyt6yd+w9S9gO22df2CHrMcG+s0v2m/2JfkRX0XX096Z1KVrMbLA7iv79B2YtreI=</latexit>
+
+D.S. Brown, S. Niekum, and M. Petrik.
+Bayesian Robust Optimization for Imitation Learning.
+Neural Information Processing Systems, December 2020.
+
+With probability (1 − ) :
+⇡expert
+⇡eval
+VaR↵ [VR
+VR
+]<✏
+
+--- PDF page 26 ---
+Can Bayesian REX accurately predict return distributions?
+(Atari Breakout)
+
+--- PDF page 27 ---
+Bayesian REX: Results
+
+Beamrider
+
+Not restricted to policy evaluation!
+Can also learn policy to balance
+expected return and CVaR:
+D.S. Brown, S. Niekum, and M. Petrik.
+Bayesian Robust Optimization for Imitation Learning.
+Neural Information Processing Systems, December 2020.
+
+--- PDF page 28 ---
+Bayesian REX: Experiments
+
+…and still performs as well as T-REX for generating point estimates
+
+--- PDF page 29 ---
+Alignment guarantee frontiers
+• Scaling to very large models
+• How to deal with heterogenous annotators?
+• “Driver’s tests” with fewer assumptions and OOD validity
+• Guarantees with respect to other feedback modalities…
+
+--- PDF page 30 ---
+Multimodal signals (with guarantees?)
+
+“Rotate the red handle
+downward”
+
+Human Gaze
+A. Saran, E.S. Short, A.L. Thomaz, and S. Niekum.
+Understanding Teacher Gaze Patterns for Robot Learning.
+Conference on Robot Learning (CoRL), October 2019.
+
+Natural language
+P. Goyal, S. Niekum, and R. Mooney.
+PixL2R: Guiding Reinforcement Learning Using Natural Language
+by Mapping Pixels to Rewards.
+Conference on Robot Learning (CoRL), November 2020.
+
+Facial reactions
+Y. Cui, Q. Zhang, A. Allievi, P. Stone, S. Niekum, and W. Knox.
+The EMPATHIC Framework for Task Learning from Implicit
+Human Feedback.
+Conference on Robot Learning (CoRL), November 2020.

@@ -5,6 +5,7 @@ import { readStored, readPdf, storePdf } from '../storage.js';
 import { baseCourses, baseSources } from './content.js';
 import './library.css';
 import { ReadingPage } from '../readings/ReadingPage.jsx';
+import { CourseGraphPage } from '../graph/CourseGraphPage.jsx';
 import { CourseGraphButton } from '../graph/CourseGraphButton.jsx';
 import { replayPath } from '../lecture/replay.js';
 import { enrolledCourseIds, isCourseStaff, joinCourse, readProfile, saveProfile } from '../classroom/accounts.js';
@@ -45,7 +46,7 @@ function CourseHeading({ course, sourceCount, active, onAdd, nextLecture, onStar
   return <>
     <a className="back" href="#courses">← My courses</a>
     <div className="hero course-hero"><div><div className="eyebrow">{course.code} &nbsp; / &nbsp; FALL 2026</div><h1>{course.name}<em>.</em></h1><p className="intro">{course.teacher || 'Your course workspace'} · {course.lectures.length} lectures in your library</p></div>
-    <div className="hero-actions">{active === 'course' && <CourseGraphButton/>}<button className="secondary" onClick={() => onAdd()}>+ Add sources</button><div className="session-launch">
+    <div className="hero-actions">{active === 'course' && <CourseGraphButton courseId={course.id}/>}<button className="secondary" onClick={() => onAdd()}>+ Add sources</button><div className="session-launch">
       <button className="primary" onClick={onStartSession} disabled={!nextLecture}>◉ Start a session</button>
       {!nextLecture && <small>{course.lectures.length ? 'No upcoming lectures.' : 'No lectures scheduled.'}</small>}
     </div></div></div>
@@ -318,7 +319,7 @@ function Library() {
     if (['courses', 'find-courses'].includes(view)) return;
     if (!canOpenCourse) { location.hash = 'find-courses'; return; }
     if (view === 'staff' && !staff) { location.hash = 'course/' + id; return; }
-    if (!['course', 'sources', 'lecture', 'reading', 'record', 'staff'].includes(view)) location.hash = 'courses';
+    if (!['course', 'sources', 'lecture', 'reading', 'record', 'staff', 'graph'].includes(view)) location.hash = 'courses';
     else if ((['lecture', 'reading'].includes(view) && !lecture) || (view === 'record' && session?.course !== course.id)) location.hash = 'course/' + course.id;
     else if (view === 'reading' && !sourceKey) location.hash = lecturePath(course, lecture);
   }, [accountPage, canOpenCourse, course, id, lecture, profile, session, sourceKey, staff, view]);
@@ -391,7 +392,7 @@ function Library() {
     <div className="ambient" aria-hidden="true"/>
     <header><Brand href={profile ? '#courses' : '#signin/' + signInRole}/><div id="breadcrumb">{!canOpenCourse ? <span>{view === 'find-courses' ? 'Find a course' : profile ? 'My courses' : 'Account access'}</span> :
       view === 'course' ? <><a href="#courses">My courses</a><span>/ {course.name}</span></> :
-        <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['lecture', 'reading'].includes(view) ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : view === 'staff' ? 'Lecture doubts' : 'Session'}</span></>}</div>
+        <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['lecture', 'reading'].includes(view) ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : view === 'staff' ? 'Lecture doubts' : view === 'graph' ? 'Knowledge graph' : 'Session'}</span></>}</div>
       <div className="header-end">
         {profile ? <button className="secondary" onClick={onSignOut}>Sign out</button>
           : <a className="secondary" href="#signin/student">Sign in</a>}
@@ -405,6 +406,7 @@ function Library() {
         : canOpenCourse && <>
         {['course', 'sources'].includes(view) && <CourseHeading course={course} sourceCount={getSources(id).length} active={view} onAdd={onAdd} staff={staff} nextLecture={nextLecture} onStartSession={onStartSession}/>}
         {view === 'staff' && staff && <StaffOverview course={course} profile={profile}/>}
+        {view === 'graph' && <CourseGraphPage course={course}/>}
         {view === 'course' && <CourseOverview course={course} getSources={getSources}/>}
         {view === 'sources' && <CourseSources course={course} sources={getSources(id)} onAdd={onAdd} onLink={() => onLink()} onPdf={onPdf} onRemove={onRemove}/>}
         {view === 'reading' && lecture && sourceKey && <ReadingPage course={course} lecture={lecture} source={reading}

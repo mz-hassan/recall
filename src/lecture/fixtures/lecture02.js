@@ -1,4 +1,4 @@
-import { headlines, moments as curated, subtitles } from './content.js';
+import { headlines, moments as curated, subtitles } from '../content.js';
 
 export const demoMoments = curated.map((moment, index) => ({
   ...moment, id: 'ai/2/curated/' + index, headline: headlines[index], lede: subtitles[index], artIndex: index,
@@ -13,4 +13,3 @@ demoMoments[5] = {
   graph: { origin: 'fixture', nodes: [{ id: 'rollout', label: 'Policy rollout' }, { id: 'expert', label: 'Expert labels' }, { id: 'dataset', label: 'Aggregated dataset' }],
     edges: [{ id: 'query', from: 'rollout', to: 'expert', relation: 'queries' }, { id: 'append', from: 'expert', to: 'dataset', relation: 'adds to' }] },
 };
-

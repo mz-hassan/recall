@@ -1,4 +1,4 @@
-import { demoMoments } from './demoMoments.js';
+import { demoMoments } from './fixtures/lecture02.js';
 import { loadTranscript } from './dataset.js';
 
 // Vary the count per lecture while keeping topic IDs stable for saved doubts.

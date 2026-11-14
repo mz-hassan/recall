@@ -1,0 +1,21 @@
+[
+  {
+    "id": "1", "title": "Behavior cloning",
+    "text": "Behavioral cloning learns a policy from expert demonstrations using supervised learning.",
+    "concepts": [
+      { "key": "bc", "label": "Behavioral cloning", "aliases": ["BC", "Behavior cloning"] },
+      { "key": "policy", "label": "Policy", "aliases": [] }
+    ],
+    "edges": [{ "from": "bc", "to": "policy", "relation": "uses" }]
+  },
+  {
+    "id": "3", "title": "Reinforcement learning",
+    "text": "Reinforcement learning learns a policy by maximizing reward. Behavior cloning learns a policy from demonstrations.",
+    "concepts": [
+      { "key": "rl", "label": "Reinforcement learning", "aliases": ["RL"] },
+      { "key": "policy", "label": "Policy", "aliases": [] },
+      { "key": "bc", "label": "Behavior cloning", "aliases": ["BC"] }
+    ],
+    "edges": [{ "from": "rl", "to": "policy", "relation": "uses" }, { "from": "bc", "to": "policy", "relation": "uses" }]
+  }
+]

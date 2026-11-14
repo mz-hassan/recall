@@ -1,0 +1,447 @@
+--- PDF page 1 ---
+CS 690S: AI Alignment
+Prof. Scott Niekum
+Reward design and inference from language
+
+--- PDF page 2 ---
+Language-based reward design?
+• We know reward design is hard
+• Demonstrations and preferences require models of humans that don’t
+
+necessarily capture them accurately, and require a lot of data to work well
+
+• Easy for reward inference to over t and/or misalign to reward functions that
+are highly unlikely from a human perspective
+
+• LLMs contain huge amounts of human knowledge, common sense, and priors
+about things that people generally want
+
+fi
+
+• Can we leverage that to do better?
+
+--- PDF page 3 ---
+In-context reward learning
+Limitations
+
+• Requires text-based episode
+descriptions / parser
+
+• Only binary rewards
+
+Kwon M, Xie SM, Bullard K, Sadigh D. Reward design with language models.
+arXiv preprint arXiv:2303.00001. 2023 Feb 27.
+
+--- PDF page 4 ---
+Eureka
+
+Ma YJ, Liang W, Wang G, Huang DA, Bastani O, Jayaraman D, Zhu Y, Fan L,
+Anandkumar A. Eureka: Human-level reward design via coding large language
+models. arXiv preprint arXiv:2310.12931. 2023.
+
+--- PDF page 5 ---
+Eureka
+
+--- PDF page 6 ---
+Eureka
+
+--- PDF page 7 ---
+Eureka
+
+--- PDF page 8 ---
+Eureka
+
+--- PDF page 9 ---
+Eureka
+
+--- PDF page 10 ---
+Eureka
+
+--- PDF page 11 ---
+Eureka
+
+--- PDF page 12 ---
+Eureka
+
+--- PDF page 13 ---
+Eureka
+
+--- PDF page 14 ---
+Eureka
+
+--- PDF page 15 ---
+Eureka: vibe coding rewards?
+
+--- PDF page 16 ---
+What if we want instantaneous novel behaviors?
+“Do the dishes”
+
+“Dice tomatoes”
+
+“Vacuum the kitchen”
+
+--- PDF page 17 ---
+Successor features
+
+--- PDF page 18 ---
+Unsupervised Reinforcement Learning
+Pretraining
+lunge
+
+, , ′
+
+( , ),
+
+( )
+
+walk
+
+( )= ( )
+∈ ℝ
+
+Reward-Free
+Transitions
+
+Behavioral Foundation
+Model
+Inference
+
+Given any reward function:
+zr = min [( ( ) −
+
+𝑧
+
+𝑎
+
+𝑠
+
+𝑠
+
+𝑒
+
+𝑡
+
+𝑠
+
+𝑟
+
+𝑧
+
+𝑠
+
+𝔼
+
+𝑧
+
+𝑑
+
+𝑠
+
+𝜓
+
+￼
+
+𝑠
+
+𝑠
+
+𝑎
+
+𝑠
+𝑠
+
+𝑄
+
+𝜋
+
+𝑧
+
+𝑟
+
+𝜓
+
+𝑧
+𝑧
+𝑧
+𝑠
+
+𝜋
+𝑟
+
+2
+
+( )) ]
+
+Instantly produce near-optimal policy
+under reward r:
+
+Touati, Ahmed, and Yann Ollivier. "Learning one representation to optimize all rewards." Advances in Neural Information Processing Systems 34 (2021): 13-23.
+Agarwal, Siddhant, et al. "Proto Successor Measure: Representing the Behavior Space of an RL Agent." arXiv preprint arXiv:2411.19418 (2024).
+18
+Jajoo, Pranaya, et al. "Regularized latent dynamics prediction is a strong baseline for behavioral foundation models." Workshop on Reinforcement Learning Beyond Rewards@ Reinforcement Learning Conference 2025. 2025.
+Agarwal, Siddhant, et al. "A Unified Framework for Unsupervised Reinforcement Learning Algorithms." Workshop on Reinforcement Learning Beyond Rewards@ Reinforcement Learning Conference 2025. 2025.
+𝑡
+
+𝑟
+
+z
+
+𝜋
+
+𝜓
+
+( ),
+
+--- PDF page 19 ---
+Successor measures + FB
+
+Touati, Ahmed, and Yann Ollivier. "Learning one representation to optimize all rewards." Advances in Neural Information Processing Systems 34 (2021): 13-23.
+
+--- PDF page 20 ---
+Forward-backward representation
+
+Learn F and B such that:
+
+--- PDF page 21 ---
+Training FB
+
+--- PDF page 22 ---
+RLZero
+Generalist agents that can go from language to behavior
+without in-domain supervision
+
+Language
+
+BFM
+
+[Ex. “Do a lunge”]
+
+(via FB)
+
+Z
+
+H. Sikchi, S. Agarwal, P. Jajoo, S. Parajuli, C. Chuck, M. Rudolph, P. Stone, A. Zhang, S. Niekum. RL Zero: Zero-Shot
+Language to Behaviors Without Any Supervision. Neural Information Processing Systems (NeurIPS), December 2025.
+
+--- PDF page 23 ---
+Imagine
+How do humans know what doing a task in language means?
+“Sprint like a
+quadruped”
+
+Leverage Priors from Foundation Models
+Language Instruction: “Do a Lunge”
+
+Video generation models
+trained on internet-scale
+data learn the distribution
+of realistic videos
+A video generation model finetuned on MuJoCo transitions
+
+23
+8
+
+--- PDF page 24 ---
+Imagine
+
+“Do a Lunge”
+
+YouTube video of “Boat Pose (Navasana)”
+
+1. Lack of Actions
+2. Dynamically Infeasible
+3. Noisy Frames/Cross-Domain
+
+24
+
+--- PDF page 25 ---
+Project
+
+CLIP/SigLIP
+encodes frames
+Real
+observation
+from
+pretraining
+dataset
+
+{ 1}
+
+{ 2}
+
+{ 3}
+
+{ 4}
+
+{ 5}
+
+1. Lack of Actions
+
+𝑠
+
+𝑠
+
+𝑠
+
+𝑠
+
+𝑠
+
+𝑠
+
+2. Dynamically Infeasible
+3. Noisy Frames/Cross-Domain
+
+{ 6}
+
+Proprioceptive
+states
+
+--- PDF page 26 ---
+Imitate with Behavioral Foundation Models
+Idea: Match state-only visitation distribution in encoded latent space
+=
+
+(
+
+( )||
+
+( ))
+
+Match Distribution of Encoded Frames
+
+Approximate Closed Form Solution:
+
+𝑠
+
+𝑓
+
+𝑠
+
+𝑑
+𝑠
+
+𝑠
+𝜓
+
+𝑑
+
+𝐷
+
+𝑧
+
+𝑡
+
+𝑖
+
+𝑚
+
+𝐸
+
+𝜋
+
+𝑧
+
+𝑖
+
+𝔼
+
+𝑧
+𝑧
+
+( )[
+
+( )]
+26
+11
+
+𝐸
+
+𝑑
+
+𝑡
+
+𝑖
+
+𝑡
+
+𝑖
+
+𝑚
+𝑚
+
+𝑖
+
+𝑖
+
+=
+
+--- PDF page 27 ---
+Imagine
+
+From Language to Behaviors
+
+Project
+Imitate
+
+Imagined trajectory
+
+Behavioral Foundation
+Model
+
+lu
+
+ng
+
+e
+
+“Do a lunge”
+
+Projection
+
+g
+
+ip
+pi
+ng
+
+c
+
+w
+a
+r
+
+lin
+
+sk
+
+Language Instruction
+
+Imitation/
+Distribution
+Matching
+
+27
+
+--- PDF page 28 ---
+Zero-Shot Language to Behaviors Without Supervision
+No test-time learning!
+‘Bunny Hop’
+
+‘Cartwheel’
+
+‘Strut like a horse’
+
+‘Headstand’
+
+28
+
+--- PDF page 29 ---
+Zero-Shot Video to Policy
+
+29
+
+--- PDF page 30 ---
+Future directions: Language —> complex behaviors?
+
+30

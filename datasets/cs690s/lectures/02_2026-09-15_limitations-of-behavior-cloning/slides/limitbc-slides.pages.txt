@@ -1,0 +1,252 @@
+--- PDF page 1 ---
+Limitations of Behavior Cloning
+690S: AI Alignment
+Prof. Scott Niekum
+
+Limitations of Behavior Cloning
+
+1 / 13
+
+--- PDF page 2 ---
+Setup and Notation
+
+Setup and Notation
+Goal: learn a policy π from an expert π ∗ that
+we can query but whose cost (negative reward)
+function C we cannot directly observe.
+▶ At every time-step t, the agent is in state
+st , takes action at , transitions to st+1 .
+▶ The expert can tell us what action it would
+take in any state: a∗ = π ∗ (s).
+▶ We only have a finite horizon T .
+
+Limitations of Behavior Cloning
+
+Notation
+π ∗ — expert policy
+dπt — state distribution at time t
+under π
+P
+dπ = T1 t dπt — avg. state distribution
+ℓ(s, π) — surrogate loss (e.g. 0-1
+w.r.t. π ∗ since we don’t know C )
+C (s, a) ∈ [0, 1] — per-step cost
+J(π) — expected cost over T steps:
+PT
+t
+t=1 Es∼dπ Ea∼π(s) C (s, a)
+
+2 / 13
+
+--- PDF page 3 ---
+Behavior Cloning
+
+Behavior Cloning (BC)
+BC: collect expert demonstrations, train a supervised classifier/regressor to predict π ∗ (s) from s.
+Behavior Cloning
+1. Roll out π ∗ for N trajectories. Collect dataset D = {(st , π ∗ (st ))}.
+2. Train π̂ = arg minπ∈Π Es∼D [ℓ(s, π)].
+Pros:
+
+Cons:
+
+▶ Extremely simple to implement.
+▶ Works well when the problem is “easy”
+(small T , high expert coverage).
+
+Limitations of Behavior Cloning
+
+▶ Performance degrades quadratically in T
+due to i.i.d. violation.
+
+3 / 13
+
+--- PDF page 4 ---
+Behavior Cloning
+
+The Behavior Cloning i.i.d. Violation
+The core issue
+In standard supervised learning we assume train and test data are drawn from the
+same distribution. In behavior cloning this is false: the distribution of states the
+learner visits depends on the learner’s own policy.
+Expert’s training data: states from dπ∗ .
+
+Learner’s test data: states from dπ̂ ,
+where π̂ is the learned BC policy.
+The learner can end up in states that are
+out of distribution w.r.t. training data,
+leading to compounding error.
+
+Limitations of Behavior Cloning
+
+4 / 13
+
+--- PDF page 5 ---
+Compounding Errors
+
+Illustrating compounding errors
+
+Limitations of Behavior Cloning
+
+5 / 13
+
+--- PDF page 6 ---
+Compounding Errors
+
+The O(T 2 ε) compounding-error bound
+Suppose BC policy has a per-step error rate ε on the expert’s state distribution.
+Theorem (Ross & Bagnell, 2010)
+J(π̂) ≤ J(π ∗ ) + T 2 ε.
+This bound is tight: there exist problems that incur quadratic regret
+
+Intuition (“snowball effect”):
+▶ At each of T steps there is probability ε of a mistake—possibly taking the agent
+off-distribution where it may make mistakes at every remaining timestep.
+▶ In the worst case, this results in a cost of 1 at every remaining timestep → total
+cost of O(T ) once a mistake is made.
+Limitations of Behavior Cloning
+
+6 / 13
+
+--- PDF page 7 ---
+Compounding Errors
+
+Visualizing quadratic regret
+
+Limitations of Behavior Cloning
+
+7 / 13
+
+--- PDF page 8 ---
+The DAgger Algorithm
+
+DAgger: Dataset Aggregation
+
+Key idea: Repeat: (1) run the current policy to observe states it actually visits, (2) ask
+the expert for actions for those states (and optionally, sometimes follow the expert
+instead of the current policy), (3) aggregate all data and retrain.
+
+The training distribution gradually shifts to cover the states the learner will
+actually encounter, eliminating the distribution mismatch that causes compounding
+errors.
+
+Limitations of Behavior Cloning
+
+8 / 13
+
+--- PDF page 9 ---
+The DAgger Algorithm
+
+DAgger: walking through an iteration
+next iteration
+
+Mix
+πi = βi π ∗ + (1−βi )π̂i
+
+Rollout
+Sample trajectory
+
+Query
+Get π ∗ (s) for
+
+Aggregate & Retrain
+D ← D ∪ Di
+
+under πi
+
+every visited s
+
+train π̂i+1
+
+Mixing πi : using βi > 0 lets the expert keep the trajectory “on track” in early iterations
+when π̂i is weak, resulting in more relevant data for later iterations.
+Simplification: set β1 = 1 (first iteration is pure expert) and βi = 0 for i > 1. This is the
+parameter-free variant can work well in practice.
+Limitations of Behavior Cloning
+
+9 / 13
+
+--- PDF page 10 ---
+The DAgger Algorithm
+
+Awkward data collection
+
+Limitations of Behavior Cloning
+
+10 / 13
+
+--- PDF page 11 ---
+The DAgger Algorithm
+
+Connection to online learning: Follow-The-Leader
+DAgger is a Follow-The-Leader (FTL) algorithm.
+Online learning recap:
+▶ At round i we pick policy π̂i
+▶ Loss function ℓi is revealed
+▶ Our goal: minimise regret vs. best fixed
+policy in hindsight
+FTL rule: at each round, pick the policy that
+minimises the total loss on data seen so far.
+This results in a linear regret guarantee with
+respect to T .
+Limitations of Behavior Cloning
+
+No-regret online learners
+Any no-regret* online learner in place
+of the “retrain on D” step yields the
+same linear regret guarantee.
+*no-regret does not mean zero regret,
+but only that average regret approaches
+zero in the limit
+
+11 / 13
+
+--- PDF page 12 ---
+Theoretical Guarantees
+
+The main guarantee (infinite samples per iteration)
+P
+Let εN = minπ∈Π N1 N
+i=1 Es∼dπi [ℓ(s, π)] be the expected per-timestep loss of the best
+representable policy in hindsight over all N iterations of data
+If N is Õ(uT ), then there exists a returned policy π̂ such that:
+J(π̂) ≤ J(π ∗ ) + u T εN + O(1)
+where u measures the worst-case cost of a single wrong action.
+Caveat: Only true for convex policy classes and losses; otherwise cannot guarantee loss
+decreases at each iteration. Nevertheless, tends to work well in practice, e.g., neural nets.
+Note: The paper also contains a probabilistic finite-sample guarantee.
+Limitations of Behavior Cloning
+
+12 / 13
+
+--- PDF page 13 ---
+Theoretical Guarantees
+
+Understanding u: the “recoverability” constant
+The constant u captures how bad it is to make the worst single-action mistake:
+ ∗
+
+∗
+u = max QTπ −t+1 (s, a) − QTπ −t+1 (s, π ∗ ) .
+a, t, s
+
+u = O(1) — easy to recover
+
+u = O(T ) — hard to recover
+
+The expert can “get back on track” in
+a constant number of steps. Example:
+driving on a highway — a minor lane drift
+is quickly corrected.
+
+One mistake can derail the entire trajectory. Example: missing the only bridge
+across a river.
+
+⇒ bound is O(T ε)
+
+Limitations of Behavior Cloning
+
+⇒ bound degrades to O(T 2 ε) in the worst
+case — no better than BC.
+
+13 / 13
