@@ -14,6 +14,7 @@ test('transcript chunks retain the transcript in order and use a configurable cl
 });
 
 test('invalid query options fall back to usable defaults', () => {
-  assert.deepEqual(replayOptions('?words=-2&interval=1.5'), { lectureId: '2', live: false, words: 160, interval: 5 });
+  assert.deepEqual(replayOptions('?words=-2&interval=1.5'), { lectureId: '2', live: false, words: 160, interval: 8, limit: 6 });
+  assert.equal(replayOptions('?limit=all').limit, Infinity);
   assert.deepEqual(makeTranscriptMoments('  ', '2', { words: 160, interval: 5 }), []);
 });

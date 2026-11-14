@@ -11,7 +11,8 @@ export function replayOptions(search) {
     lectureId: query.get('lecture') ?? '2',
     live: query.get('mode') === 'live',
     words: bounded('words', 160, 30, 1000),
-    interval: bounded('interval', 5, 1, 60),
+    interval: bounded('interval', 8, 1, 60),
+    limit: query.get('limit') === 'all' ? Infinity : bounded('limit', 6, 1, 100),
   };
 }
 

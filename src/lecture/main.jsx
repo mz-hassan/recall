@@ -93,7 +93,7 @@ function Lecture({ allMoments, lecture, options, rich }) {
   const saveKey = rich ? 'recall-saved' : 'recall-saved-ai-' + lecture.id + '-' + options.words;
   const moments = allMoments.filter(moment => moment.time <= elapsed);
   const [expanded, setExpanded] = useState(false);
-  const [playing, setPlaying] = useState(options.live);
+  const [playing, setPlaying] = useState(false);
   const [saved, setSaved] = useState(() => readStored(saveKey));
   const [modal, setModal] = useState(null);
   const [message, setMessage] = useState('');
@@ -251,7 +251,7 @@ function Lecture({ allMoments, lecture, options, rich }) {
           </div><span className="timestamp">{item.label}</span>{item.artIndex != null && <div className="art" dangerouslySetInnerHTML={{ __html: art(item.artIndex) }}/>}
         </button>;
       })}</div>
-      <div className="scroll-instruction"><span>↑</span><div>SCROLL TO REWIND<small>One thought at a time</small></div></div>
+      <div className="scroll-instruction"><span>{options.live && !playing ? "▶" : "↑"}</span><div>{options.live && !playing ? "PRESS PLAY TO SIMULATE" : "SCROLL TO REWIND"}<small>{options.live ? moments.length + " of " + allMoments.length + " chunks" : "One thought at a time"}</small></div></div>
       <button ref={closeButton} className="close-detail" aria-label="Close expanded moment" onClick={closeDetail}>✕ <span>Back to the thread</span></button>
       <section ref={detail} id="detail" className="detail" aria-label="Expanded lecture moment" hidden={!expanded}>
         {expanded && <MomentDetail moment={moment} saved={saved.includes(focused)} onSave={saveMoment} onOpen={setModal} onChat={() => setChat(true)}/>}
@@ -272,12 +272,16 @@ function Lecture({ allMoments, lecture, options, rich }) {
       {modal === 'transcript' && <><div className="eyebrow">IN THE LECTURE</div><h2>{moment.short}</h2><blockquote>“{moment.quote}”</blockquote><p>Prof. Scott Niekum · {moment.quoteTime}</p><p className="notes">From the lecture transcript.</p></>}
       {modal === 'about' && <><div className="eyebrow">690S · LECTURE {lecture.id.padStart(2, '0')}</div><h2>{lecture.title}</h2>
         <p>Scroll up to rewind. Select a moment to see its details.</p>
-        <p>{rich ? 'This replay uses curated explanations and slides.' : 'Transcript chunks use a simulated clock. Playback publishes each chunk at the configured interval.'}</p>
+        <p>{rich ? 'This replay uses curated explanations and slides.' : 'Transcript chunks use a simulated clock. Press Play to publish each chunk at the configured interval.'}</p>
         <form className="replay-config" action="lecture.html" method="get">
           <input type="hidden" name="lecture" value={lecture.id}/><input type="hidden" name="mode" value="live"/>
           <label>Words per chunk<input type="number" name="words" min="30" max="1000" defaultValue={options.words} required/></label>
           <label>Seconds per chunk<input type="number" name="interval" min="1" max="60" defaultValue={options.interval} required/></label>
-          <button>Start simulation ↗</button>
+          <label>Chunk limit<select name="limit" defaultValue={Number.isFinite(options.limit) ? options.limit : 'all'}>
+            {[...new Set([6, 12, 24, Number.isFinite(options.limit) ? options.limit : 6])].map(limit => <option key={limit}>{limit}</option>)}
+            <option value="all">Full transcript</option>
+          </select></label>
+          <button>Apply settings ↗</button>
         </form></>}
     </Dialog>
     <div id="toast" className={message ? 'show' : ''} role="status">{message}</div>
@@ -309,7 +313,7 @@ function ReplayApp() {
             slides, equations, graph, intuition, artifacts,
           });
         }
-        setMoments(chunks);
+        setMoments(options.live ? chunks.slice(0, options.limit) : chunks);
       }
       else setError('This transcript is empty.');
     }).catch(() => { if (active) setError('Could not load the lecture transcript.'); });
