@@ -1,10 +1,11 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Brand, Dialog } from '../ui.jsx';
 import { readStored, readPdf, storePdf } from '../storage.js';
 import { baseCourses, baseSources } from './content.js';
 import './library.css';
-import { ReadingPage } from '../readings/ReadingPage.jsx';
+import { PapersPage } from '../readings/PapersPage.jsx';
+const ReadingPage = lazy(() => import('../readings/ReadingPage.jsx').then(module => ({ default: module.ReadingPage })));
 import { CourseGraphButton } from '../graph/CourseGraphButton.jsx';
 import { replayPath } from '../lecture/replay.js';
 
@@ -37,7 +38,7 @@ function CourseHeading({ course, sourceCount, active, onAdd, onRecord }) {
     <a className="back" href="#courses">← All courses</a>
     <div className="hero course-hero"><div><div className="eyebrow">{course.code} &nbsp; / &nbsp; FALL 2026</div><h1>{course.name}<em>.</em></h1><p className="intro">{course.teacher || 'Your course workspace'} · {course.lectures.length} lectures in your library</p></div>
     <div className="hero-actions">{active === 'course' && <CourseGraphButton/>}<button className="secondary" onClick={() => onAdd()}>+ Add sources</button><button className="primary" onClick={() => onRecord()}>◉ Start a session</button></div></div>
-    <nav className="tabs"><a className={active === 'course' ? 'active' : ''} href={'#course/' + course.id}>Overview &amp; lectures <small>{course.lectures.length}</small></a><a className={active === 'sources' ? 'active' : ''} href={'#sources/' + course.id}>Sources <small>{sourceCount}</small></a></nav>
+    <nav className="tabs"><a className={active === 'course' ? 'active' : ''} href={'#course/' + course.id}>Overview &amp; lectures <small>{course.lectures.length}</small></a><a className={active === 'papers' || active === 'reading' ? 'active' : ''} href={'#papers/' + course.id}>Papers</a><a className={active === 'sources' ? 'active' : ''} href={'#sources/' + course.id}>Sources <small>{sourceCount}</small></a></nav>
   </>;
 }
 
@@ -241,7 +242,7 @@ function Library() {
   const [message, setMessage] = useState('');
   const toastTimer = useRef(null);
   const courses = [...baseCourses, ...userCourses];
-  const [view = 'courses', id, lectureId] = (hash.slice(1) || 'courses').split('/');
+  const [view = 'courses', id, lectureId, anchorId] = (hash.slice(1) || 'courses').split('/');
   const course = courses.find(item => item.id === id);
   const lecture = course?.lectures.find(item => item.id === lectureId);
   const getSources = (courseId, lectureId) => [...baseSources, ...userSources].filter(source =>
@@ -252,10 +253,10 @@ function Library() {
     window.addEventListener('hashchange', onHash);
     return () => { window.removeEventListener('hashchange', onHash); clearTimeout(toastTimer.current); };
   }, []);
-  useLayoutEffect(() => { window.scrollTo(0, 0); }, [hash]);
+  useLayoutEffect(() => { window.scrollTo(0, 0); }, [view, id, lectureId]);
   useEffect(() => {
     if (view === 'courses') return;
-    if (!course || !['course', 'sources', 'lecture', 'reading', 'record'].includes(view)) location.hash = 'courses';
+    if (!course || !['course', 'sources', 'papers', 'paper', 'lecture', 'reading', 'record'].includes(view)) location.hash = 'courses';
     else if ((['lecture', 'reading'].includes(view) && !lecture) || (view === 'record' && session?.course !== course.id)) location.hash = 'course/' + course.id;
   }, [course, lecture, session, view]);
 
@@ -294,19 +295,21 @@ function Library() {
     <div className="ambient" aria-hidden="true"/>
     <header><Brand href="#courses"/><div id="breadcrumb">{isLibrary ? <span>My courses</span> :
       view === 'course' ? <><a href="#courses">My courses</a><span>/ {course.name}</span></> :
-        <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['lecture', 'reading'].includes(view) ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : 'Session'}</span></>}</div>
+        <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['paper', 'papers', 'reading'].includes(view) ? 'Papers' : view === 'lecture' ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : 'Session'}</span></>}</div>
       <div className="header-end"><span>FALL 2026</span><button className="avatar" aria-label="About this workspace" onClick={() => setDialog({ type: 'about' })}>M</button></div>
     </header>
-    <main id="page" key={hash}>
+    <main id="page" key={[view, id, lectureId].join('/')}>
       {isLibrary ? <Courses courses={courses} getSources={getSources} onNew={() => setDialog({ type: 'course' })}/> : <>
-        {['course', 'sources'].includes(view) && <CourseHeading course={course} sourceCount={getSources(id).length} active={view} onAdd={onAdd} onRecord={onRecord}/>}
+        {['course', 'sources', 'papers', 'reading'].includes(view) && <CourseHeading course={course} sourceCount={getSources(id).length} active={view} onAdd={onAdd} onRecord={onRecord}/>}
         {view === 'course' && <CourseOverview course={course} getSources={getSources}/>}
         {view === 'sources' && <CourseSources course={course} sources={getSources(id)} onAdd={onAdd} onLink={() => onLink()} onPdf={onPdf} onRemove={onRemove}/>}
-        {view === 'reading' && lecture && <ReadingPage course={course} lecture={lecture}/>}
+        {view === 'papers' && <PapersPage course={course}/>}
+        {view === 'reading' && lecture && <PapersPage course={course} lecture={lecture}/>}
+        {view === 'paper' && <Suspense fallback={<div className="empty-state">Opening your paper…</div>}><ReadingPage course={course} paperId={lectureId} anchorId={anchorId}/></Suspense>}
         {view === 'lecture' && lecture && <LecturePage course={course} lecture={lecture} sources={getSources(id, lectureId)} onAdd={onAdd} onPdf={onPdf} onRemove={onRemove}/>}
         {view === 'record' && session?.course === id && <Session course={course} session={session} contextCount={getSources(id, session.lecture === 'all' ? undefined : session.lecture).length}
           onEnd={() => { setSession(null); location.hash = 'course/' + id; notify('Demo ended. No audio was recorded.'); }}/>}
-        {view !== 'record' && <div className="bottom-note"><span>A little rewind. A lot of clarity.</span><span>Interactive prototype · No background AI connected</span></div>}
+        {view !== 'record' && view !== 'paper' && <div className="bottom-note"><span>A little rewind. A lot of clarity.</span><span>Learn at your own pace</span></div>}
       </>}
     </main>
     <Dialog wide={dialog?.type === 'preview'} onClose={() => setDialog(null)}>

@@ -7,6 +7,7 @@ import {
   type LectureStore,
 } from './features/lecture/index.ts';
 import type { LectureService } from './features/lecture/service.ts';
+import { readingsFeature, registerReadingsFixtures } from './features/readings/index.ts';
 
 export type AppDependencies = {
   config: Config;
@@ -26,6 +27,7 @@ export async function buildApp({ provider, logger = false, lectureStore, lecture
   const app = Fastify({ logger, forceCloseConnections: true });
 
   registerLectureFixtures(provider);
+  registerReadingsFixtures(provider);
   const store = lectureStore ?? createMemoryStore();
   const service = lectureService ?? createLectureService({
     store,
@@ -39,6 +41,7 @@ export async function buildApp({ provider, logger = false, lectureStore, lecture
     api.get('/health', async () => ({ ok: true, provider: provider.name, model: provider.model }));
     await api.register(datasetRoutes);
     await api.register(lectureFeature, { service, store, provider });
+    await api.register(readingsFeature, { provider });
   }, { prefix: '/api' });
 
   return app;

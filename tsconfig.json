@@ -12,7 +12,9 @@
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
     "noUncheckedIndexedAccess": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowJs": true,
+    "checkJs": false
   },
   "include": ["server/**/*.ts", "shared/**/*.ts"]
 }
