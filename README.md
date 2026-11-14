@@ -24,6 +24,8 @@ npm run dev        # Vite + one shared Fastify API, default 127.0.0.1:3001
 npm run typecheck
 npm test          # graph and live lecture tests, including nested test directories
 npm run build
+npx playwright install chromium
+npm run test:e2e   # desktop/mobile checks against an isolated offline fixture server
 ```
 
 Open AI Alignment from the course library. Each lecture appears once, with **Reading breakdowns** and **Past timeline** actions. Open the lecture title for sources and **Simulate live**. **Knowledge graph** opens the database-backed course graph. See the [graph setup, demonstration commands, and live lecture completion contract](docs/knowledge-graph.md). No Docker is used. `npm run dev:web` runs the frontend alone; `npm run dev:server` runs the shared API. The graph needs MongoDB, but live lecture still runs if the graph database is unavailable. Start MongoDB and restart the API to enable the graph again.
@@ -42,7 +44,7 @@ The evaluation commands use the configured provider and can make paid calls when
 
 The [CS 690S dataset](datasets/cs690s/README.md) covers 23 Fall 2026 lecture entries. Its [manifest](datasets/cs690s/manifest.json) records source URLs, required and optional readings, slide PDFs and text extracts, and TXT or VTT transcripts where available. Some entries lack transcripts or reuse material from another lecture. The frontend uses the manifest to determine whether a lecture can replay. A later ingestion workstream can scrape a course website and emit this same manifest; the checked-in dataset works directly today.
 
-Lecture 02 has an existing curated replay. Other past timelines with transcripts display all their chunks for browsing. Live simulation opens paused with the first chunk visible. Press **Play** to advance through a six-chunk preview, one chunk every eight seconds by default. **Simulation settings** lets you adjust the 160-word budget, interval, and chunk limit or select the full transcript. You can also use `lecture.html?lecture=2&mode=live&words=160&interval=8&limit=6`. These are simulation offsets. The DAgger example demonstrates curated enrichment, including multiple slides, an equation, intuition and a topic diagram. Side chat and artifact requests are UI entry points for future harnesses.
+Lecture 02 has an existing curated past replay. Live simulation uses the server's topic stream and resumes an existing run; a new run starts paused with a six-chunk preview at 160 words per chunk and an eight-second interval. **Restart replay** starts over, and **Simulation settings** applies changed options to a new run. Expand a moment for contextual chat, cited chart or animated-diagram requests, and KaTeX equations. Artifacts survive browser reloads within the current in-memory server session, including later topic revisions. See [student-side implementation and checks](src/lecture/README.md). The offline authored demo remains available at `lecture.html?lecture=2&mode=live&transport=fixture`.
 
 The asset preparation script copies the demo PDFs from the dataset on dev/build. Git tracks the dataset and slide preview images. Vite generates `dist/` for hosting.
 
@@ -64,7 +66,7 @@ Start with the [code ownership and stack guide](docs/architecture.md), then read
 
 ## Stack and implementation status
 
-The React + Vite frontend provides local dataset replay. The course graph now has a TypeScript/Fastify backend, MongoDB graph persistence, a DeepSeek extraction harness, and completion-triggered indexing. Lecture materials stay in the dataset folder. The live lecture backend provides transcript streaming, segmentation and enrichment with in-memory sessions; recording, durable timeline persistence and the frontend handoff remain separate work. Reading harnesses remain a separate workstream.
+The React + Vite frontend connects to a TypeScript/Fastify backend for transcript replay, topic segmentation, automatic enrichment, contextual chat and validated visual artifacts. Fixture and DeepSeek providers share the same interface. The course graph uses MongoDB persistence, DeepSeek extraction and completion-triggered indexing; lecture materials remain in the dataset folder. Live lecture sessions and artifacts currently use in-memory storage, while durable timeline persistence remains future work. Reading harnesses remain a separate workstream.
 
 The agreed direction is a Node.js + TypeScript/Fastify backend, MongoDB for course data and graph references, and task-specific harnesses behind a shared model-provider interface. Keep DeepSeek as the initial configurable provider; Gemini is the planned replacement. Fixture mode must remain usable without either API or a database. See the architecture guide for module boundaries, suggested libraries, storage design and implementation order.
 

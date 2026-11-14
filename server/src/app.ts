@@ -16,6 +16,9 @@ function baseApp(logger: boolean) {
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof ZodError) return reply.code(400).send({ error: 'Invalid request.', details: error.issues });
     if (error instanceof GraphError) return reply.code(error.statusCode).send({ error: error.message });
+    if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
+      return reply.code(error.statusCode).send({ error: error.message });
+    }
     request.log.error(error);
     return reply.code(500).send({ error: 'API unavailable. Check the server terminal and retry.' });
   });
@@ -58,7 +61,7 @@ export async function buildApp({
   await app.register(async api => {
     api.get('/health', async () => ({ ok: true, provider: provider.name, model: provider.model }));
     await api.register(datasetRoutes);
-    await api.register(lectureFeature, { service, store });
+    await api.register(lectureFeature, { service, store, provider });
   }, { prefix: '/api' });
   registerGraphRoutes(app, graphService, graphProviderConfigured);
   return app;

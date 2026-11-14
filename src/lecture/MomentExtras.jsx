@@ -1,10 +1,10 @@
 import React from 'react';
+import { Equation } from './components/Equation.jsx';
+import { MomentArtifacts } from './components/MomentArtifacts.jsx';
 
-export function MomentExtras({ moment }) {
+export function MomentExtras({ moment, client, runId, onSelectMoment }) {
   return <>
-    {moment.equations.map(equation => <div className="intuition" key={equation.expression}>
-      <small>EQUATION</small><p><code>{equation.expression}</code></p><p>{equation.explanation}</p>
-    </div>)}
+    {moment.equations.map(equation => <Equation key={equation.expression} {...equation}/>)}
     {moment.graph && <div className="intuition">
       <small>TOPIC DIAGRAM · {moment.graph.origin.toUpperCase()}</small>
       <ul className="topic-diagram" aria-label="Topic relationships">
@@ -15,19 +15,6 @@ export function MomentExtras({ moment }) {
         </li>)}
       </ul>
     </div>}
-    <div className="detail-actions">
-      {moment.artifacts.map(artifact => <a key={artifact.id} href={artifact.url} target="_blank" rel="noreferrer">{artifact.title} ↗</a>)}
-      <button disabled>Request an artifact · Coming soon</button>
-    </div>
+    <MomentArtifacts moment={moment} client={client} runId={runId} onSelectMoment={onSelectMoment}/>
   </>;
-}
-
-export function MomentChat({ moment, onClose }) {
-  return <aside className="moment-chat" aria-label="Lecture side chat">
-    <div className="eyebrow">SIDE CHAT <button onClick={onClose} aria-label="Close side chat">✕</button></div>
-    <h2>Ask about this moment</h2>
-    <p>{moment.short} · {moment.label}</p>
-    <input aria-label="Ask a question about this topic" placeholder="Ask a question about this topic…"/>
-    <button disabled>Send · Coming soon</button>
-  </aside>;
 }

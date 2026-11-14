@@ -59,7 +59,10 @@ export function createMemoryStore({ maxLog = 5000 }: { maxLog?: number } = {}): 
   function save(lecture: LectureState, draft: MomentDraft): Moment {
     const runId = requireRun(lecture);
     const previous = lecture.moments.get(draft.id);
-    const moment: Moment = { ...draft, revision: (previous?.revision ?? 0) + 1 };
+    // Segmentation/enrichment may still hold a draft from before a student attached
+    // an artifact. Keep those independent attachments through subsequent revisions.
+    const artifacts = [...new Map([...(previous?.artifacts ?? []), ...draft.artifacts].map(artifact => [artifact.id, artifact])).values()];
+    const moment: Moment = { ...draft, artifacts, revision: (previous?.revision ?? 0) + 1 };
     if (!previous) lecture.order.push(moment.id);
     lecture.moments.set(moment.id, moment);
     emit(lecture, { type: 'moment.upsert', seq: ++lecture.seq, runId, moment });
