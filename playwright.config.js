@@ -10,7 +10,7 @@ export default defineConfig({
     { name: 'mobile', testIgnore: 'tests/e2e/**', use: { browserName: 'chromium', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
   ],
   webServer: {
-    command: 'node src/lecture/e2e/start-server.mjs', url: 'http://127.0.0.1:4175',
+    command: 'node --import tsx src/lecture/e2e/start-server.mjs', url: 'http://127.0.0.1:4175',
     reuseExistingServer: false, timeout: 30_000,
   },
 });

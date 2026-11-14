@@ -4,15 +4,27 @@ import { Brand, Dialog } from '../ui.jsx';
 import { readStored, readPdf, storePdf } from '../storage.js';
 import { baseCourses, baseSources } from './content.js';
 import './library.css';
+import { ReadingPage } from '../readings/ReadingPage.jsx';
 import { PapersPage } from '../readings/PapersPage.jsx';
-const ReadingPage = lazy(() => import('../readings/ReadingPage.jsx').then(module => ({ default: module.ReadingPage })));
+import { papersForCourse, paperPath } from '../readings/catalog.js';
+// The paper reader pulls in the PDF and diagram libraries, so load it only when a paper is opened.
+const PaperReader = lazy(() => import('../readings/PaperReader.jsx').then(module => ({ default: module.PaperReader })));
+import { CourseGraphPage } from '../graph/CourseGraphPage.jsx';
 import { CourseGraphButton } from '../graph/CourseGraphButton.jsx';
 import { replayPath } from '../lecture/replay.js';
+import { enrolledCourseIds, isCourseStaff, joinCourse, readProfile, saveProfile } from '../classroom/accounts.js';
+import { AccountForm, CourseSearch, StaffOverview } from '../classroom/Classroom.jsx';
 
 const date = value => new Date(value + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 const number = lecture => lecture.id.padStart(2, '0');
 const lecturePath = (course, lecture) => '#lecture/' + course.id + '/' + lecture.id;
 const kinds = ['Slides', 'Required', 'Optional'];
+const readingKinds = ['Required', 'Optional'];
+// Known course papers open in the full paper reader; other sources keep the lecture-level breakdown page.
+const breakdownPath = (course, lecture, source) => {
+  const paper = papersForCourse(course.id).find(item => item.originalUrl && item.originalUrl === source.url);
+  return paper ? paperPath(paper) : '#reading/' + course.id + '/' + lecture.id + '/' + encodeURIComponent(source.id);
+};
 
 function Art({ vision }) {
   return <div className="orb" aria-hidden="true"><svg viewBox="0 0 260 260">
@@ -21,24 +33,31 @@ function Art({ vision }) {
   </svg></div>;
 }
 
-function Courses({ courses, getSources, onNew }) {
+function Courses({ courses, getSources, coursePath, staff }) {
   return <>
-    <div className="hero"><div><div className="eyebrow">YOUR LEARNING SPACE</div><h1>Pick up a <em>thread.</em></h1><p className="intro">Every course is a world of connected ideas.<br/>Choose one. We’ll keep the pieces together.</p></div><button className="secondary" onClick={onNew}>+ New course</button></div>
-    <div className="subhead"><span>YOUR COURSES</span><small>{courses.length} spaces · Fall semester</small></div>
-    <div className="course-grid">{courses.map(course => <a key={course.id} href={'#course/' + course.id} className={'course-card' + (course.id === 'cv' ? ' vision' : '')}>
-      <Art vision={course.id === 'cv'}/><div className="code">{course.code}</div><h2>{course.name}</h2><p>{course.description || 'A new space for your lectures and materials.'}</p>
+    <div className="hero">
+      <div>
+        <div className="eyebrow">{staff ? 'TEACHING WORKSPACE' : 'STUDENT WORKSPACE'}</div>
+        <h1>My courses<em>.</em></h1>
+      </div>
+      <a className="secondary" href="#find-courses">+ Find or add a course</a>
+    </div>
+    {courses.length ? <div className="course-grid">{courses.map(course => <a key={course.id} href={coursePath(course)} className={'course-card' + (course.id === 'cv' ? ' vision' : '')}>
+      <Art vision={course.id === 'cv'}/><div className="code">{course.code}</div><h2>{course.name}</h2><p>{course.description || 'A workspace for your lectures and materials.'}</p>
       <div className="card-bottom"><span>{course.lectures.length} lectures</span><span>{getSources(course.id).length} sources</span><b>↗</b></div>
-    </a>)}</div>
-    <div className="library-note"><span>✧ &nbsp; Your ideas don’t live in isolation.</span><span>Start with a course. Add its sources.<br/>Let the connections grow.</span></div>
+    </a>)}</div> : <p className="empty-state">Find a course by name or code, or create one to get started.</p>}
   </>;
 }
 
-function CourseHeading({ course, sourceCount, active, onAdd, onRecord }) {
+function CourseHeading({ course, sourceCount, active, onAdd, nextLecture, onStartSession, staff }) {
   return <>
-    <a className="back" href="#courses">← All courses</a>
+    <a className="back" href="#courses">← My courses</a>
     <div className="hero course-hero"><div><div className="eyebrow">{course.code} &nbsp; / &nbsp; FALL 2026</div><h1>{course.name}<em>.</em></h1><p className="intro">{course.teacher || 'Your course workspace'} · {course.lectures.length} lectures in your library</p></div>
-    <div className="hero-actions">{active === 'course' && <CourseGraphButton/>}<button className="secondary" onClick={() => onAdd()}>+ Add sources</button><button className="primary" onClick={() => onRecord()}>◉ Start a session</button></div></div>
-    <nav className="tabs"><a className={active === 'course' ? 'active' : ''} href={'#course/' + course.id}>Overview &amp; lectures <small>{course.lectures.length}</small></a><a className={active === 'papers' || active === 'reading' ? 'active' : ''} href={'#papers/' + course.id}>Papers</a><a className={active === 'sources' ? 'active' : ''} href={'#sources/' + course.id}>Sources <small>{sourceCount}</small></a></nav>
+    <div className="hero-actions">{active === 'course' && <CourseGraphButton courseId={course.id}/>}<button className="secondary" onClick={() => onAdd()}>+ Add sources</button><div className="session-launch">
+      <button className="primary" onClick={onStartSession} disabled={!nextLecture}>◉ Start a session</button>
+      {!nextLecture && <small>{course.lectures.length ? 'No upcoming lectures.' : 'No lectures scheduled.'}</small>}
+    </div></div></div>
+    <nav className="tabs">{staff && <a href={'#staff/' + course.id}>Lecture doubts ↗</a>}<a className={active === 'course' ? 'active' : ''} href={'#course/' + course.id}>Overview &amp; lectures <small>{course.lectures.length}</small></a><a className={active === 'papers' ? 'active' : ''} href={'#papers/' + course.id}>Papers</a><a className={active === 'sources' ? 'active' : ''} href={'#sources/' + course.id}>Sources <small>{sourceCount}</small></a></nav>
   </>;
 }
 
@@ -47,32 +66,16 @@ function CourseOverview({ course, getSources }) {
     <div className="subhead"><span>LECTURES</span><small>{course.lectures.length} in the course library</small></div>
     {course.lectures.length ? <div className="lecture-list">{course.lectures.map(lecture => <article key={lecture.id} className="lecture-row course-lecture-row">
       <span className="lecture-number">{number(lecture)}</span>
-      <div><h3><a href={lecturePath(course, lecture)}>{lecture.title}</a></h3><p>{date(lecture.date)}, 2026 · {getSources(course.id, lecture.id).filter(s => s.lecture !== 'all').length} linked sources</p></div>
+      <div>
+        <h3>{lecture.replay ? <a className="lecture-timeline-link" href={replayPath(lecture.id)}>{lecture.title}</a> : lecture.title}</h3>
+        <p>{date(lecture.date)}, 2026{!lecture.replay && ' · No timeline available'}</p>
+      </div>
       <div className="course-lecture-actions">
-        <a className="secondary" href={'#reading/' + course.id + '/' + lecture.id}>Reading breakdowns ↗</a>
-        {lecture.replay ? <a className="secondary" href={replayPath(lecture.id)}>Past timeline ↗</a> : <button className="secondary" disabled title="Transcript unavailable">Past timeline</button>}
+        <a className="source-link" href={lecturePath(course, lecture)} aria-label={'Course material for Lecture ' + number(lecture)}>Course material ↗</a>
       </div>
     </article>)}</div> : <div className="empty-state">Your first thread starts here. Add course sources, then preview a session.</div>}
     <div className="source-preview"><div><b>One course. A shared foundation.</b><p>Course links and PDFs stay connected to the lectures they belong to.</p></div><a href={'#sources/' + course.id}>Explore {getSources(course.id).length} sources ↗</a></div>
   </>;
-}
-
-function SourceList({ sources, course, onPdf, onRemove }) {
-  if (!sources.length) return <div className="empty-state">No sources in this view yet. Add a PDF or course link.</div>;
-  return <div className="source-list">{sources.map(source => {
-    const lecture = course.lectures.find(item => item.id === source.lecture);
-    const association = lecture ? 'Lecture ' + lecture.id + ' · ' + lecture.title : source.lecture === 'all' ? 'Course-wide' : 'Lecture ' + source.lecture;
-    return <article key={source.id} className="source-row">
-      <div className="source-type">{source.pdf || source.file ? 'PDF' : 'LINK'}</div>
-      <div className="source-body"><h3>{source.title}</h3><p>{source.kind} · {association}</p>
-        <p>{source.file ? 'Saved in this browser · Assigned by you' : source.pdf ? 'Bundled PDF · Matched to local index' : source.custom ? 'Awaiting ingestion · URL format checked' : 'Reference link · Not crawled'}</p>
-        {source.url && <a href={source.url} target="_blank" rel="noopener noreferrer">{new URL(source.url).hostname} ↗</a>}
-      </div><div className="source-actions">
-        {source.pdf || source.file ? <button onClick={() => onPdf(source)}>Open ↗</button> : <a href={source.url} target="_blank" rel="noopener noreferrer">Visit ↗</a>}
-        {source.custom && <button aria-label={'Remove ' + source.title} onClick={() => onRemove(source.id)}>×</button>}
-      </div>
-    </article>;
-  })}</div>;
 }
 
 function DropZone({ quick = false, onFile }) {
@@ -83,7 +86,7 @@ function DropZone({ quick = false, onFile }) {
       const file = event.dataTransfer.files[0];
       if (file) onFile(file);
     }}>
-    <div className="upload-symbol">↥</div><strong>{quick ? 'Drop a PDF here' : 'Drop your PDF here'}</strong><p>{quick ? 'or choose a file · up to 25 MB' : 'or choose a file · PDF only · 25 MB maximum'}</p>
+    <span className="upload-symbol" aria-hidden="true">↥</span><strong>{quick ? 'Drop a PDF here' : 'Drop your PDF here'}</strong><span className="upload-help">{quick ? 'or choose a file · up to 25 MB' : 'or choose a file · PDF only · 25 MB maximum'}</span>
     <input type="file" accept="application/pdf,.pdf" aria-label={quick ? 'Choose course PDF' : 'Choose PDF'} onChange={event => {
       const file = event.target.files[0];
       event.target.value = '';
@@ -92,45 +95,107 @@ function DropZone({ quick = false, onFile }) {
   </label>;
 }
 
+function SourceLink({ source, onPdf, children = source.title }) {
+  return source.pdf || source.file
+    ? <button type="button" className="source-link" onClick={() => onPdf(source)}>{children} <span aria-hidden="true">↗</span></button>
+    : <a className="source-link" href={source.url} target="_blank" rel="noopener noreferrer">{children} <span aria-hidden="true">↗</span></a>;
+}
+
+function SourceLinks({ sources, showKind = true, readingPath, onPdf, onRemove }) {
+  return <ul className={'source-links' + (showKind ? '' : ' source-links-by-kind')}>{sources.map(source => <li key={source.id}>
+    {showKind && <span className="source-link-kind">{source.kind}</span>}
+    <SourceLink source={source} onPdf={onPdf}/>
+    <div className="source-link-actions">
+      {readingPath && readingKinds.includes(source.kind) && <a className="source-link" href={readingPath(source)} aria-label={'Breakdown for ' + source.title}>Breakdown ↗</a>}
+      {source.custom && onRemove && <button type="button" className="source-link-remove" aria-label={'Remove ' + source.title} onClick={() => onRemove(source.id)}>×</button>}
+    </div>
+  </li>)}</ul>;
+}
+
 function CourseSources({ course, sources, onAdd, onLink, ...actions }) {
   const [filter, setFilter] = useState('All');
+  const visible = filter === 'All' ? sources : sources.filter(source => source.kind === filter);
+  const byLecture = new Map();
+  for (const source of visible) {
+    if (!byLecture.has(source.lecture)) byLecture.set(source.lecture, []);
+    byLecture.get(source.lecture).push(source);
+  }
+  const courseWide = byLecture.get('all');
+  const lectureTitles = new Map(course.lectures.map(lecture => [lecture.id, lecture.title]));
+  const lectureGroups = [...byLecture].filter(([id]) => id !== 'all')
+    .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }));
+
   return <div className="sources-layout"><section>
-    <div className="source-toolbar"><div className="filters">{['All', ...kinds, 'Website'].map(kind => <button key={kind} className={filter === kind ? 'selected' : ''} onClick={() => setFilter(kind)}>{kind}</button>)}</div><span className="count">{sources.length} sources</span></div>
-    <SourceList course={course} sources={filter === 'All' ? sources : sources.filter(s => s.kind === filter)} {...actions}/>
+    <div className="source-toolbar"><div className="filters">{['All', ...kinds, 'Website'].map(kind => <button key={kind} className={filter === kind ? 'selected' : ''} aria-pressed={filter === kind} onClick={() => setFilter(kind)}>{kind}</button>)}</div><span className="count">{visible.length} {visible.length === 1 ? 'source' : 'sources'}</span></div>
+    {courseWide && <section className="source-group">
+      <h2>Course-wide resources</h2>
+      <SourceLinks sources={courseWide} {...actions}/>
+    </section>}
+    {lectureGroups.map(([id, entries]) => <details className="source-group" key={id}>
+      <summary><span className="source-group-title">Lecture {number({ id })}{lectureTitles.has(id) && <span className="source-group-topic"> · {lectureTitles.get(id)}</span>}</span><span className="source-group-count">{entries.length} {entries.length === 1 ? 'source' : 'sources'}</span></summary>
+      <SourceLinks sources={entries} {...actions}/>
+    </details>)}
+    {!visible.length && <p className="empty-state">{sources.length ? 'No sources match this filter.' : 'No sources yet. Add a PDF or course link.'}</p>}
     <p className="source-footnote">Added links await ingestion. Format checks do not validate a page’s contents. PDFs you add are stored only in this browser.</p>
   </section><aside className="side-card"><div className="eyebrow">GIVE RECALL CONTEXT</div><h3>Bring your course in.</h3><p>A website, a slide deck, a paper. Start with whatever you have.</p>
     <DropZone quick onFile={file => onAdd('all', file)}/><button className="secondary" onClick={onLink}>↗ Add a website or link</button><div className="binding">Sources → lectures → understanding<span>You choose the lecture. AI matching and scraping are future integrations.</span></div>
   </aside></div>;
 }
 
-function LecturePage({ course, lecture, sources, onAdd, ...actions }) {
+function LectureMaterials({ course, lecture, sources, onAdd, ...actions }) {
+  const groups = [
+    ['Required', 'Required readings'],
+    ['Optional', 'Optional readings'],
+    ['Slides', 'Slides'],
+    ['Website', 'Web links'],
+  ];
   return <>
     <a className="back" href={'#course/' + course.id}>← {course.name}</a>
-    <div className="lecture-detail-top"><div><div className="eyebrow">{course.code} / LECTURE {number(lecture)} / {date(lecture.date).toUpperCase()}, 2026</div><h1>{lecture.title}<em>.</em></h1><p className="intro">{lecture.subtitle} · {course.teacher}</p></div>
+    <div className="lecture-detail-top">
+      <div>
+        <div className="eyebrow">{course.code} · LECTURE {number(lecture)}</div>
+        <h1>Course material<em>.</em></h1>
+        <p className="intro">{lecture.title}</p>
+      </div>
       <div className="hero-actions">
-        {lecture.replay && <a className="primary" href={replayPath(lecture.id)}>Open lecture timeline ↗</a>}
+        <button className="secondary" onClick={() => onAdd(lecture.id)}>+ Add to this lecture</button>
         {lecture.replay && <a className="secondary" href={replayPath(lecture.id, true)}>Simulate live ↗</a>}
-        <a className="secondary" href={'#reading/' + course.id + '/' + lecture.id}>Reading breakdowns ↗</a>
       </div>
     </div>
-    {!lecture.replay && <div className="lecture-empty"><span className="empty-symbol">↝</span><div><h3>Transcript unavailable</h3><p>Available reading materials are linked below.</p></div></div>}
-    <div className="provenance"><div><small>01 · ORIGIN</small><b>Course sources</b><p>Website / local PDFs</p></div><span>→</span><div><small>02 · ASSOCIATION</small><b>Lecture {lecture.id}</b><p>{sources.length} linked sources</p></div><span>→</span><div><small>03 · CONTEXT</small><b>{lecture.id === '2' && course.id === 'ai' ? 'Grounded moments' : lecture.replay ? 'Transcript replay' : 'Materials only'}</b><p>{lecture.replay ? 'Transcript available' : 'No transcript available'}</p></div></div>
-    <div className="sources-layout"><section><div className="subhead"><span>LECTURE MATERIALS</span><small>Click a PDF to open it</small></div><SourceList sources={sources} course={course} {...actions}/><p className="source-footnote">Associations are seeded from your local library. No automatic website crawl has run.</p></section>
-    <aside className="side-card"><div className="eyebrow">BUILD THE CONTEXT</div><h3>Every source has a place.</h3><p>Add a slide deck, paper, or link directly to this lecture. Course-wide sources appear in every lecture.</p><button className="secondary" onClick={() => onAdd(lecture.id)}>+ Add to this lecture</button><a className="secondary" href={'#sources/' + course.id}>Course sources ↗</a></aside></div>
+    <div className="lecture-materials">
+      {groups.map(([kind, label]) => {
+        const entries = sources.filter(source => source.kind === kind);
+        return entries.length > 0 && <section className="source-group" key={kind}>
+          <h2>{label}</h2>
+          <SourceLinks sources={entries} showKind={false} readingPath={source => breakdownPath(course, lecture, source)} {...actions}/>
+        </section>;
+      })}
+      {!sources.length && <p className="empty-state">No materials have been added to this lecture.</p>}
+    </div>
   </>;
 }
 
-function Session({ course, session, contextCount, onEnd }) {
+function Session({ course, session, onPdf, onEnd }) {
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => setElapsed(Math.floor((Date.now() - session.started) / 1000)), 1000);
     return () => clearInterval(timer);
   }, [session]);
   const clock = [Math.floor(elapsed / 60), elapsed % 60].map(value => String(value).padStart(2, '0')).join(':');
-  return <><a className="back" href={'#course/' + course.id}>← Course workspace</a><div className="record-shell"><div className="eyebrow"><i/> UI SIMULATION · NO AUDIO CAPTURE</div>
-    <h1>{session.title}<em>.</em></h1><div className="record-orb"><b>{clock}</b></div><p>In a connected session, the ideas being discussed would begin to appear here.</p>
-    <span className="badge">{contextCount} sources available as context</span><div><button className="primary" onClick={onEnd}>■ End demo session</button></div><p className="form-note">No recording or transcript is created by this prototype.</p>
-  </div></>;
+  return <>
+    <a className="back" href={'#course/' + course.id}>← Course workspace</a>
+    <div className="record-shell">
+      <div className="eyebrow"><i/> SIMULATED LIVE SESSION · LECTURE {number(session.lecture)}</div>
+      <h1>{session.lecture.title}<em>.</em></h1>
+      <div className="record-orb"><b>{clock}</b></div>
+      <p role="status">Session started · Waiting for transcript</p>
+      <button className="primary" onClick={onEnd}>■ End demo session</button>
+    </div>
+    <section className="session-context">
+      <div className="subhead"><h2>Session context</h2><small>{session.sources.length} {session.sources.length === 1 ? 'source' : 'sources'}</small></div>
+      {session.sources.length ? <SourceLinks sources={session.sources} onPdf={onPdf}/> : <p className="intro">No sources are attached to this lecture or course yet.</p>}
+    </section>
+  </>;
 }
 
 function LectureSelect({ course, value }) {
@@ -184,7 +249,7 @@ function SourceForm({ course, dialog, onSwitch, onSave }) {
     <div className="eyebrow">{course.name.toUpperCase()} · {isLink ? 'CONNECT A SOURCE' : 'ADD CONTEXT'}</div>
     <h2>{isLink ? 'Start with a link.' : 'A home for every source.'}</h2>
     <p>{isLink ? 'Save a course website or document URL. Scraping, PDF discovery, and content validation are not connected yet.' : 'Add a PDF and choose where it belongs. The file stays in this browser.'}</p>
-    <form onSubmit={submit}>
+    <form className="source-form" onSubmit={submit}>
       {isLink ? <><label className="form-field"><span>Website or document URL</span><input type="url" name="url" required placeholder="https://your-course.edu/schedule"/></label>
         <label className="form-field"><span>Source name (optional)</span><input name="title" maxLength={150} placeholder="Course schedule or reading"/></label></> :
         <><DropZone onFile={setFile}/>{file && <div className="file-chip">▤ {file.name} · {(file.size / 1048576).toFixed(1)} MB</div>}</>}
@@ -212,20 +277,6 @@ function NewCourseForm({ onSave }) {
     </form></>;
 }
 
-function RecordForm({ course, lectureId, onStart }) {
-  const lecture = course.lectures.find(item => item.id === lectureId);
-  return <><div className="eyebrow">{course.name.toUpperCase()} · SESSION PREVIEW</div><h2>Ready when you are.</h2><p>This is a recording interface preview. No microphone is accessed and no audio is captured.</p>
-    <form onSubmit={event => {
-      event.preventDefault();
-      const data = new FormData(event.currentTarget);
-      onStart({ course: course.id, title: data.get('title').trim() || 'New lecture', lecture: data.get('lecture'), started: Date.now() });
-    }}>
-      <label className="form-field"><span>Session title</span><input name="title" required maxLength={150} defaultValue={lecture?.title || 'New lecture'}/></label>
-      <label className="form-field"><span>Use materials from</span><LectureSelect course={course} value={lectureId}/></label>
-      <div className="form-actions"><span className="form-note">Microphone &amp; transcription not connected</span><button className="primary" type="submit">Begin demo session ↗</button></div>
-    </form></>;
-}
-
 function PdfPreview({ dialog }) {
   const { url, title, local } = dialog;
   useEffect(() => () => { if (local) URL.revokeObjectURL(url); }, [url, local]);
@@ -235,6 +286,8 @@ function PdfPreview({ dialog }) {
 
 function Library() {
   const [hash, setHash] = useState(location.hash);
+  const [profile, setProfile] = useState(readProfile);
+  const [enrolled, setEnrolled] = useState(() => enrolledCourseIds(profile));
   const [userCourses, setUserCourses] = useState(() => readStored('recall-courses'));
   const [userSources, setUserSources] = useState(() => readStored('recall-sources'));
   const [session, setSession] = useState(null);
@@ -242,23 +295,42 @@ function Library() {
   const [message, setMessage] = useState('');
   const toastTimer = useRef(null);
   const courses = [...baseCourses, ...userCourses];
-  const [view = 'courses', id, lectureId, anchorId] = (hash.slice(1) || 'courses').split('/');
+  const [view = 'courses', id, lectureId, sourceKey] = (hash.slice(1) || 'courses').split('/');
   const course = courses.find(item => item.id === id);
+  const staff = isCourseStaff(profile, id) && enrolled.includes(id);
+  const teaching = profile && profile.role !== 'student';
+  const coursePath = item => (teaching ? '#staff/' : '#course/') + item.id;
+  const accountPage = ['signin', 'signup'].includes(view);
+  const signInRole = ['instructor', 'ta'].includes(id) ? id : 'student';
   const lecture = course?.lectures.find(item => item.id === lectureId);
+  const lastCompletedIndex = course?.lectures.findLastIndex(item => item.replay) ?? -1;
+  const nextLecture = course?.lectures[lastCompletedIndex + 1];
   const getSources = (courseId, lectureId) => [...baseSources, ...userSources].filter(source =>
     source.course === courseId && (!lectureId || source.lecture === lectureId || source.lecture === 'all'));
-  const isLibrary = view === 'courses' || !course;
+  const materials = lecture ? getSources(id, lecture.id).filter(source => source.lecture === lecture.id) : [];
+  const reading = view === 'reading' && materials.find(source =>
+    encodeURIComponent(source.id) === sourceKey && readingKinds.includes(source.kind));
+  const canOpenCourse = profile && course && enrolled.includes(id);
   useEffect(() => {
     const onHash = () => { setHash(location.hash); setDialog(null); };
     window.addEventListener('hashchange', onHash);
     return () => { window.removeEventListener('hashchange', onHash); clearTimeout(toastTimer.current); };
   }, []);
-  useLayoutEffect(() => { window.scrollTo(0, 0); }, [view, id, lectureId]);
+  const pageKey = view === 'paper' ? ['paper', id, lectureId].join('/') : hash;
+  useLayoutEffect(() => { window.scrollTo(0, 0); }, [pageKey]);
   useEffect(() => {
-    if (view === 'courses') return;
-    if (!course || !['course', 'sources', 'papers', 'paper', 'lecture', 'reading', 'record'].includes(view)) location.hash = 'courses';
+    if (!profile) {
+      if (!accountPage) location.hash = view === 'staff' ? 'signin/instructor' : 'signin/student';
+      return;
+    }
+    if (accountPage) { location.hash = 'courses'; return; }
+    if (['courses', 'find-courses'].includes(view)) return;
+    if (!canOpenCourse) { location.hash = 'find-courses'; return; }
+    if (view === 'staff' && !staff) { location.hash = 'course/' + id; return; }
+    if (!['course', 'sources', 'papers', 'paper', 'lecture', 'reading', 'record', 'staff', 'graph'].includes(view)) location.hash = 'courses';
     else if ((['lecture', 'reading'].includes(view) && !lecture) || (view === 'record' && session?.course !== course.id)) location.hash = 'course/' + course.id;
-  }, [course, lecture, session, view]);
+    else if (view === 'reading' && !sourceKey) location.hash = lecturePath(course, lecture);
+  }, [accountPage, canOpenCourse, course, id, lecture, profile, session, sourceKey, staff, view]);
 
   function notify(text) {
     clearTimeout(toastTimer.current);
@@ -269,9 +341,42 @@ function Library() {
     try { localStorage.setItem(key, JSON.stringify(value)); if (success) notify(success); }
     catch { notify('Storage is unavailable. Changes will last for this session.'); }
   }
+  function onSignIn(nextProfile) {
+    try { saveProfile(nextProfile); }
+    catch { return false; }
+    setProfile(nextProfile);
+    setEnrolled(enrolledCourseIds(nextProfile));
+    location.hash = 'courses';
+    return true;
+  }
+  function onSignOut() {
+    try { saveProfile(null); }
+    catch { notify('This browser could not clear your demo sign-in.'); return; }
+    setProfile(null);
+    setEnrolled([]);
+    setSession(null);
+    location.hash = 'signin/' + profile.role;
+  }
+  function onJoin(item) {
+    if (!profile) return;
+    try { joinCourse(profile, item.id); }
+    catch { notify('This browser could not add the course.'); return; }
+    setEnrolled(enrolledCourseIds(profile));
+    setDialog(null);
+    location.hash = coursePath(item);
+  }
   function onAdd(lecture = 'all', file) { setDialog({ type: 'pdf', lecture, file }); }
   function onLink(lecture = 'all') { setDialog({ type: 'link', lecture }); }
-  function onRecord(lecture) { setDialog({ type: 'record', lecture }); }
+  function onStartSession() {
+    if (!nextLecture) return;
+    setSession({
+      course: course.id,
+      lecture: nextLecture,
+      sources: getSources(course.id, nextLecture.id),
+      started: Date.now(),
+    });
+    location.hash = 'record/' + course.id;
+  }
   async function onPdf(source) {
     try {
       const file = source.file && await readPdf(source.id);
@@ -293,40 +398,42 @@ function Library() {
 
   return <>
     <div className="ambient" aria-hidden="true"/>
-    <header><Brand href="#courses"/><div id="breadcrumb">{isLibrary ? <span>My courses</span> :
+    <header><Brand href={profile ? '#courses' : '#signin/' + signInRole}/><div id="breadcrumb">{!canOpenCourse ? <span>{view === 'find-courses' ? 'Find a course' : profile ? 'My courses' : 'Account access'}</span> :
       view === 'course' ? <><a href="#courses">My courses</a><span>/ {course.name}</span></> :
-        <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['paper', 'papers', 'reading'].includes(view) ? 'Papers' : view === 'lecture' ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : 'Session'}</span></>}</div>
-      <div className="header-end"><span>FALL 2026</span><button className="avatar" aria-label="About this workspace" onClick={() => setDialog({ type: 'about' })}>M</button></div>
+        <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['papers', 'paper'].includes(view) ? 'Papers' : ['lecture', 'reading'].includes(view) ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : view === 'staff' ? 'Lecture doubts' : view === 'graph' ? 'Knowledge graph' : 'Session'}</span></>}</div>
+      <div className="header-end">
+        {profile ? <button className="secondary" onClick={onSignOut}>Sign out</button>
+          : <a className="secondary" href="#signin/student">Sign in</a>}
+        <button className="avatar" aria-label="About this workspace" onClick={() => setDialog({ type: 'about' })}>M</button>
+      </div>
     </header>
-    <main id="page" key={[view, id, lectureId].join('/')}>
-      {isLibrary ? <Courses courses={courses} getSources={getSources} onNew={() => setDialog({ type: 'course' })}/> : <>
-        {['course', 'sources', 'papers', 'reading'].includes(view) && <CourseHeading course={course} sourceCount={getSources(id).length} active={view} onAdd={onAdd} onRecord={onRecord}/>}
+    <main id="page" key={pageKey}>
+      {!profile ? <AccountForm role={signInRole} signup={view === 'signup'} onSignIn={onSignIn}/>
+        : view === 'courses' ? <Courses courses={courses.filter(item => enrolled.includes(item.id))} getSources={getSources} coursePath={coursePath} staff={teaching}/>
+        : view === 'find-courses' ? <CourseSearch courses={courses} enrolled={enrolled} onJoin={onJoin} coursePath={coursePath} onCreate={() => setDialog({ type: 'course' })}/>
+        : canOpenCourse && <>
+        {['course', 'sources', 'papers'].includes(view) && <CourseHeading course={course} sourceCount={getSources(id).length} active={view} onAdd={onAdd} staff={staff} nextLecture={nextLecture} onStartSession={onStartSession}/>}
+        {view === 'staff' && staff && <StaffOverview course={course} profile={profile}/>}
+        {view === 'graph' && <CourseGraphPage course={course}/>}
         {view === 'course' && <CourseOverview course={course} getSources={getSources}/>}
         {view === 'sources' && <CourseSources course={course} sources={getSources(id)} onAdd={onAdd} onLink={() => onLink()} onPdf={onPdf} onRemove={onRemove}/>}
         {view === 'papers' && <PapersPage course={course}/>}
-        {view === 'reading' && lecture && <PapersPage course={course} lecture={lecture}/>}
-        {view === 'paper' && <Suspense fallback={<div className="empty-state">Opening your paper…</div>}><ReadingPage course={course} paperId={lectureId} anchorId={anchorId}/></Suspense>}
-        {view === 'lecture' && lecture && <LecturePage course={course} lecture={lecture} sources={getSources(id, lectureId)} onAdd={onAdd} onPdf={onPdf} onRemove={onRemove}/>}
-        {view === 'record' && session?.course === id && <Session course={course} session={session} contextCount={getSources(id, session.lecture === 'all' ? undefined : session.lecture).length}
+        {view === 'paper' && <Suspense fallback={<div className="empty-state">Opening your paper…</div>}><PaperReader course={course} paperId={lectureId} anchorId={sourceKey}/></Suspense>}
+        {view === 'reading' && lecture && sourceKey && <ReadingPage course={course} lecture={lecture} source={reading}
+          materialPath={lecturePath(course, lecture)} original={reading && <SourceLink source={reading} onPdf={onPdf}>Open original</SourceLink>}/>}
+        {view === 'lecture' && lecture && <LectureMaterials course={course} lecture={lecture} sources={materials} onAdd={onAdd} onPdf={onPdf} onRemove={onRemove}/>}
+        {view === 'record' && session?.course === id && <Session course={course} session={session} onPdf={onPdf}
           onEnd={() => { setSession(null); location.hash = 'course/' + id; notify('Demo ended. No audio was recorded.'); }}/>}
-        {view !== 'record' && view !== 'paper' && <div className="bottom-note"><span>A little rewind. A lot of clarity.</span><span>Learn at your own pace</span></div>}
+        {!['record', 'staff', 'paper'].includes(view) && <div className="bottom-note"><span>A little rewind. A lot of clarity.</span><span>Interactive prototype · No background AI connected</span></div>}
       </>}
     </main>
     <Dialog wide={dialog?.type === 'preview'} onClose={() => setDialog(null)}>
       {dialog?.type === 'about' && <><div className="eyebrow">RECALL · WORKSPACE PREVIEW</div><h2>Your learning, connected.</h2><p>Courses hold lectures. Sources belong to the whole course or to one lecture. AI Alignment Lecture 02 has a curated replay. Other lectures with transcripts support transcript replay.</p><p>Uploaded PDFs and added course metadata stay in this browser. The six bundled PDFs are copied from your original library. Website scraping, AI matching, content validation, recording, and transcription are not connected.</p></>}
       {dialog?.type === 'course' && <NewCourseForm onSave={item => {
-        const next = [...userCourses, item]; setUserCourses(next); persist('recall-courses', next); setDialog(null); location.hash = 'course/' + item.id;
+        const next = [...userCourses, item]; setUserCourses(next); persist('recall-courses', next); onJoin(item);
       }}/>}
       {(dialog?.type === 'pdf' || dialog?.type === 'link') && <SourceForm key={dialog.type} course={course} dialog={dialog} onSwitch={onLink} onSave={onSaveSource}/>}
       {dialog?.type === 'preview' && <PdfPreview dialog={dialog}/>}
-      {dialog?.type === 'record' && <RecordForm course={course} lectureId={dialog.lecture} onStart={item => {
-        const selected = course.lectures.find(lecture => lecture.id === (item.lecture === 'all' ? '2' : item.lecture));
-        if (selected?.replay) {
-          window.location.assign(replayPath(selected.id, true));
-          return;
-        }
-        setSession(item); setDialog(null); location.hash = 'record/' + id;
-      }}/>}
     </Dialog>
     <div id="notice" role="status" className={message ? 'show' : ''}>{message}</div>
   </>;

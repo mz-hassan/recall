@@ -1,0 +1,33 @@
+.classroom-signin { max-width: 540px; margin: 0 auto; }
+.classroom-roles { display: flex; flex-wrap: wrap; gap: 8px; }
+.classroom-roles a[aria-current="page"] { color: var(--mint); border-color: #8cbd9c; }
+.classroom-access-note { margin-top: 20px; }
+
+.staff-lecture-list { margin-top: 28px; border-top: 1px solid var(--line); }
+.staff-lecture summary { align-items: center; padding: 15px 4px; }
+.staff-lecture summary:hover, .staff-lecture[open] summary { color: var(--mint); }
+.staff-lecture-title { flex: 1; min-width: 0; }
+.staff-lecture-title small { display: block; margin-bottom: 4px; color: #9bb1a2; font-weight: 400; }
+.staff-doubt-heading { padding: 10px 4px; border-bottom: 1px solid var(--line); text-align: right; color: #f1c4a4; font-size: 12px; }
+.staff-doubt-count { color: #f1c4a4; font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.staff-topic-list { list-style: none; margin: 0 4px 12px 18px; padding: 0; }
+.staff-topic-list li { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; padding: 8px 0; border-top: 1px solid var(--line); }
+.staff-topic-detail .summary, .staff-topic-detail .chunk-copy { white-space: pre-wrap; }
+.staff-topic-detail .slide-frame { display: block; width: 100%; text-align: left; margin: 12px 0; padding: 0; }
+.staff-topic-detail img { display: block; width: 100%; border-radius: 6px; }
+.staff-topic-detail .caption { display: flex; justify-content: space-between; gap: 10px; margin-top: 6px; color: #adc6b5; font-size: 10px; }
+.staff-topic-detail .intuition { margin: 16px 0; padding: 12px 15px; border-left: 2px solid #608875; background: #17271f; }
+.staff-topic-detail .intuition p { margin: 5px 0; }
+.staff-topic-detail .detail-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+.staff-topic-detail .detail-actions button, .staff-topic-detail .detail-actions a { padding: 0; color: var(--mint); font-size: 12px; }
+.staff-topic-preview { overflow-wrap: anywhere; }
+.staff-topic-preview summary { cursor: pointer; }
+.staff-topic-preview img { margin-top: 10px; }
+.staff-topic-preview blockquote { margin: 10px 0 0; line-height: 1.7; }
+
+.account-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 18px; }
+.course-search { max-width: 760px; margin: 0 auto; }
+.course-search .hero { margin-bottom: 22px; }
+.course-search-results { list-style: none; margin: 22px 0 0; padding: 0; border-top: 1px solid var(--line); }
+.course-search-results li { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.course-search-results small { display: block; margin-top: 5px; color: #9bb1a2; }

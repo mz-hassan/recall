@@ -3,41 +3,56 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail --names web,api --prefix-colors cyan,magenta \"npm:dev:web\" \"npm:dev:server\"",
+    "dev": "concurrently -k -n api,web \"npm:dev:server\" \"npm:dev:web\"",
     "dev:web": "vite",
-    "dev:server": "node --env-file-if-exists=.env --watch server/src/index.ts",
-    "start:server": "node --env-file-if-exists=.env server/src/index.ts",
+    "dev:server": "tsx watch --include .env --env-file-if-exists=.env server/src/index.ts",
+    "db:start": "node scripts/start-mongo.mjs",
+    "graph:complete": "node --env-file-if-exists=.env scripts/complete-lecture.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:graph:browser": "tsx --test tests/graph.browser.test.ts",
     "build": "vite build",
     "preview": "vite preview",
     "predev": "node scripts/prepare-assets.mjs",
     "prebuild": "node scripts/prepare-assets.mjs",
-    "typecheck": "tsc -p tsconfig.json",
-    "eval:segmentation": "node --env-file-if-exists=.env server/src/features/lecture/segmentation/eval.ts",
-    "eval:lecture": "node --env-file-if-exists=.env server/src/features/lecture/eval.ts",
-    "extract:slides": "node scripts/extract-slide-pages.mjs",
-    "test": "node --test",
+    "test": "node scripts/test.mjs",
     "test:e2e": "playwright test",
+    "start:server": "node --import tsx --env-file-if-exists=.env server/src/index.ts",
+    "eval:segmentation": "node --import tsx --env-file-if-exists=.env server/src/features/lecture/segmentation/eval.ts",
+    "eval:lecture": "node --import tsx --env-file-if-exists=.env server/src/features/lecture/eval.ts",
+    "extract:slides": "node scripts/extract-slide-pages.mjs",
     "prepare:reading": "node scripts/prepare-reading.mjs"
   },
   "dependencies": {
     "@dagrejs/dagre": "^3.1.3",
     "@xyflow/react": "^12.12.1",
-    "fastify": "5.12.7",
+    "cytoscape": "^3.35.0",
+    "fastify": "^5.12.8",
     "katex": "0.19.1",
-    "pdfjs-dist": "6.3.289",
+    "mongodb": "^7.9.0",
+    "pdfjs-dist": "^6.5.438",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-pdf": "^11.0.0",
-    "zod": "4.6.7"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@playwright/test": "1.65.1",
-    "@types/node": "22.20.4",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "concurrently": "10.0.6",
-    "typescript": "7.0.2",
+    "concurrently": "^10.0.7",
+    "mongodb-memory-server": "^11.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
     "vite": "7.3.8"
+  },
+  "overrides": {
+    "react-pdf": {
+      "pdfjs-dist": "$pdfjs-dist"
+    }
   }
 }

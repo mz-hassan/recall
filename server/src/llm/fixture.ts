@@ -1,3 +1,13 @@
+import type { GenerateArgs, ModelProvider as GraphModelProvider } from './provider.ts';
+// Explicitly injected test evidence; never presented as live extraction.
+export class FixtureProvider implements GraphModelProvider {
+  identity = 'fixture/v1';
+  constructor(private output: unknown) {}
+  async generateStructured<T>({ schema }: GenerateArgs<T>) {
+    return { data: schema.parse(this.output), metadata: { provider: 'fixture', model: 'fixture-v1', latencyMs: 0 } };
+  }
+}
+
 import { ProviderError, type GenerateStructuredRequest, type ModelProvider, type StructuredResult } from './types.ts';
 
 /**

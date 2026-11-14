@@ -1,29 +1,111 @@
+import { StructuredOutputError, type GenerateArgs, type ModelProvider, type ValidationFailure } from './provider.ts';
 import { z } from 'zod';
-import { ProviderError, type Evidence, type GenerateStructuredRequest, type ModelProvider, type StructuredResult } from './types.ts';
+import { setTimeout as delay } from 'node:timers/promises';
+import { ProviderError, type Evidence, type GenerateStructuredRequest, type ModelProvider as LiveModelProvider } from './types.ts';
 
 export const DEFAULT_DEEPSEEK_BASE_URL = 'https://api.deepseek.com';
 export const DEFAULT_DEEPSEEK_MODEL = 'deepseek-flash';
-
-type DeepSeekOptions = {
-  apiKey: string;
-  model?: string;
-  baseUrl?: string;
-  /** Per-attempt timeout. */
-  timeoutMs?: number;
-  /** Total attempts for transient failures (network, 429, 5xx, blank or invalid JSON). */
-  attempts?: number;
-  fetch?: typeof fetch;
-  sleep?: (ms: number) => Promise<void>;
-};
-
+type EngineOptions = { key?: string; model: string; baseUrl: string; attempts?: number; timeoutMs?: number; sleep?: (ms: number) => Promise<void>; formatEvidence?: (evidence: unknown) => string };
 const ChatResponse = z.object({
   model: z.string().optional(),
   choices: z.array(z.object({
     message: z.object({ content: z.string().nullable().optional() }),
     finish_reason: z.string().nullable().optional(),
   })).min(1),
-  usage: z.object({ prompt_tokens: z.number(), completion_tokens: z.number() }).optional(),
+  usage: z.object({ prompt_tokens: z.number().optional(), completion_tokens: z.number().optional() }).loose().optional(),
 });
+
+export class DeepSeekProvider implements ModelProvider {
+  identity: string;
+  constructor(private options: EngineOptions, private request: typeof fetch = fetch) {
+    this.identity = `deepseek/${options.model}`;
+  }
+  async generateStructured<T>({ instructions, evidence, schema, signal, options: hints }: GenerateArgs<T>) {
+    if (!this.options.key) throw new Error('Add DEEPSEEK_API_KEY to .env and restart the API to enable graph indexing.');
+    const started = Date.now();
+    const maxAttempts = this.options.attempts ?? 3;
+    const pause = (ms: number) => this.options.sleep ? this.options.sleep(ms) : delay(ms, undefined, { signal });
+    const reasoning = hints?.reasoning ?? 'off';
+    const answerBudget = hints?.maxOutputTokens ?? 8000;
+    const validationFailures: ValidationFailure[] = [];
+    const attemptUsage: unknown[] = [];
+    let previousOutput: string | undefined;
+    let correction: string | undefined;
+    let invalidRelation = false;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      signal?.throwIfAborted();
+      const timeout = AbortSignal.timeout(this.options.timeoutMs ?? 120000);
+      let response: Response;
+      try { response = await this.request(new URL('chat/completions', this.options.baseUrl.replace(/\/?$/, '/')), {
+        method: 'POST', signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+        headers: { Authorization: `Bearer ${this.options.key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: this.options.model, max_tokens: reasoning === 'off' ? answerBudget : answerBudget + 6144,
+          thinking: { type: reasoning === 'off' ? 'disabled' : 'enabled' },
+          ...(reasoning !== 'off' ? { reasoning_effort: reasoning } : {}),
+          ...(hints?.temperature !== undefined ? { temperature: hints.temperature } : {}),
+          response_format: { type: 'json_object' },
+          messages: [{ role: 'system', content: instructions + '\nReturn JSON matching this schema: ' + JSON.stringify(z.toJSONSchema(schema)) },
+            { role: 'user', content: this.options.formatEvidence ? this.options.formatEvidence(evidence) : JSON.stringify(evidence) },
+            ...(correction ? [...(previousOutput ? [{ role: 'assistant', content: previousOutput }] : []), { role: 'user', content: correction }] : [])],
+        }),
+      }); } catch (error) {
+        signal?.throwIfAborted();
+        if (attempt === maxAttempts - 1) throw error;
+        await pause(500 * 2 ** attempt);
+        continue;
+      }
+      if ((response.status === 429 || response.status >= 500) && attempt < maxAttempts - 1) {
+        await response.body?.cancel();
+        await pause(500 * 2 ** attempt);
+        continue;
+      }
+      if (!response.ok) throw new Error(`DeepSeek request failed (${response.status}); check your key, model and account balance.`);
+      const parsedResponse = ChatResponse.safeParse(await response.json().catch(() => null));
+      if (!parsedResponse.success) {
+        if (attempt === maxAttempts - 1) throw new Error('DeepSeek returned an unexpected response shape. Retry the update.');
+        await pause(500 * 2 ** attempt);
+        continue;
+      }
+      const result = parsedResponse.data;
+      const choice = result.choices?.[0];
+      attemptUsage.push(result.usage ?? null);
+      const metadata = () => ({ provider: 'deepseek', model: result.model ?? this.options.model, latencyMs: Date.now() - started,
+        usage: result.usage, attempts: attempt + 1, validationFailures, attemptUsage });
+      if (!choice?.message.content?.trim() || choice.finish_reason === 'length') {
+        validationFailures.push({ attempt: attempt + 1, issues: ['Return a complete, nonblank JSON object matching the schema.'] });
+        if (attempt === maxAttempts - 1) throw new StructuredOutputError('DeepSeek returned empty or truncated output. Retry the update; the existing graph is unchanged.', metadata());
+        previousOutput = undefined;
+        correction = 'Your previous answer was blank or truncated. Return the complete JSON object matching the supplied schema and evidence.';
+        continue;
+      }
+      let issues: string[] | undefined;
+      invalidRelation = false;
+      let parsed: unknown;
+      try { parsed = JSON.parse(choice.message.content); }
+      catch { issues = ['response: return a valid JSON object without Markdown or extra text.']; }
+      if (!issues) {
+        const validated = schema.safeParse(parsed);
+        if (validated.success) return { data: validated.data, metadata: metadata() };
+        invalidRelation = validated.error.issues.some(issue => issue.code === 'invalid_value' && issue.path.at(-1) === 'relation');
+        issues = validated.error.issues.slice(0, 12).map(issue => `${issue.path.join('.') || 'response'}: ${issue.message}`);
+      }
+      validationFailures.push({ attempt: attempt + 1, issues });
+      if (attempt === maxAttempts - 1) {
+        throw new StructuredOutputError(invalidRelation
+          ? `DeepSeek returned an unsupported relationship type after ${maxAttempts} attempts. Retry the update; the existing graph is unchanged.`
+          : `DeepSeek returned invalid structured output after ${maxAttempts} attempts. Retry the update; the existing graph is unchanged.`, metadata());
+      }
+      previousOutput = choice.message.content;
+      correction = `Your previous response failed application validation:\n${issues.join('\n')}\nReturn the complete corrected JSON object using the SAME evidence and exact schema. Use only permitted enum values. If a relationship cannot be accurately expressed with an allowed type, omit that edge rather than inventing a type or changing its meaning. Preserve valid citations and concepts.`;
+    }
+    throw new Error('DeepSeek retries exhausted.');
+  }
+}
+
+type DeepSeekOptions = {
+  apiKey: string; model?: string; baseUrl?: string;
+  timeoutMs?: number; attempts?: number; fetch?: typeof fetch; sleep?: (ms: number) => Promise<void>;
+};
 
 function formatEvidence(evidence: Evidence[]): string {
   return evidence.map(item => {
@@ -32,102 +114,35 @@ function formatEvidence(evidence: Evidence[]): string {
   }).join('\n\n');
 }
 
-class RetryableError extends Error {}
-
-/**
- * DeepSeek through its OpenAI-compatible chat API, in JSON mode. JSON mode guarantees JSON but not
- * our shape, so every answer is validated against the caller's schema and retried once if it fails.
- * Text only: image evidence is refused rather than silently dropped.
- */
+/** Live lecture facade over the same validated/retrying transport used by graph extraction. */
 export function createDeepSeekProvider({
-  apiKey, model = DEFAULT_DEEPSEEK_MODEL, baseUrl = DEFAULT_DEEPSEEK_BASE_URL, timeoutMs = 45_000, attempts = 2,
-  fetch: fetchImpl = fetch, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
-}: DeepSeekOptions): ModelProvider {
-  const endpoint = baseUrl.replace(/\/+$/, '') + '/chat/completions';
-
-  async function attempt<T>(request: GenerateStructuredRequest<T>, body: string): Promise<{ data: T; usage: StructuredResult<T>['usage']; model: string }> {
-    const signal = request.signal ? AbortSignal.any([request.signal, AbortSignal.timeout(timeoutMs)]) : AbortSignal.timeout(timeoutMs);
-    let response: Response;
-    try {
-      response = await fetchImpl(endpoint, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + apiKey },
-        body,
-        signal,
-      });
-    } catch (error) {
-      if (request.signal?.aborted) throw new ProviderError('aborted', `Task ${request.task} was cancelled`);
-      throw new RetryableError('DeepSeek request failed: ' + (error instanceof Error ? error.name : 'network error'));
-    }
-    if (response.status === 429 || response.status >= 500) throw new RetryableError(`DeepSeek returned ${response.status}`);
-    if (!response.ok) {
-      // 4xx (bad key, bad request) will not succeed on retry. Never echo the request: it holds the key.
-      const detail = await response.text().catch(() => '');
-      throw new ProviderError('request_failed', `DeepSeek returned ${response.status}: ${detail.replace(/sk-\S+/g, '[redacted]').slice(0, 300)}`);
-    }
-    const parsedResponse = ChatResponse.safeParse(await response.json().catch(() => null));
-    if (!parsedResponse.success) throw new RetryableError('DeepSeek returned an unexpected response shape');
-    const choice = parsedResponse.data.choices[0]!;
-    const content = choice.message.content?.trim();
-    if (!content) throw new RetryableError(`DeepSeek returned blank content (finish_reason: ${choice.finish_reason ?? 'unknown'})`);
-    let json: unknown;
-    try {
-      json = JSON.parse(content);
-    } catch {
-      throw new RetryableError('DeepSeek returned content that is not JSON');
-    }
-    const result = request.schema.safeParse(json);
-    if (!result.success) throw new RetryableError('DeepSeek output failed validation: ' + z.prettifyError(result.error));
-    return {
-      data: result.data,
-      model: parsedResponse.data.model ?? model,
-      usage: {
-        inputTokens: parsedResponse.data.usage?.prompt_tokens ?? 0,
-        outputTokens: parsedResponse.data.usage?.completion_tokens ?? 0,
-      },
-    };
-  }
-
+  apiKey, model = DEFAULT_DEEPSEEK_MODEL, baseUrl = DEFAULT_DEEPSEEK_BASE_URL,
+  timeoutMs = 45000, attempts = 2, fetch: fetchImpl = fetch, sleep,
+}: DeepSeekOptions): LiveModelProvider {
+  const engine = new DeepSeekProvider({
+    key: apiKey, model, baseUrl, timeoutMs, attempts, sleep,
+    formatEvidence: evidence => formatEvidence(evidence as Evidence[]),
+  }, (url, init) => fetchImpl(String(url), { ...init, headers: Object.fromEntries(new Headers(init?.headers).entries()) }));
   return {
-    name: 'deepseek',
-    model,
-    modalities: ['text'],
-    async generateStructured<T>(request: GenerateStructuredRequest<T>): Promise<StructuredResult<T>> {
-      const started = performance.now();
-      const schema = JSON.stringify(z.toJSONSchema(request.schema, { io: 'output', unrepresentable: 'any' }));
-      // deepseek-flash thinks by default, and its reasoning tokens share max_tokens with the answer:
-      // too small a budget truncates the JSON, which DeepSeek then returns as blank content.
-      const reasoning = request.options?.reasoning;
-      const answerBudget = request.options?.maxOutputTokens ?? 2048;
-      const thinking = reasoning === 'off'
-        ? { thinking: { type: 'disabled' } }
-        : { thinking: { type: 'enabled' }, ...(reasoning && { reasoning_effort: reasoning }) };
-      const body = JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: `${request.instructions}\n\nRespond with a single json object that matches this JSON Schema:\n${schema}` },
-          { role: 'user', content: formatEvidence(request.evidence) },
-        ],
-        response_format: { type: 'json_object' },
-        stream: false,
-        ...thinking,
-        ...(request.options?.temperature !== undefined && { temperature: request.options.temperature }),
-        max_tokens: reasoning === 'off' ? answerBudget : answerBudget + 6144,
-      });
-      let lastError: unknown;
-      for (let index = 0; index < attempts; index += 1) {
+    name: 'deepseek', model, modalities: ['text'],
+    async generateStructured<T>(request: GenerateStructuredRequest<T>) {
+      if (request.signal?.aborted) throw new ProviderError('aborted', `Task ${request.task} was cancelled`);
+      formatEvidence(request.evidence); // Reject unsupported modalities before sending a request.
+      try {
+        const result = await engine.generateStructured({
+          ...request,
+          options: { ...request.options, reasoning: request.options?.reasoning ?? 'high', maxOutputTokens: request.options?.maxOutputTokens ?? 2048 },
+        });
+        const usage = result.metadata.usage as { prompt_tokens?: number; completion_tokens?: number } | undefined;
+        return { data: result.data, provider: 'deepseek', model: result.metadata.model,
+          usage: { inputTokens: usage?.prompt_tokens ?? 0, outputTokens: usage?.completion_tokens ?? 0 },
+          latencyMs: result.metadata.latencyMs };
+      } catch (error) {
         if (request.signal?.aborted) throw new ProviderError('aborted', `Task ${request.task} was cancelled`);
-        try {
-          const { data, usage, model: served } = await attempt(request, body);
-          return { data, usage, provider: 'deepseek', model: served, latencyMs: performance.now() - started };
-        } catch (error) {
-          if (!(error instanceof RetryableError)) throw error;
-          lastError = error;
-          if (index < attempts - 1) await sleep(500 * (index + 1));
-        }
+        if (error instanceof ProviderError) throw error;
+        throw new ProviderError(error instanceof StructuredOutputError ? 'invalid_output' : 'request_failed',
+          error instanceof Error ? error.message : 'DeepSeek request failed');
       }
-      const message = lastError instanceof Error ? lastError.message : 'unknown failure';
-      throw new ProviderError(/validation|JSON|blank/.test(message) ? 'invalid_output' : 'request_failed', `${request.task}: ${message}`);
     },
   };
 }

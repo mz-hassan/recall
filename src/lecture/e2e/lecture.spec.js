@@ -15,6 +15,9 @@ async function openFirst(page) {
 }
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem('recall-course-profile', JSON.stringify({ email: 'test@example.edu', role: 'student', courseId: 'ai' }));
+  });
   // Fail the browser test on runtime errors, rather than silently losing the stream.
   page.on('pageerror', error => { throw error; });
 });
@@ -61,6 +64,7 @@ test('an expanded older moment and its scroll stay put while live topics arrive'
 });
 
 test('pending and missing notes leave the source readable without changing selection', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.clock.install();
   await page.goto(live + '&transport=fixture&interval=1');
   await expect(page.locator('.moment.current')).toContainText('Filling in notes');

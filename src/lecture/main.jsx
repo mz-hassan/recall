@@ -5,35 +5,18 @@ import { readStored } from '../storage.js';
 import { art } from './content.js';
 import './lecture.css';
 import { datasetLectures, loadTranscript } from './dataset.js';
-import { makeTranscriptMoments, replayOptions } from './replay.js';
-import { MomentExtras } from './MomentExtras.jsx';
+import { replayOptions } from './replay.js';
+import { MomentDetail } from './MomentDetail.jsx';
+import { isEnrolled, readDoubts, readProfile, toggleDoubt } from '../classroom/accounts.js';
+import { buildPastTopics } from './pastTopics.js';
 import { MomentChat } from './components/MomentChat.jsx';
 import { ServerReplayApp } from './components/ServerReplayApp.jsx';
-import { LectureSlide } from './components/LectureSlide.jsx';
 import { demoMoments } from './fixtures/lecture02.js';
 import { recordMomentStream } from './fixtures/stream.js';
 import { useLectureStream } from './hooks/useLectureStream.js';
 import { targetAfterArrival } from './streamState.js';
 
 const formatTime = seconds => [Math.floor(seconds / 60), Math.floor(seconds % 60)].map(n => String(n).padStart(2, '0')).join(':');
-function MomentDetail({ moment, saved, onSave, onOpen, onChat, chatEnabled, client, runId, onSelectMoment }) {
-  return <>
-    <div className="eyebrow">{moment.label} &nbsp; / &nbsp; {moment.type}</div>
-    <h2>{moment.title}</h2>
-    {moment.headline ? <p className="summary" dangerouslySetInnerHTML={{ __html: moment.summary }}/> : <p className="chunk-copy">{moment.summary || moment.quote}</p>}
-    {moment.enrichment === 'pending' && <p className="lecture-stream-note" role="status">Filling in notes… The source transcript is available now.</p>}
-    {moment.enrichment === 'failed' && <p className="lecture-stream-note" role="status">Notes are unavailable. You can still read the source transcript.</p>}
-    <div className="context-chat"><div><span className="chat-spark">✧</span><span>Stay with this idea<small>Ask with this moment as context</small></span></div>
-      <button type="button" onClick={onChat}>Ask about this <span>↗</span><small>{chatEnabled ? 'LECTURE CHAT' : 'PREVIEW'}</small></button>
-    </div>
-    {moment.slides.map(slide => <LectureSlide key={slide.page + '/' + slide.url} slide={slide} short={moment.short} onOpen={onOpen}/>)}
-    {moment.intuition && <div className="intuition"><small>THE IDEA TO HOLD ONTO</small><p>{moment.intuition}</p></div>}
-    <MomentExtras moment={moment} client={client} runId={runId} onSelectMoment={onSelectMoment}/>
-    <div className="detail-actions"><button onClick={() => onOpen('transcript')}>Read the source ↗</button><button onClick={onSave}>{saved ? '✓ Moment saved' : '+ Save this moment'}</button></div>
-    <p className="notes">{moment.timeSource === 'simulated' || (!moment.timeSource && moment.type === 'TRANSCRIPT') ? 'Time reflects simulated playback.' : moment.label.startsWith('≈') ? 'Estimated timestamp within an untimed transcript passage.' : 'Timestamp anchored to the lecture transcript.'}</p>
-  </>;
-}
-
 // Keep frame-by-frame transforms off the React render path. React owns selection and playback.
 function useTimelineMotion(stage, nodes, target, expanded, liveIndex) {
   const motion = useRef({ position: target, expansion: 0, target, expanded, liveIndex });
@@ -81,7 +64,9 @@ function Lecture({ allMoments, lecture, options, rich, source }) {
   const start = options.live ? 0 : allMoments.at(-1)?.time ?? 0;
   const initialIndex = server ? Math.max(0, allMoments.length - 1) : source ? 0 : allMoments.findLastIndex(moment => moment.time <= start);
   const [localElapsed, setElapsed] = useState(start);
-  const [target, setTarget] = useState(rich ? 5 : initialIndex);
+  const requestedTopic = options.live ? null : new URLSearchParams(location.search).get('topic');
+  const requestedIndex = allMoments.findIndex(item => item.id === requestedTopic);
+  const [target, setTarget] = useState(requestedIndex >= 0 ? requestedIndex : rich ? 6 : initialIndex);
   const [generation, setGeneration] = useState(0);
   const stream = useLectureStream(source, localElapsed, generation);
   const elapsed = server ? stream.session?.elapsed ?? 0 : localElapsed;
@@ -89,9 +74,9 @@ function Lecture({ allMoments, lecture, options, rich, source }) {
     : source?.duration ?? (rich ? 3660 : (allMoments.at(-1)?.time ?? 0) + options.interval);
   const [chat, setChat] = useState(false);
   const saveKey = server ? 'recall-saved-live-ai-' + lecture.id + '-' + stream.runId
-    : source ? 'recall-saved-fixture-ai-' + lecture.id : rich ? 'recall-saved' : 'recall-saved-ai-' + lecture.id + '-' + options.words;
+    : source ? 'recall-saved-fixture-ai-' + lecture.id : rich ? 'recall-saved' : 'recall-saved-ai-' + lecture.id + '-topics';
   const moments = source ? stream.moments : allMoments.filter(moment => moment.time <= elapsed);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(requestedIndex >= 0);
   const [localPlaying, setPlaying] = useState(false);
   const playing = server ? stream.session?.state === 'playing' : localPlaying;
   const [commandPending, setCommandPending] = useState(false);
@@ -108,7 +93,18 @@ function Lecture({ allMoments, lecture, options, rich, source }) {
   const liveIndex = moments.length - 1;
   const focused = Math.max(0, Math.min(liveIndex, Math.round(target)));
   const moment = moments[focused];
-  const saveId = source ? moment?.id : focused;
+  const saveId = source ? moment?.id : rich ? focused - 1 : focused;
+  const [profile] = useState(readProfile);
+  const canMarkDoubt = profile?.role === 'student' && isEnrolled(profile, 'ai');
+  const [doubts, setDoubts] = useState(readDoubts);
+  const doubtful = canMarkDoubt && moment && doubts.some(entry =>
+    entry.courseId === 'ai' && entry.email === profile.email && entry.momentId === moment.id);
+  const doubtAction = canMarkDoubt && moment
+    ? <button className="doubt-toggle" type="button" aria-pressed={doubtful} onClick={() => {
+      try { setDoubts(toggleDoubt({ ...profile, courseId: 'ai' }, moment.id, moment.pastTopicId)); }
+      catch { notify('This browser could not save your doubt marker.'); }
+    }}>{doubtful ? '✓ Marked unclear' : '? Mark as unclear'}</button>
+    : !isEnrolled(profile, 'ai') && <a className="doubt-toggle" href="./#signin/student">Sign in to mark this unclear ↗</a>;
   const previousRun = useRef(stream.runId);
   useLayoutEffect(() => {
     if (server && previousRun.current !== stream.runId) {
@@ -261,7 +257,7 @@ function Lecture({ allMoments, lecture, options, rich, source }) {
     if (index >= 0) go(index); else notify('Waiting for this cited moment to arrive.');
   }
 
-  if (!moment) return <section className="replay-error"><Brand href="./#course/ai" lecture/>
+  if (!moment) return <section className="replay-error"><Brand href="./#courses" lecture/>
     <p role="status">{stream.error || 'Waiting for the first lecture moment…'}</p>
     <button onClick={stream.reconnect}>Retry stream</button>
     {server && <button disabled={commandPending} onClick={restart}>Restart replay</button>}
@@ -270,7 +266,7 @@ function Lecture({ allMoments, lecture, options, rich, source }) {
 
   return <>
     <div className="ambient" aria-hidden="true"/><div className="grain" aria-hidden="true"/>
-    <header><Brand href="./#course/ai" lecture/>
+    <header><Brand href="./#courses" lecture/>
       <button id="lectureInfo" className="lecture-name" onClick={() => setModal('about')}>AI ALIGNMENT <span>{lecture.id.padStart(2, '0')}</span><small>{rich ? 'When imitation fails' : lecture.title}</small></button>
       <div className="header-actions"><a href={'./#lecture/ai/' + lecture.id} className="map-button source-return" aria-label="Lecture and sources"><span>Lecture &amp; sources</span> ↗</a>
         <button className="map-button" onClick={() => setModal('about')}>{options.live ? 'Simulation settings' : 'About replay'}</button>
@@ -311,7 +307,7 @@ function Lecture({ allMoments, lecture, options, rich, source }) {
         : options.live ? moments.length + " of " + allMoments.length + (source ? " fixture moments" : " chunks") : "One thought at a time"}</small></div></div>
       <button ref={closeButton} className="close-detail" aria-label="Close expanded moment" onClick={closeDetail}>✕ <span>Back to the thread</span></button>
       <section ref={detail} id="detail" className="detail" aria-label="Expanded lecture moment" hidden={!expanded}>
-        {expanded && <MomentDetail moment={moment} saved={saved.includes(saveId)} onSave={saveMoment} onOpen={setModal} onChat={() => setChat(true)} chatEnabled={server}
+        {expanded && <MomentDetail moment={moment} saved={saved.includes(saveId)} onSave={saveMoment} onOpen={setModal} onChat={() => setChat(true)} chatEnabled={server} doubtAction={doubtAction}
           client={server ? source.client : null} runId={stream.runId} onSelectMoment={selectMoment}/>}
       </section>
       {expanded && chat && <MomentChat key={server ? stream.runId : moment.id} moment={moment} client={server ? source.client : null}
@@ -348,33 +344,38 @@ function Lecture({ allMoments, lecture, options, rich, source }) {
 }
 
 function ReplayApp() {
+  const [profile] = useState(readProfile);
+  const hasAccess = isEnrolled(profile, 'ai');
   const [options] = useState(() => replayOptions(location.search));
   const lecture = datasetLectures.find(item => item.id === options.lectureId);
   const rich = lecture?.id === '2' && !options.live;
   const fixture = lecture?.id === '2' && options.live && new URLSearchParams(location.search).get('transport') === 'fixture';
   const backend = options.live && !fixture;
-  const [moments, setMoments] = useState(rich ? demoMoments : fixture ? demoMoments.slice(0, options.limit) : null);
+  const [moments, setMoments] = useState(fixture ? demoMoments.slice(0, options.limit) : null);
   const source = useMemo(() => fixture ? recordMomentStream(moments, options.interval) : null, [fixture, moments, options.interval]);
   const [error, setError] = useState('');
   useEffect(() => {
-    if (backend || rich || fixture || !lecture?.replay) return;
+    if (!hasAccess || backend || fixture || !lecture?.replay) return;
     let active = true;
     loadTranscript(lecture).then(transcript => {
-      const chunks = makeTranscriptMoments(transcript, lecture.id, options);
       if (!active) return;
-      if (chunks.length) {
-        setMoments(options.live ? chunks.slice(0, options.limit) : chunks);
-      }
+      const topics = buildPastTopics(lecture, transcript);
+      if (topics.length) setMoments(topics);
       else setError('This transcript is empty.');
     }).catch(() => { if (active) setError('Could not load the lecture transcript.'); });
     return () => { active = false; };
-  }, [lecture, options, rich, fixture, backend]);
+  }, [hasAccess, lecture, fixture, backend]);
 
+  if (!hasAccess) return <section className="replay-error">
+    <Brand href="./#courses" lecture/>
+    <p>Add AI Alignment to your courses to open this timeline.</p>
+    <a href={profile ? './#find-courses' : './#signin/student'}>{profile ? 'Find a course ↗' : 'Log in ↗'}</a>
+  </section>;
   if (backend && lecture) return <ServerReplayApp lecture={lecture} options={options}>{(serverSource, initialMoments) =>
     <Lecture allMoments={initialMoments} lecture={lecture} options={options} rich={false} source={serverSource}/>
   }</ServerReplayApp>;
   if (moments) return <Lecture allMoments={moments} lecture={lecture} options={options} rich={rich} source={source}/>;
-  return <section className="replay-error"><Brand href="./#course/ai" lecture/>
+  return <section className="replay-error"><Brand href="./#courses" lecture/>
     <p role="status">{error || (lecture?.replay ? 'Loading transcript…' : 'This lecture has no transcript available.')}</p>
     <a href="./#course/ai">← Back to course</a>
   </section>;

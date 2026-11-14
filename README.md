@@ -1,32 +1,50 @@
 # Recall
 
-Recall helps students recover context during a lecture and revisit it afterward. The course library brings together assigned readings, past timelines and a planned cross-lecture knowledge graph. The live lecture interface groups incoming transcript chunks into moments that can carry summaries, equations, intuition, slides, diagrams and requested artifacts.
+Recall helps students recover context during a lecture and revisit it afterward. The course library brings together assigned readings, past timelines and a cross-lecture knowledge graph. The live lecture interface groups incoming transcript chunks into moments that can carry summaries, equations, intuition, slides, diagrams and requested artifacts.
 
 ## Run locally
 
-Use Node.js 22.18 or later, which runs the server's TypeScript directly.
+Use Node.js 22.18 or later (Node 24 recommended). The TypeScript runner supports both backend features.
 
 ```sh
 npm ci
-npm run dev        # web (Vite) + API (Fastify on 127.0.0.1:8787), /api proxied
-npm run typecheck  # server/ and shared/
-npm test
+cp .env.example .env
+```
+
+Set `DEEPSEEK_API_KEY` in `.env`. Both the graph and live lecture features use this same configuration. Start MongoDB for graph storage in a separate terminal (no Docker):
+
+```sh
+npm run db:start
+```
+
+Then start the app:
+
+```sh
+npm run dev        # Vite + one shared Fastify API, default 127.0.0.1:3001
+npm run typecheck
+npm test          # graph and live lecture tests, including nested test directories
 npm run build
 npx playwright install chromium
 npm run test:e2e   # desktop/mobile checks against an isolated offline fixture server
 ```
 
-`npm run dev:web` and `npm run dev:server` start either half alone. The API defaults to the offline fixture model provider; copy `.env.example` to `.env` to change server settings. Check it with `curl localhost:8787/api/health`.
+Sign in and add AI Alignment to your workspace. Select a lecture row to replay its timeline or open **Course material** for sources and **Simulate live**. **Knowledge graph** opens the database-backed course graph. See the [graph setup, demonstration commands, and live lecture completion contract](docs/knowledge-graph.md). No Docker is used. `npm run dev:web` runs the frontend alone; `npm run dev:server` runs the shared API. The graph needs MongoDB, but live lecture still runs if the graph database is unavailable. Start MongoDB and restart the API to enable the graph again.
 
-To use DeepSeek, set `LLM_PROVIDER=deepseek`, `LLM_MODEL=deepseek-flash` and your own `DEEPSEEK_API_KEY` in `.env`. `npm run eval:segmentation -- --lecture 2` replays a lecture through the configured model and prints the topics it finds, with token use and latency. `npm run eval:lecture -- --lecture 2` runs the whole pipeline (topics plus summaries, intuition, equations, slide pages, diagrams and the running lecture summary); add `--out results.json` to save it.
+The shared API also exposes transcript replay/streaming, model-backed topic segmentation, topic enrichment, page-exact slides and running lecture summaries. Check it at `http://localhost:3001/api/health`. To run the backend pipelines directly:
 
-Open AI Alignment from the course library. Each lecture appears once, with **Reading breakdowns** and **Past timeline** actions. Open the lecture title for sources and **Simulate live**. The course-level **Knowledge graph** control is intentionally disabled pending implementation.
+```sh
+npm run eval:segmentation -- --lecture 2
+npm run eval:lecture -- --lecture 2
+npm run extract:slides
+```
+
+The evaluation commands use the configured provider and can make paid calls when DeepSeek is selected. Set `LLM_PROVIDER=fixture` explicitly for deterministic offline live-lecture tests/demos. With no configuration, `loadConfig({})` also defaults to fixture mode; the checked-in template selects DeepSeek. There is no fabricated graph fallback.
 
 ## Dataset and simulation
 
 The [CS 690S dataset](datasets/cs690s/README.md) covers 23 Fall 2026 lecture entries. Its [manifest](datasets/cs690s/manifest.json) records source URLs, required and optional readings, slide PDFs and text extracts, and TXT or VTT transcripts where available. Some entries lack transcripts or reuse material from another lecture. The frontend uses the manifest to determine whether a lecture can replay. A later ingestion workstream can scrape a course website and emit this same manifest; the checked-in dataset works directly today.
 
-Lecture 02 has an existing curated past replay. Live simulation uses the server's topic stream and resumes an existing run; a new run starts paused with a six-chunk preview at 160 words per chunk and an eight-second interval. **Restart replay** starts over, and **Simulation settings** applies changed options to a new run. Expand a moment for contextual chat, cited chart or animated-diagram requests, and KaTeX equations. Artifacts survive browser reloads within the current in-memory server session, including later topic revisions. See [student-side implementation and checks](src/lecture/README.md). The offline authored demo remains available at `lecture.html?lecture=2&mode=live&transport=fixture`.
+Lecture 02 has an existing curated past replay. Other past replays group recorded transcripts into 8–12 demo topics. Live simulation uses the server's topic stream and resumes an existing run; a new run starts paused with a six-chunk preview at 160 words per chunk and an eight-second interval. **Restart replay** starts over, and **Simulation settings** applies changed options to a new run. Expand a moment for contextual chat, cited chart or animated-diagram requests, and KaTeX equations. Artifacts survive browser reloads within the current in-memory server session, including later topic revisions. See [student-side implementation and checks](src/lecture/README.md). The offline authored demo remains available at `lecture.html?lecture=2&mode=live&transport=fixture`.
 
 The asset preparation script copies the demo PDFs from the dataset on dev/build. Git tracks the dataset and slide preview images. Vite generates `dist/` for hosting.
 
@@ -48,8 +66,16 @@ Start with the [code ownership and stack guide](docs/architecture.md), then read
 
 ## Stack and implementation status
 
-The React + Vite frontend now connects to a TypeScript/Fastify backend for transcript replay, topic segmentation, automatic enrichment, contextual chat and validated visual artifacts. Fixture and DeepSeek providers share the same interface. MongoDB persistence and course graph integration remain later work. Keep the existing UI and animations while building features in their own modules.
+The React + Vite frontend connects to a TypeScript/Fastify backend for transcript replay, topic segmentation, automatic enrichment, contextual chat and validated visual artifacts. Fixture and DeepSeek providers share the same interface. The course graph uses MongoDB persistence, DeepSeek extraction and completion-triggered indexing; lecture materials remain in the dataset folder. Live lecture sessions and artifacts currently use in-memory storage, while durable timeline persistence remains future work. Reading harnesses remain a separate workstream.
 
 The agreed direction is a Node.js + TypeScript/Fastify backend, MongoDB for course data and graph references, and task-specific harnesses behind a shared model-provider interface. Keep DeepSeek as the initial configurable provider; Gemini is the planned replacement. Fixture mode must remain usable without either API or a database. See the architecture guide for module boundaries, suggested libraries, storage design and implementation order.
 
 The older Recall concept brief is reference material, not the current implementation contract. Catch-up, action extraction, annotations and personal review remain possible later features. Tiger Data and Sentient OS are optional ideas, not required dependencies. Deployment is deferred; focus on local development and the three workstreams.
+
+### Classroom demo
+
+Create a demo account with an academic email such as `student@example.edu` and a password of at least eight characters. Choose Student, Instructor, or Teaching assistant on the login or signup page. From **My courses**, open **Find or add a course**, search for `690S` or AI Alignment, and add it to your workspace. You can also create a course from that page.
+
+Students can mark a topic **Unclear** from its expanded timeline view. Instructors and TAs open **Lecture doubts** from their course card. Lectures are listed newest first with total counts. Expand a lecture to see each topic’s count and select a topic to open its details.
+
+Past timelines use 8–12 stable demo topics per available lecture. Counts include simulated data and student marks from this browser. Account records, course memberships and doubt markers stay in this browser. Passwords are stored as salted verifiers. Email ownership, staff authorization and cross-device syncing require a backend.

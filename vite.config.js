@@ -1,14 +1,14 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 
-export default defineConfig({
-  base: './',
-  server: {
-    // During `npm run dev`, browser calls to /api go to the local Fastify server.
-    proxy: { '/api': { target: 'http://127.0.0.1:8787', changeOrigin: false } },
-  },
-  build: {
-    rollupOptions: {
-      input: { library: 'index.html', lecture: 'lecture.html' },
+export default defineConfig(({ mode }) => {
+  const { PORT = '3001' } = loadEnv(mode, process.cwd(), 'PORT');
+  return {
+    base: './',
+    server: { proxy: { '/api': { target: 'http://127.0.0.1:' + PORT, changeOrigin: false } } },
+    build: {
+      rollupOptions: {
+        input: { library: 'index.html', lecture: 'lecture.html' },
+      },
     },
-  },
+  };
 });

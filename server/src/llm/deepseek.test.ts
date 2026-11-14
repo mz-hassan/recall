@@ -1,76 +1,88 @@
-import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import assert from 'node:assert/strict';
 import { z } from 'zod';
-import { createDeepSeekProvider } from './deepseek.ts';
-import { ProviderError } from './types.ts';
-
-const Schema = z.object({ title: z.string().min(1) });
-const request = { task: 'demo', instructions: 'Title it.', evidence: [{ id: 'e1', kind: 'text' as const, text: 'hello' }], schema: Schema };
-
-function scripted(responses: Array<() => Response>) {
-  const calls: Array<{ url: string; body: any; headers: Record<string, string> }> = [];
-  const fetch = (async (url: string, init: RequestInit) => {
-    calls.push({ url, body: JSON.parse(String(init.body)), headers: init.headers as Record<string, string> });
-    const next = responses.shift();
-    if (!next) throw new Error('no more responses');
-    return next();
-  }) as unknown as typeof globalThis.fetch;
-  return { fetch, calls };
-}
-const chat = (content: string | null, usage = { prompt_tokens: 120, completion_tokens: 15 }) =>
-  () => Response.json({ model: 'deepseek-flash', choices: [{ message: { content }, finish_reason: 'stop' }], usage });
-const provider = (fetch: typeof globalThis.fetch) => createDeepSeekProvider({ apiKey: 'test-key', fetch, sleep: async () => {} });
-
-test('sends a JSON-mode chat request and returns validated data with usage', async () => {
-  const { fetch, calls } = scripted([chat('{"title":"Distribution shift"}')]);
-  const result = await provider(fetch).generateStructured(request);
-  assert.deepEqual(result.data, { title: 'Distribution shift' });
-  assert.deepEqual(result.usage, { inputTokens: 120, outputTokens: 15 });
-  assert.equal(result.provider, 'deepseek');
-  const [call] = calls;
-  assert.equal(call!.url, 'https://api.deepseek.com/chat/completions');
-  assert.equal(call!.headers.authorization, 'Bearer test-key');
-  assert.equal(call!.body.model, 'deepseek-flash');
-  assert.deepEqual(call!.body.response_format, { type: 'json_object' });
-  assert.match(call!.body.messages[0].content, /json/, 'JSON mode requires the word json in the prompt');
-  assert.match(call!.body.messages[1].content, /<evidence id="e1">\nhello\n<\/evidence>/);
+import { DeepSeekProvider } from './deepseek.ts';
+import { StructuredOutputError } from './provider.ts';
+import { extractionSchema } from '../../../shared/contracts/graph.ts';
+const options = { key: 'test-only', model: 'deepseek-flash', baseUrl: 'https://api.deepseek.com' };
+const args = { task: 'graph.extract', instructions: 'Return JSON.', evidence: { text: 'Evidence' }, schema: z.object({ valid: z.boolean() }) };
+const success = () => new Response(JSON.stringify({ choices: [{ message: { content: '{"valid":true}' }, finish_reason: 'stop' }], usage: { total_tokens: 10 } }));
+test('DeepSeek adapter sends server credentials/JSON schema and retries transient errors', async () => {
+  let calls = 0;
+  const provider = new DeepSeekProvider(options, async (url, init) => {
+    calls++;
+    assert.equal(String(url), 'https://api.deepseek.com/chat/completions');
+    const body = JSON.parse(String(init?.body));
+    assert.deepEqual(body.response_format, { type: 'json_object' });
+    assert.deepEqual(body.thinking, { type: 'disabled' });
+    assert.equal((init?.headers as Record<string, string>).Authorization, 'Bearer test-only');
+    return calls === 1 ? new Response('', { status: 429 }) : success();
+  });
+  const result = await provider.generateStructured(args);
+  assert.equal(calls, 2); assert.deepEqual(result.data, { valid: true });
+  assert.deepEqual(result.metadata.usage, { total_tokens: 10 });
 });
-
-test('retries once on blank content, then succeeds', async () => {
-  const { fetch, calls } = scripted([chat(''), chat('{"title":"Ok"}')]);
-  assert.equal((await provider(fetch).generateStructured(request)).data.title, 'Ok');
-  assert.equal(calls.length, 2);
+test('DeepSeek adapter rejects missing credentials, invalid structured data, and truncated output', async () => {
+  await assert.rejects(new DeepSeekProvider({ ...options, key: undefined }).generateStructured(args), /DEEPSEEK_API_KEY/);
+  const invalid = new DeepSeekProvider(options, async () => new Response(JSON.stringify({ choices: [{ message: { content: '{"valid":"wrong"}' }, finish_reason: 'stop' }] })));
+  await assert.rejects(invalid.generateStructured(args), error => {
+    assert.ok(error instanceof StructuredOutputError);
+    assert.equal(error.metadata.attempts, 3);
+    assert.ok(error.metadata.validationFailures?.[0].issues[0].includes('boolean'));
+    assert.ok(!error.message.includes('invalid_type'));
+    return true;
+  });
+  const truncated = new DeepSeekProvider(options, async () => new Response(JSON.stringify({ choices: [{ message: { content: '{}' }, finish_reason: 'length' }] })));
+  await assert.rejects(truncated.generateStructured(args), /truncated/);
 });
-
-test('retries on 429 and 5xx', async () => {
-  const { fetch, calls } = scripted([() => new Response('busy', { status: 503 }), chat('{"title":"Ok"}')]);
-  await provider(fetch).generateStructured(request);
-  assert.equal(calls.length, 2);
+test('invalid relationship enums are repaired with exact field feedback instead of failing before the retry', async () => {
+  let calls = 0;
+  const schema = z.object({ edges: z.array(z.object({ relation: extractionSchema.shape.edges.element.shape.relation })) });
+  const provider = new DeepSeekProvider(options, async (_url, init) => {
+    calls++;
+    const request = JSON.parse(String(init?.body));
+    if (calls === 2) {
+      const feedback = request.messages.at(-1).content;
+      assert.match(feedback, /edges\.1\.relation/);
+      assert.match(feedback, /is_a/);
+      assert.match(feedback, /omit that edge/);
+      assert.equal(request.messages.at(-2).role, 'assistant');
+    }
+    return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({
+      edges: calls === 1 ? [{ relation: 'uses' }, { relation: 'causes' }] : [{ relation: 'uses' }],
+    }) }, finish_reason: 'stop' }] }));
+  });
+  const result = await provider.generateStructured({ ...args, schema });
+  assert.equal(calls, 2);
+  assert.deepEqual(result.data.edges, [{ relation: 'uses' }]);
+  assert.equal(result.metadata.validationFailures?.length, 1);
 });
-
-test('output that keeps failing the schema becomes invalid_output', async () => {
-  const { fetch } = scripted([chat('{"title":""}'), chat('{"wrong":1}')]);
-  await assert.rejects(provider(fetch).generateStructured(request),
-    (error: unknown) => error instanceof ProviderError && error.code === 'invalid_output');
+test('unrecoverable relation errors stay strict and return a concise message with diagnostics', async () => {
+  let calls = 0;
+  const provider = new DeepSeekProvider(options, async () => {
+    calls++;
+    return new Response(JSON.stringify({ choices: [{ message: { content: '{"relation":"invented"}' }, finish_reason: 'stop' }] }));
+  });
+  await assert.rejects(provider.generateStructured({ ...args, schema: z.object({ relation: extractionSchema.shape.edges.element.shape.relation }) }), error => {
+    assert.ok(error instanceof StructuredOutputError);
+    assert.match(error.message, /unsupported relationship type/);
+    assert.equal(error.metadata.validationFailures?.length, 3);
+    return true;
+  });
+  assert.equal(calls, 3);
 });
-
-test('a 401 is not retried and never echoes the key', async () => {
-  const { fetch, calls } = scripted([() => new Response('{"error":{"message":"Bearer sk-secret123 invalid"}}', { status: 401 })]);
-  await assert.rejects(provider(fetch).generateStructured(request), (error: unknown) =>
-    error instanceof ProviderError && error.code === 'request_failed' && !error.message.includes('sk-secret123'));
-  assert.equal(calls.length, 1);
+test('malformed JSON can be corrected on a bounded second attempt', async () => {
+  let calls = 0;
+  const provider = new DeepSeekProvider(options, async () => ++calls === 1
+    ? new Response(JSON.stringify({ choices: [{ message: { content: 'not json' }, finish_reason: 'stop' }] }))
+    : success());
+  const result = await provider.generateStructured(args);
+  assert.deepEqual(result.data, { valid: true }); assert.equal(calls, 2);
 });
-
-test('image evidence is refused instead of silently dropped', async () => {
-  const { fetch, calls } = scripted([chat('{"title":"x"}')]);
-  await assert.rejects(provider(fetch).generateStructured({ ...request, evidence: [{ id: 'p1', kind: 'image', mimeType: 'image/png', data: '' }] }),
-    (error: unknown) => error instanceof ProviderError && error.code === 'unsupported_modality');
-  assert.equal(calls.length, 0);
-});
-
-test('a cancelled request stops before calling the API', async () => {
-  const { fetch, calls } = scripted([chat('{"title":"x"}')]);
-  await assert.rejects(provider(fetch).generateStructured({ ...request, signal: AbortSignal.abort() }),
-    (error: unknown) => error instanceof ProviderError && error.code === 'aborted');
-  assert.equal(calls.length, 0);
+test('DeepSeek adapter respects cancellation before sending any request', async () => {
+  let calls = 0;
+  const provider = new DeepSeekProvider(options, async () => { calls++; return success(); });
+  const controller = new AbortController(); controller.abort();
+  await assert.rejects(provider.generateStructured({ ...args, signal: controller.signal }));
+  assert.equal(calls, 0);
 });

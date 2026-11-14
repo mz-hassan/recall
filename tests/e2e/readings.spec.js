@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
 
+// The library requires a signed-in student enrolled in the course; seed one the same way the lecture specs do.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!sessionStorage.getItem('recall-course-profile')) sessionStorage.setItem('recall-course-profile', JSON.stringify({ email: 'test@example.edu', role: 'student', courseId: 'ai' }));
+  });
+});
+
 async function openReader(page) {
   await page.goto('/#paper/ai/ai-dagger');
   await expect(page.getByRole('heading', { name: 'The paper, one idea at a time.' })).toBeVisible();
@@ -208,6 +215,9 @@ test('mobile keeps outline readable and panels close without losing drafts', asy
   await page.getByRole('button', { name: 'Close paper', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'The paper, one idea at a time.' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  // A course without papers shows an empty state. Enroll in it first: the library redirects students away from other courses.
+  await page.evaluate(() => sessionStorage.setItem('recall-course-profile', JSON.stringify({ email: 'test@example.edu', role: 'student', courseId: 'cv' })));
+  await page.reload();
   await page.goto('/#papers/cv');
   await expect(page.getByText('No assigned papers in this course yet.')).toBeVisible();
 });

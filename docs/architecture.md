@@ -1,6 +1,6 @@
 # Code ownership and stack
 
-This is the implementation direction, not a claim that a backend already exists. Today only `src/`, the dataset, asset scripts and Vite frontend are implemented. Create the proposed modules below as their work starts; do not install every suggested dependency or rewrite the working UI up front. Deployment is out of scope for now.
+The graph now implements the TypeScript/Fastify foundation, shared graph contracts, provider interface/DeepSeek adapter, MongoDB graph repository, and dataset adapter. See [graph setup and completion integration](knowledge-graph.md). Other backend modules below remain planned. Create them as their work starts; do not install every suggested dependency or rewrite the working UI up front. Deployment is out of scope for now.
 
 ## Stack direction
 
@@ -39,7 +39,7 @@ Keep feature-specific styles inside their feature folder and namespace class nam
 
 ## MongoDB plan
 
-Start with a repository interface and fixture-backed implementation so contributors can build without credentials. Add MongoDB behind that interface, using server-only `MONGODB_URI` and `MONGODB_DB` configuration. Do not move or delete the checked-in dataset.
+Graph uses a repository interface with MongoDB in the application and an isolated fixture implementation for tests. Server-only `MONGODB_URI` and `MONGODB_DB` configure storage. As agreed for the current graph implementation, only generated graph data/citations and indexing metadata are persisted; lectures and full source text are read from the folder through a replaceable source adapter. The broader collections below remain a future storage plan. Do not move or delete the checked-in dataset.
 
 Suggested collections and identifiers:
 
