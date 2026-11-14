@@ -1,0 +1,885 @@
+Maximum Entropy Deep Inverse Reinforcement Learning
+MarkusWulfmeier MARKUS@ROBOTS.OX.AC.UK
+PeterOndru´sˇka ONDRUSKA@ROBOTS.OX.AC.UK
+IngmarPosner INGMAR@ROBOTS.OX.AC.UK
+MobileRoboticsGroup,DepartmentofEngineeringScience,UniversityofOxford
+Abstract
+Thispaperpresentsageneralframeworkforex-
+ploiting the representational capacity of neural
+networkstoapproximatecomplex, nonlinearre-
+ward functions in the context of solving the in-
+versereinforcementlearning(IRL)problem. We
+show in this context that the Maximum Entropy
+paradigmforIRLlendsitselfnaturallytotheeffi-
+cienttrainingofdeeparchitectures. Attesttime,
+the approach leads to a computational complex-
+ityindependentofthenumberofdemonstrations,
+which makes it especially well-suited for appli-
+cations in life-long learning scenarios. Our ap-
+proach achieves performance commensurate to
+thestate-of-the-artonexistingbenchmarkswhile
+exceedingonanalternativebenchmarkbasedon Figure1: FullyConvolutionalNeuralNetworkforreward
+highly varying reward structures.Finally, we ex- approximation in the IRL setting. The network serves to
+tend the basic architecture - which is equivalent modeltherelationshipbetweeninputfeaturesandfinalre-
+to a simplified subclass of Fully Convolutional wardmap.
+Neural Networks (FCNNs) with width one - to
+includelargerconvolutionsinordertoeliminate
+dependencyonprecomputedspatialfeaturesand asatooltobetterunderstandhumandecisionsormedicine
+workonrawinputrepresentations. (Asohetal.,2013)topredictpatientresponsetotreatment.
+Theobjectiveofinversereinforcementlearning(IRL)isto
+infertheunderlyingrewardstructureguidinganagent’sbe-
+1.Introduction haviour based on observations as well as a model of the
+environment. Thismaybedoneeithertolearnthereward
+Recentsuccessesinmachinelearning, visionandrobotics structure for modelling purposes or to provide a method
+have lead to widespread expectations that machines will to allow the agent to imitate a demonstrator’s specific be-
+increasingly succeed in applications of real value to the haviour (Ramachandran & Amir, 2007). While for small
+public domain. A central tenet of any vision delivering problemsthecompletesetofrewardscanbelearnedexplic-
+on this promise revolves around learning from user inter- itly,manyproblemsofrealisticsizerequiretheapplication
+actions. Inversereinforcementlearning(IRL)isplayinga ofgeneralisablefunctionapproximations.
+pivotalroleinthesedevelopmentsandcommonlyfindsap-
+Much of the prior art in this domain relies on parametri-
+plications in robotics (Argall et al., 2009) where it allows
+sationoftherewardfunctionbasedonpre-determinedfea-
+robottolearncomplexbehaviourfromhumandemonstra-
+tures. Inadditiontobettergeneralisationperformancethan
+tionsandalsoinfieldsofcognition(Bakeretal.,2009)and
+direct state-to-reward mapping, this approach enables the
+preference learning (Ziebart et al., 2008) where it serves
+transferoflearnedrewardfunctionsbetweendifferentsce-
+narios with the same feature representation. A number of
+early works from (Ziebart et al., 2008), (Abbeel & Ng,
+2004), (Lopes et al., 2009) and (Ratliff et al., 2006), ex-
+6102
+raM
+11
+]GL.sc[
+3v88840.7051:viXra
+
+MaximumEntropyDeepInverseReinforcementLearning
+presstherewardfunctionasaweightedlinearcombination tial dimension and size as the input. Recent examples for
+of hand selected features. To overcome the inherent limi- the application of FCNNs focus on dense prediction: in-
+tationsoflinearmodels,(Choi&Kim,2013)and(Levine cludingpixel-wisesemanticsegmentationby(Longetal.,
+et al., 2010) extend this approach to a limited set of non- 2014), sliding window detection and prediction of object
+linear rewards by learning a set of composites of logical boundaries (Sermanet et al., 2013), depth estimation with
+conjunctions of atomic features. Non-parametric methods singlemonocularimages(Liuetal.,2015)andhumanpose
+suchasGaussianProcesses(GPs)havealsobeenemployed estimationinmonocularimages(Tompsonetal.,2014).
+tocaterforpotentiallycomplex,nonlinearrewardfunctions
+Our principal contribution is a framework for Maximum
+(Levine et al., 2011). While in principle this extends the
+EntropyDeepInverseReinforcementLearning(DeepIRL)
+IRLparadigmtotheflexibilityofnonlinearrewardapprox-
+basedontheMaximumEntropyparadigmforIRL(Ziebart
+imation, the use of a kernel machine makes this approach
+etal.,2008), whichlendsitselfnaturallyfortrainingdeep
+scalebadlywithhighernumbersoftrainingdataandprone
+architecturesbyleadingtoanobjectivethatis-withoutap-
+to requiring a large number of reward samples in order
+proximations - fully differentiable with respect to the net-
+to approximate highly varying reward functions (Bengio
+work weights. Furthermore, we demonstrate performance
+et al., 2007). Even sparse GP approximations as used in
+commensurate to state-of-the-art methods on a publicly
+(Levineetal.,2011)leadtoaquerycomplexitytimeinde-
+availablebenchmark,whileoutperformingthestate-of-the-
+pendencyofthesizeoftheactivesetorthenumberofex-
+artonanewbenchmarkwherethetrueunderlyingreward
+perienced state-reward pairs. Situations with increasingly
+hascomplexinteractingstructureoverthefeaturerepresen-
+complexrewardfunctionleadingtohigherrequirementsre-
+tation. Inaddition, weemphasisetheflexibilityoftheap-
+garding the number of inducing points can quickly render
+proachandeliminatetherequirementofpreprocessingand
+this nonparametric approach computationally impractica-
+precomputedfeaturesbyapplyingwiderconvolutionallay-
+ble. Furthermore, in comparison to (Babes et al., 2011),
+ers to learn spatial features of relevance to the IRL task.
+wefocusonasingularexpertinwhatfinallyleadstoanan
+Thisenablestheapplicationwithoutmanuallycraftedfea-
+end-to-endlearningscenarioinsection4.3fromrawinput
+ture design as long as the state space is constrained to a
+torewardwithoutcompressionorpreprocessingonthein-
+regularlygriddedrepresentationallowingforconvolutions.
+putrepresentation. Toourknowledgetheonlyotherwork
+considering the use of deep networks is given by (Levine We argue that these properties are important for practical
+etal.,2015),whofocusondirectlyapproximatingpolicies large-scale applications of IRL as can be seen in life-long
+withneuralnetworksbutshortlyrefertothepossibilityof learning approaches with often complex reward functions
+extensionforcostfunctionlearningwithneuralnetworks. and increasing scale of demonstrations requiring high ca-
+pacitymodelsandfastcomputationalspeeds.
+In contrast to prior art, we explore the use of neural net-
+works to approximate the reward function. Neural Net-
+works already achieve state-of-the-art performance across 2.InverseReinforcementLearning
+avarietyofdomainssuchascomputervision,naturallan-
+ThissectionpresentsabriefoverviewofIRL.LetaMarkov
+guageprocessing,speechrecognition(Bengioetal.,2012)
+DecisionProcess(MDP)bedefinedasM={S,A,T,r},
+and reinforcement learning (Mnih et al., 2013). Their ap-
+whereS denotesthestatespace,Adenotesthesetofpos-
+plicationinIRLsuggestsitselfduetotheircompactrepre-
+sible actions, T denotes the transition model and r de-
+sentationofhighlynonlinearfunctionsthroughthecompo-
+notestherewardstructure. GivenanMDP,anoptimalpol-
+sitionandreuseoftheresultsofmanynonlinearitiesinthe
+icy π∗ is one which, when adhered to, maximizes the ex-
+layered structure (Bengio et al., 2007). In addition, NNs
+pectedcumulativereward. Furthermore,anadditionalfac-
+provide favourable computational complexity (O(1)) at
+torγ ∈[0,1]maybeconsideredinordertodiscountfuture
+querytimewithrespecttoobserveddemonstrations,which
+rewards.
+providesforscalingtoproblemswithlargestatespacesand
+complex reward structures – circumstances which might IRL considers the case where a MDP specification is
+rendertheapplicationofexistingpriormethodsintractable available but the reward structure is unknown. Instead,
+or ineffective. With the approach represented in Figure 1, a set of expert demonstrations D = {ς ,ς ,...,ς }
+1 2 N
+a state’s reward can be determined either solely based on is provided which are sampled from a user policy π,
+its own feature representation or – in using wider convo- i.e. provided by a demonstrator. Each demonstration
+lutional layers – analysed in combination with its spatial consists of a set of state-action pairs such that ς =
+i
+context. TheappliedarchitecturesareFullyConvolutional {(s ,a ),(s ,a ),...,(s ,a )}.ThegoalofIRListoun-
+0 0 1 1 K K
+NeuralNetworks,which–byskippingthefullyconnected coverthehiddenrewardrfromthedemonstrations.
+finallayerscommoninclassificationtasks–preservespa-
+Anumberofapproacheshavebeenproposedtotacklethe
+tialinformationandcancreateanoutputofthesamespa-
+IRL problem (see, for example, (Abbeel & Ng, 2004),
+
+MaximumEntropyDeepInverseReinforcementLearning
+(Neu & Szepesva´ri, 2012), (Ratliff et al., 2006), (Syed (Choi&Kim,2013)extendthelinearmodelbyintroducing
+& Schapire, 2007)). An increasingly popular formulation amappingΦ:RN →{0,1}N suchthat
+is Maximum Entropy IRL (Ziebart et al., 2008), which
+was used to effectively model large-scale user driving be- g(f,θ,Φ)=θ(cid:62)Φ(f). (4)
+haviour. In this formulation the probability of user pref-
+Here Φ denotes a set of composite features which are
+erenceforanygiventrajectorybetweenspecifiedstartand
+jointly learned as part of the objective function. These
+goalstatesisproportionaltotheexponentialofthereward
+composites are assumed to be the logical conjunctions of
+alongthepath
+thepredefined,atomicfeaturesf. Duetothenatureofthe
+P(ς|r)∝exp{ (cid:88) r }. (1) featuresusedtherepresentationalpowerofthisapproachis
+s,a
+limitedtothefamilyofpiecewiseconstantfunctions.
+s,a∈ς
+In contrast, (Levine et al., 2011) employ a Gaussian
+AsshowninZiebart’swork,principalbenefitsoftheMax- Processes (GP) framework to capture the potentially un-
+imum Entropy paradigm include the ability to handle ex- bounded complexity of any underlying reward structure.
+pertsuboptimalityaswellasstochasticitybyoperatingon ThesetofexpertdemonstrationsDisusedinthiscontextto
+the distribution over possible trajectories. Moreover, the identifyanactivesetofGPsupportpoints,X ,andassoci-
+u
+MaximumEntropybasedobjectivefunctiongiveninEqua- atedrewardsu.Themeanfunctionisthenusedtorepresent
+tion 10 enables backpropagation of the objective gradi- theindividualrewardatastatedescribedbyf
+ents to the network’s weights. The training procedure is
+thenstraightforwardlyframedasanoptimisationtaskcom-
+g(f,θ,X ,u)=K(cid:62) K−1u. (5)
+putable e.g. via conjugate gradient or stochastic gradient u f,u u,u
+descent. Here K denotes the covariance of the reward at f with
+f,u
+theactivesetrewardvaluesulocatedatX andK de-
+u u,u
+2.1.ApproximatingtheRewardStructure notesthecovariancematrixoftherewardsintheactiveset
+computedviaacovariancefunctionk (f ,f )withhyper-
+Due to the dimensionality and size of the state space in θ i j
+parametersθ.
+manyrealworldapplications,therewardstructurecannot
+be observed explicitly for every state. In these cases state Nevertheless, a significant drawback of the GPIRL ap-
+rewardsarenotmodelleddirectlyperstate,butthereward proach is a computational complexity proportional to the
+structure is restricted by imposing that states with similar number of demonstrations and the size of the active set
+features,x,shouldhavesimilarrewards. Tothisend,func- of inducing points, which in turn depends on the reward
+tion approximation is used in order to regress the feature complexity. While the modelling of complex, nonlinear
+representation onto a real valued reward using a mapping reward structures in problems with large state spaces is
+g : RN → R,withN beingthedimensionalityofthefea- theoretically feasible for the GPIRL approach, the car-
+turespacesuchthat dinality of the active set will quickly become unwieldy,
+puttingGPIRLatasignificantcomputationaldisadvantage
+r =g(f,θ). (2) or, worse, rendering it entirely intractable. These short-
+comings are remedied when using deep parametric archi-
+A feature representation, f, is usually hand-crafted based
+tectures for reward function approximation while keeping
+on preprocessing such as segmentation and manually de-
+the accuracy of nonlinear function approximation, as out-
+fineddistancemetrics,butcanbelearnedbasedonthepro-
+linedinthenextsection.
+posed framework - as shown in section 4.3. Furthermore,
+theapplicationoffeaturebasedfunctionapproximationen-
+3.RewardFunctionApproximationwith
+ableseasiergeneralisationandtransferofmodels.
+DeepArchitectures
+The choice of model used for function approximation has
+a dramatic impact on the ability of the algorithm to cap- WearguethatIRLalgorithmsscalabletoMDPswithlarge
+turerelationshipbetweenthestatefeaturevectorf anduser featurespacesrequiremodels,whichareabletoefficiently
+preference. Commonly, the mapping from state to reward represent complex, nonlinear reward structures. In this
+issimplyaweightedlinearcombinationoffeaturevalues context,deeparchitecturesareanaturalchoiceastheyex-
+plicitly exploit the depth-breadth trade-off (Bengio et al.,
+g(f,θ)=θ(cid:62)f. (3)
+2007)andincreaserepresentationalcapacitybyreusingthe
+computationsofearliernodesinthefollowinglayers.
+This choice, while appropriate in some scenarios, is sub-
+optimal if the true reward can not be accurately approxi- Fortheremainderofthepaper, weconsideranetworkar-
+matedbyalinearmodel.Inordertoalleviatethislimitation chitecture which accepts as input state features x, maps
+
+MaximumEntropyDeepInverseReinforcementLearning
+applied by (Long et al., 2014) can also transform and re-
+shapetocreateequallysizedmodeloutput.
+3.1.TrainingProcedure
+ThetaskofsolvingtheIRLproblemcanbeframedinthe
+context of Bayesian inference as MAP estimation, maxi-
+mizing the joint posterior distribution of observing expert
+demonstrations, D, under a given reward structure and of
+themodelparametersθ.
+Figure2: SchemaforNeuralNetworkbasedrewardfunc- L(θ)=logP(D,θ|r)=logP(D|r)+logP(θ). (8)
+tion approximation based on the feature representation of (cid:124) (cid:123)(cid:122) (cid:125) (cid:124) (cid:123)(cid:122) (cid:125)
+MDPstates
+LD Lθ
+Thisjointloglikelihoodisdifferentiablewithrespecttothe
+thesetostaterewardr andisgovernedbythenetworkpa- parametersθofalinearrewardmodel,whichallowstheap-
+rameters θ 1,2,..n . In the context of Section 2.1, the state plicationofgradientdescentmethods(Snyman,2005). We
+rewardisthereforeobtainedas extend this benefit with the adaptation of Maximum En-
+tropy for neural networks as presented in L of Equation
+r ≈ g(f,θ ,θ ,...,θ ) (6) D
+1 2 n 10 by separating into the gradient of the loss with respect
+= g 1 (g 2 (...(g n (f,θ n ),...),θ 2 ),θ 1 ). (7) totherewardsrandthegradientoftherewardwithrespect
+tothenetwork’sweightsobtainedviabackpropagation.
+Whilemanychoicesexistfortheindividualbuildingblocks
+ofadeeparchitecture,ithasbeenshownthatasufficiently Thecompletegradientisgivenbythesumofthegradients
+large NN with as little as two layers and sigmoid activa- with respect to θ of the data term L and a weight decay
+D
+tionfunctionscanrepresentanybinaryfunction(Hassoun, termasmodelregulariserL
+θ
+1995)oranypiecewise-linearfunction(Horniketal.,1989)
+andcanthereforeberegardedasauniversalapproximator. ∂L = ∂L D + ∂L θ. (9)
+While this holds true in theory, it can be far more com- ∂θ ∂θ ∂θ
+putationallypracticabletoextendthedepthofthenetwork
+structureandreducethenumberofrequiredcomputations Theearliermentionedseparationofderivativesinthegra-
+indoingso(Bengio,2009). dientofthedatatermisshowninequation10
+Importantly, in applying backpropagation, NNs also lend
+themselves naturally to training in the maximum entropy
+∂L ∂L ∂r
+IRL framework and the network structure can be adapted D = D · (10)
+∂θ ∂r ∂θ
+tosuitindividualtaskswithoutcomplicatingoreveninval-
+∂
+idatingthemainIRLlearningmechanism. IntheDeepIRL = (µ −E[µ])· g(f,θ), (11)
+D ∂θ
+framework proposed here the full range of architecture
+choices thus becomes available. Different problem do- where r = g(f,θ)). As shown in (Ziebart et al., 2008),
+mains can utilise different network architectures as e.g. thegradientoftheexpertdemonstrationtermL withre-
+D
+convolutionallayerscanremovethedependencyonhand- specttothemodelparametersofalinearfunctionisequal
+crafted spatial features. Furthermore, it is straightforward to the difference in feature counts along the trajectories.
+to show that the linear maximum entropy IRL approach For higher level models this gradient can be split into the
+proposed in (Ziebart et al., 2008) can be seen as a sim- derivativewithrespecttotherewardrandthederivativeof
+plification of the more general deep approach and can be the reward with respect to the model parameters which in
+createdbyapplyingtherulesofback-propagationtoanet- case of a neural network is obtained via backpropagation.
+workwithasinglelinearoutputconnectedtoallinputswith ThederivativeoftheMaximumEntropyobjectivewithre-
+zerobiasterm. specttotherewardequalsthedifferenceinstatevisitation
+counts between solutions given by the expert demonstra-
+WhilethecommonNNarchitecturesforwhole-imageclas-
+tionsandtheexpectedvisitationcountsforthelearnedsys-
+sificationregresstofixedsizeoutputs,theappliedFCNNs
+temstrajectorydistributionin12.
+result in an output with equivalent spatial dimensionality
+and by padding data correspondingly we realise reward
+(cid:88)
+maps of the same size as our input. It is to note here that E[µ]= P(ς|r) (12)
+padding is not the only possibility and deconvolutions as
+ς:{s,a}∈ς
+
+MaximumEntropyDeepInverseReinforcementLearning
+Algorithm1MaximumEntropyDeepIRL Algorithm2ApproximateValueIteration
+Input: µa D ,f,S,A,T,γ 1: V(s)=−∞
+Output: optimalweightsθ∗ 2: repeat
+1: θ1 =initialise weights() 3: V t =V; V(s goal )=0
+4: Q(s,a)=r(s,a)+E T(s,a,s(cid:48)) [V(s(cid:48))]
+Iterativemodelrefinement
+5: V =softmax a Q i (s,a)
+2: forn=1: Ndo
+6: untilmax s (V(s)−V t (s))<(cid:15)
+3: rn =nn forward(f,θn)
+7: π(a|s)=eQ(s,a)−V(s)
+SolutionofMDPwithcurrentreward
+4: πn =approx value iteration(rn,S,A,T,γ) Algorithm3PolicyPropagation
+5: E[µn]=propagate policy(πn,S,A,T) 1: E 1 [µ(s start )]=1
+2: fori=1: Ndo
+DetermineMaximumEntropylossandgradients
+3: E i [µ(s goal )]=0
+6: Ln =log(πn)×µa
+7: ∂ ∂ L D rn n D =µ D −E[µn D ] 4: E i+1 [µ(s)]= (cid:80) s(cid:48),a T(s,a,s(cid:48))π(a|s(cid:48))E i [µ(s(cid:48))]
+5: endfor
+Computenetworkgradients 6: E[µ(s)]= (cid:80) i E i [µ(s)]
+8:
+∂Ln
+D =nn
+backprop(f,θn,∂Ln
+D)
+∂θn ∂rn
+D
+9: θn+1 =update weights(θn,∂Ln D)
+∂θn
+D given the current policy. Additional indices representing
+10: endfor
+the iteration of the main algorithm were omitted in these
+subscriptsinfavourofreadability.
+The presented algorithm is applied to train FCNNs based
+onthelossderivativesforallstatesatonce. Aseachofthe
+ComputationofE[µ]usuallyinvolvessummationoverex-
+finalstate-wiserewardsisinfluencedbyitscorresponding
+ponentiallymanypossibletrajectories.Amoreeffectiveal-
+area in the original state space – its receptive field, train-
+gorithm based on dynamic programming which computes
+ing withthesummed lossover thewhole sceneis equiva-
+this quantity in polynomial-time can be found in (Ziebart
+lent to a stochastic gradient formulation with all receptive
+etal.,2008;Kitanietal.,2012).Subsequently,theeffective
+fields addressed in a minibatch. This formulation is com-
+computation of the gradient ∂LD involves first computing
+∂θ putationally more efficient than separate computation per
+thedifferenceinvisitationcountsusingthisalgorithmand
+field,sincethesefieldsoverlapassoonasthewidthofour
+thenpassingthisasanerrorsignalthroughthenetworkus-
+convolutionalfiltersexceedsone(Longetal.,2014).
+ingback-propagation.
+ThecompleteproposedmethodisdescribedbyAlgorithm 4.Experiments
+1, with the loss and gradient derivation in lines 6 and 7
+given by the linear Maximum Entropy formulation. The We assess the performance of DeepIRL two bench-
+expert’sstateactionfrequenciesµa,whichareneededfor mark tasks against current state-of-the-art approaches :
+D
+the calculation of the loss are summed over the actions to GPIRL (Levine et al., 2011), NPB-FIRL (Choi & Kim,
+computetheexpertstatefrequenciesµ = (cid:80) A µa . 2013)andtheoriginalMaxEnt(Ziebartetal.,2008)toil-
+D D lustratethenecessityofnon-linearfunctionapproximation.
+a=1
+Lines4and5areexplainedindetailinthealgorithms2and Alltestsarerunmultipletimesontrainingandtransfersce-
+3 respectively, and are adapted from (Kitani et al., 2012). nariosforthedifferentsettings,whilelearningisperformed
+Algorithm2determinesthepolicygiventhecurrentreward basedonsyntheticallygeneratedstochasticdemonstrations
+model via iterative update of the state-action value func- based on the optimal policy to evaluate performance on
+tion, while algorithm 3 determines the expected state vis- suboptimal example sets. This is achieved by providing
+iting frequencies by probabilistically traversing the MDP anumberofdemonstrationssampledfromtheoptimalpol-
+
+MaximumEntropyDeepInverseReinforcementLearning
+icy based on the true reward structure, but including 30%
+ofrandomactions. Optimal Policy
+In our experiments, we employ a FCNN with two hid- Example Reward-building Objects
+denlayersandrectifiedlinearunitsasfunctionapproxima- Example Distractor Objects
+tor between state feature representation and reward. This
+Reward (low to high)
+rather shallow networks structure suffices for the applica-
+tion based on strongly simplified toy benchmarks. How-
+ever,thewholeframeworkcanbeutilisedfortrainingnet-
+Figure3: Objectworldbenchmark. Thetruerewardisdis-
+worksofarbitrarycapacity. Allexperimentsexceptforthe
+playedbythebrightnessofeachcellandbasedonthesur-
+spatial feature learning in section 4.3 are based on filters
+roundingobjectconfiguration. Onlyasubsetofcolorsin-
+ofwidthonetofocusondirectevaluationagainsttheother
+fluences the reward, while the others serve as distracting
+algorithms, which are in their current form limited to the
+features.
+featuresofeachstateforrewardapproximation. Widerfil-
+tersasappliedforspatialfeaturelearningareusedtoeval-
+uate the performance on raw inputs without manual fea- ated the algorithms with a set number of features and in-
+ture design. For these benchmarks, we apply AdaGrad creasingdemonstrations. Additionally, thelearnedreward
+(Duchi et al., 2011), an approach for stochastic gradient functionsaredeployedonrandomlygeneratedtransfersce-
+descentwithperparameteradaptivelearningrates. Signif- nariostouncoveranyoverfittingtothetrainingdata.
+icantpartsoftheneuralnetworkimplementationarebased
+WhiletheoriginalMaxEntisunabletocapturethenonlin-
+onMatConvNet(Vedaldi&Lenc,2014).
+ear reward structure well, both DeepIRL and GPIRL pro-
+Inlinewithrelatedworks,weuseexpectedvaluedifference vide significantly better approximations as represented in
+asprincipalmetricofevaluation.Itisameasureofthesub- Figure4. EvaluationofNPB-FIRLonthisbenchmarkwas
+optimalityofthelearnedpolicyunderthetruereward. The donein(Choi&Kim,2013)whereitshowedasimilarlevel
+scorerepresentsthedifferencebetweenthevaluefunction ofperformanceasGPIRL.GPIRLgeneratesagoodmodel
+obtainedfortheoptimalpolicygiventhetruerewardstruc- already with few data points whereas DeepIRL achieves
+tureandthevaluefunctionobtainedfortheoptimalpolicy commensurate performance when increasing the number
+based on the learned reward model. Additionally to the of available expert demonstrations. The same behaviour
+evaluation on each specific training scenario, the trained isexhibitedwhenusingbothcontinuousanddiscretestate
+models are evaluated on a number of randomly generated features (Fig. 5). The requirement for more training data
+test environments. The test on these transfer examples will be rendered unimportant in robot applications based
+serves to analyse each algorithm’s ability to generalise to onautonomousdataacquisition,whileenforcingthelower
+thetruerewardstructurewithoutover-fitting. algorithmiccomplexityasdominantadvantageofthepara-
+metricapproach.
+4.1.ObjectworldBenchmark
+TheObjectworld scenario(Levineetal.,2011)consistsof
+a map of M ×M states for M = 32 where possible ac-
+tionsincludemotionsinallfourdirectionsaswellasstay-
+ing in place. Two different sets of state features are im-
+plemented based on randomly placed colours to evaluate
+the algorithms. For the continuous set x ∈ RC. Each Groundtruth DeepIRL
+feature dimension describes the minimum distance to an
+object of one of C colours. Building on the continuous
+representationthediscretesetincludesC ×M binaryfea-
+tures,whereeachdimensionindicateswhetheranobjectof
+agivencolouriscloserthanathresholdd∈{1,...,M}.
+GPIRL MaxEnt
+The reward is positive for cells which are both within the
+distance3ofcolor1anddistance2ofcolor2, negativeif Figure 4: Reward reconstruction sample in Objectworld
+onlywithindistance3ofcolor1andzerootherwise. This benchmarkprovidedN =64examplesandC =2colours
+isillustratedforasmallsubsetofthestatespaceinFigure withcontinuousfeatures. White-highreward;black-low
+3. reward.
+Inlinewithcommonbenchmarkingprocedures,weevalu-
+Additional tests are performed with increased number of
+
+MaximumEntropyDeepInverseReinforcementLearning
+distractor features to evaluate each approach’s overfitting
+tendency.Thecorrespondingfiguresareleftoutduetolim-
+itedspace. BothDeepIRLandGPIRLshowrobustnessto
+distractorvariables,thoughDeepIRLshowsminimallybig-
+gersignsofoverfittingasthenumberofdistractorvariables
+isincreased.ThisisduetotheNN’scapacitybeingbrought
+tobearontheincreasingnoiseintroducedbythedistractors
+andwillbeaddressedinfutureworkwithadditionalregu-
+larisation methods, such as Dropout (Hinton et al., 2012)
+andensemblemethods.
+30
+25
+20
+15
+10
+5
+0
+4 8 16 32 64
+examples
+ecnereffid
+eulav
+detcepxe
+30 GPIRL MaxEnt
+DeepIRL
+25
+20
+15
+10
+5
+0
+4 8 16 32 64
+examples
+ecnereffid
+eulav
+detcepxe
+25
+20
+15
+10
+5
+0
+4 8 16 32 64
+examples
+ecnereffid
+eulav
+detcepxe
+25
+20
+15
+10
+5
+0
+4 8 16 32 64
+examples
+ecnereffid
+eulav
+detcepxe
+GPIRL MaxEnt
+DeepIRL
+a) b)
+20
+15
+10
+5
+0
+4 8 16 32 64 128
+examples
+ecnereffid
+eulav
+detcepxe
+GPIRL
+MaxEnt
+20 DeepIRL
+15
+10
+5
+0
+4 8 16 32 64 128
+examples
+ecnereffid
+eulav
+detcepxe
+20
+15
+10
+5
+0
+4 8 16 32 64 128
+examples
+ecnereffid
+eulav
+detcepxe
+20 GPIRL
+MaxEnt
+DeepIRL
+15
+10
+5
+0
+4 8 16 32 64 128
+examples
+ecnereffid
+eulav
+detcepxe
+45
+40
+35
+30
+25
+20
+15
+10
+5
+0 4 8 16 32 64 128
+examples
+c) d)
+Figure5: Objectworldbenchmark. Fromtoplefttobottom
+right:expectedvaluedifference(EVD)withC =2colours
+and varying number of demonstrations N for training a)
+andtransfercaseb)withcontinuousandsubsequentlywith
+discretefeaturesinc)&d);Asthenumberofdemonstra-
+tionsgrowsDeepIRLisabletoquicklymatchperformance
+ofGPIRLonthetask.
+4.2.BinaryworldBenchmark
+Inordertotesttheabilityofallapproachestosuccessfully
+approximate more complex reward structures, the Binary-
+worldbenchmarkispresented. Thistestscenarioissimilar
+toObjectworld,butinthisproblemeverystateisrandomly
+assignedoneoftwocolours(blueorred). Thefeaturevec-
+torforeachstateconsequentlyconsistsofabinaryvectorof
+length9,encodingthecolourofeachcellinits3x3neigh-
+bourhood. The true reward structure for a particular state
+ecnereffid
+eulav
+detcepxe
+45
+40
+35
+30 GPIRL
+25 MaxEnt
+20
+15
+10
+5
+0 4 8 16 32 64 128
+examples
+ecnereffid
+eulav
+detcepxe
+45
+40
+35
+30
+25
+DeepIRL
+NPB-FIRL 20
+15
+10
+5
+0 4 8 16 32 64 128
+examples
+ecnereffid
+eulav
+detcepxe
+45
+40
+35
+30
+25
+20
+15
+10
+5
+0 4 8 16 32 64 128
+examples
+ecnereffid
+eulav
+detcepxe
+GPIRL
+MaxEnt
+DeepIRL
+NPB-FIRL
+Figure 6: Value differences observed in the Binaryworld
+benchmarkforGPIRL,MaxEntandDeepIRLforthetrain-
+ingscenario(left)andthetransfertask(right).
+isfullydeterminedbythenumberofbluestatesinitslocal
+neighbourhood. It is positive if exactly four out of nine
+neighbouring states are blue, negative if exactly five are
+blue and zero otherwise. The main difference compared
+to the Objectworld scenario is that a single feature value
+does not carry much weight, but rather that higher-order
+relationshipsamongstthefeaturesdeterminethereward.
+Since the reward depends on a higher representation for
+the basic features - that is to say the number of specific
+features-suchcaseisarguablymorechallengingthanthe
+original Objectworld experiment and a good performance
+on this benchmark implies the algorithm’s ability to learn
+andcapturethiscomplexrelationship.
+The performance of DeepIRL compared to GPIRL, lin-
+ear MaxEnt and NPB-FIRL is depicted in Fig. 6. In
+thisincreasinglymorecomplexscenario,DeepIRLisable
+to learn the higher-order dependencies between features,
+whereas GPIRL struggles as the inherent kernel measure
+can not correctly relate the reward of different examples
+withsimilarityintheirstatefeatures.GPIRLneedsalarger
+number of demonstrations to achieve good performance
+and to determine an accurate estimate on the reward for
+all29possiblefeaturecombinations.
+Perhaps surprising is the comparatively low performance
+oftheNPB-FIRLalgorithm. Thiscanbeexplainedbythe
+limitationsofthisframework. Thetruerewardinthissce-
+nario can not be efficiently described by the logical con-
+junctionsused. Infact,itwouldrequire29differentlogical
+conjunctions, each capturing all possible combinations of
+features,toaccuratelymodeltherewardinthisframework.
+Fig.7showsthereconstructionoftherewardstructureses-
+timated by DeepIRL, MaxEnt and GPIRL. While GPIRL
+wasabletoreconstructthecorrectrewardforsomeofthe
+stateshavingfeaturesithasencounteredbeforeitprovides
+inaccurate rewards for states which were never encoun-
+
+MaximumEntropyDeepInverseReinforcementLearning
+40
+35
+30
+25
+20
+Groundtruth DeepIRL
+15
+10
+5
+0
+4 8 16 32 64 128
+examples
+GPIRL MaxEnt
+Figure 7: Reward reconstruction sample for the Bina-
+ryworld benchmark provided N = 128 demonstrations.
+White-highreward;black-lowreward.
+tered. It produces an overall too smooth reward function
+due to assumptions and priors in the GP approximation.
+On the other hand, DeepIRL is able to reconstruct it with
+highaccuracydemonstratingtheabilitytoeffectivelylearn
+thehighly-varyingstructureoftheunderlyingfunction.
+4.3.SpatialFeatureLearning
+While the earlier benchmarks visualise performance com-
+paredtocurrentalgorithmsinthecontextofprecomputed
+features,theapproachcanbeextendedviatheuseofwider
+filters to eliminate the requirement of preprocessing or
+manual design of features. Figure 8 represents the results
+forbothearlierbenchmarks,butinsteadofusingtheearlier
+describedfeaturerepresentations,theFCNNbuildsthere-
+wardbasedontherawinputrepresentation,whichforeach
+stateonlyincludestheavailabilityofeachspecificobjectat
+thatspecificstate. Allspatialinformationisderivedbased
+ontheconvolutionalfilters. Basedonthesimplicityofthe
+benchmarks, we employed a five layer approach with 3x3
+convolutionalkernelsinthefirsttwolayers. Byincreasing
+thedepthofthenetworkandincludeconvolutionalfilters,
+we add enough capacity toenable the learning of features
+aswellastheircombinationintotherewardfunctioninthe
+samearchitectureandprocess.
+Duetotheincreasingnumberofparameters,theapproach
+requires additional training data to perform at equal accu-
+racy but with increasing number of expert samples con-
+verges towards the performance with predefined features.
+Since the given features in these simplified toy problems
+are optimal and the true reward is directly calculated on
+their basis, automatically learned features cannot exceed
+the performance. However, in real-world scenarios, the
+compressionofrawdata-suchasimages-tofeaturerep-
+resentations leads to information loss and the learning of
+task-relevantfeaturesgainsevenmoreimportance.
+ecnereffid
+eulav
+detcepxe
+40 DeepIRL
+DeepIRL&CNN
+35
+30
+25
+20
+15
+10
+5
+0
+4 8 16 32 64 128
+examples
+ecnereffid
+eulav
+detcepxe
+14
+12
+10
+8
+6
+4
+2
+0
+4 8 16 32 64 128
+examples
+ecnereffid
+eulav
+detcepxe
+14
+DeepIRL
+DeepIRL&CNN
+12
+10
+8
+6
+4
+2
+0
+4 8 16 32 64 128
+examples
+ecnereffid
+eulav
+detcepxe
+Objectworld Binaryworld
+Figure 8: Application of convolutional layers for spatial
+featurelearning.Spatialfeaturelearningquicklyconverges
+toperformancewithoptimallydesignedfeatures.
+5.ConclusionandFutureWork
+ThispaperpresentsMaximumEntropyDeepIRL,aframe-
+work exploiting FCNNs for reward structure approxima-
+tion in Inverse Reinforcement Learning. Neural networks
+lendthemselvesnaturallytothistaskastheycombinerep-
+resentational power with computational efficiency com-
+pared to state-of-the-art methods. Unlike prior art in this
+domain DeepIRL can therefore be applied in cases where
+complex reward structures need to be modelled for large
+statespaces.Moreover,trainingcanbeachievedeffectively
+and efficiently within the popular Maximum Entropy IRL
+framework. AfurtheradvantageofDeepIRLliesinitsver-
+satility. Customnetworkarchitecturesandtypescanbede-
+veloped for any given task while exploiting the same cost
+functionintraining.Thisisexpressedinsection4.3,where
+convolutional filters are applied to eliminate the need of
+manualfeaturedesign.
+OurexperimentsshowthatDeepIRL’sperformanceiscom-
+mensuratetothestate-of-the-artonacommonbenchmark.
+While exhibiting slightly increased requirements regard-
+ing training data in this benchmark, a principal strength
+oftheapproachliesinitsalgorithmiccomplexityindepen-
+dentofthenumberofdemonstrationssamples. Therefore,
+itisparticularlywell-suitedforlife-longlearningscenarios
+in the context of robotics, which inherently provide suffi-
+cient amounts of training data. We also provide an alter-
+nativeevaluationonanewbenchmarkwithasignificantly
+more complex reward structure, where DeepIRL signifi-
+cantly outperforms the current state-of-the-art and proves
+its strong capability in modeling the interaction between
+features. Furthermore,weextendtheapproachtowiderfil-
+ters in order to eliminate the dependency on precomputed
+featuresandtoemphasisetheadaptabilityofframingIRL
+inthecontextofdeeplearning.
+Infutureworkwewillexplorethebenefitsofautoencoder-
+
+MaximumEntropyDeepInverseReinforcementLearning
+stylepretrainingtoreducetheincreaseddemandofexpert Choi,JaedeugandKim,Kee-Eung. Bayesiannonparamet-
+demonstrations when employing wider convolutional fil- ricfeatureconstructionforinversereinforcementlearn-
+ters. Especiallywhenbasedonmorecomplexinputssuch ing. In Proceedings of the Twenty-Third international
+asrawimagedata,theeasilyavailableunsupervisedtrain- joint conference on Artificial Intelligence, pp. 1287–
+ingdatawillhelptolearnfeatureswhichthenonlyneedto 1293.AAAIPress,2013.
+berefinedduringthesupervisedIRL-basedtrainingphase.
+Duchi, John, Hazan, Elad, and Singer, Yoram. Adaptive
+DuetothevarietyofexistingworkonFCNNarchitectures
+subgradient methods for online learning and stochastic
+mentionedinsection1,weexpecttobeabletobenefitfrom
+optimization. The Journal of Machine Learning Re-
+applying more complex networks for real life problems,
+search,12:2121–2159,2011.
+such as the skipping architecture by (Long et al., 2014),
+whichenablestheconcatenationoffinestructuralinforma-
+Hassoun, Mohamad H. Fundamentals of artificial neural
+tionalongsidewithcoarserhigherlevelfeaturesinthelast
+networks. MITpress,1995.
+regressionlayertoimproveoverallperformanceinevaluat-
+ingfeaturesofmultiplescales.Furthermore,othermethods Hinton, GeoffreyE., Srivastava, Nitish, Krizhevsky, Alex,
+foroptimisingdemonstrationdatalikelihoodsuchasgiven Sutskever, Ilya, and Salakhutdinov, Ruslan. Improving
+by(Babesetal.,2011)willbeevaluated. neural networks by preventing co-adaptation of feature
+detectors. CoRR, abs/1207.0580, 2012. URL http:
+References
+//arxiv.org/abs/1207.0580.
+Abbeel, Pieter and Ng, Andrew Y. Apprenticeship learn- Hornik,Kurt,Stinchcombe,Maxwell,andWhite,Halbert.
+ing via inverse reinforcement learning. In Proceedings Multilayerfeedforwardnetworksareuniversalapproxi-
+of the twenty-first international conference on Machine mators. Neuralnetworks,2(5):359–366,1989.
+learning,pp. 1.ACM,2004.
+Kitani, Kris, Ziebart, Brian, Bagnell, James, and Hebert,
+Argall,BrennaD,Chernova,Sonia,Veloso,Manuela,and Martial. Activity forecasting. Computer Vision–ECCV
+Browning, Brett. A survey of robot learning from 2012,pp.201–214,2012.
+demonstration. Robotics and autonomous systems, 57
+Levine,Sergey,Popovic,Zoran,andKoltun,Vladlen. Fea-
+(5):469–483,2009.
+tureconstructionforinversereinforcementlearning. In
+Asoh, Hideki, Akaho, Masanori Shiro1 Shotaro, AdvancesinNeuralInformationProcessingSystems,pp.
+Kamishima, Toshihiro, Hasida, Koiti, Aramaki, 1342–1350,2010.
+Eiji, and Kohro, Takahide. An application of inverse
+Levine,Sergey,Popovic,Zoran,andKoltun,Vladlen.Non-
+reinforcement learning to medical records of diabetes
+linearinversereinforcementlearningwithgaussianpro-
+treatment. 2013.
+cesses. In Advances in Neural Information Processing
+Babes, Monica, Marivate, Vukosi, Subramanian, Kaushik, Systems,pp.19–27,2011.
+andLittman,MichaelL. Apprenticeshiplearningabout
+Levine,Sergey,Finn,Chelsea,Darrell,Trevor,andAbbeel,
+multipleintentions. InProceedingsofthe28thInterna-
+Pieter. Learning deep vision-based costs and policies.
+tionalConferenceonMachineLearning(ICML-11),pp.
+Robotics: Science and Systems. WS: Learning from
+897–904,2011.
+Demonstration,2015.
+Baker,ChrisL,Saxe,Rebecca,andTenenbaum,JoshuaB.
+Liu, Fayao, Shen, Chunhua, Lin, Guosheng, and Reid,
+Action understanding as inverse planning. Cognition,
+Ian D. Learning depth from single monocular im-
+113(3):329–349,2009.
+ages using deep convolutional neural fields. CoRR,
+Bengio,Yoshua. Learningdeeparchitecturesforai. Foun- abs/1502.07411, 2015. URL http://arxiv.org/
+dationsandtrends(cid:13)R inMachineLearning,2(1):1–127, abs/1502.07411.
+2009.
+Long, Jonathan, Shelhamer, Evan, and Darrell, Trevor.
+Bengio,Yoshua,LeCun,Yann,etal.Scalinglearningalgo- Fullyconvolutionalnetworksforsemanticsegmentation.
+rithmstowardsAI. Large-scalekernelmachines,34(5), CoRR, abs/1411.4038, 2014. URL http://arxiv.
+2007. org/abs/1411.4038.
+Bengio,Yoshua,Courville,AaronC.,andVincent,Pascal. Lopes, Manuel, Melo, Francisco, and Montesano, Luis.
+Unsupervisedfeaturelearninganddeeplearning: Are- Active learning for reward estimation in inverse rein-
+viewandnewperspectives.CoRR,abs/1206.5538,2012. forcement learning. In Machine Learning and Knowl-
+URLhttp://arxiv.org/abs/1206.5538. edgeDiscoveryinDatabases,pp.31–46.Springer,2009.
+
+MaximumEntropyDeepInverseReinforcementLearning
+Mnih, Volodymyr, Kavukcuoglu, Koray, Silver, David,
+Graves,Alex,Antonoglou,Ioannis,Wierstra,Daan,and
+Riedmiller, Martin. Playing atari with deep reinforce-
+mentlearning. CoRR,abs/1312.5602,2013.
+Neu,GergelyandSzepesva´ri,Csaba.Apprenticeshiplearn-
+ing using inverse reinforcement learning and gradient
+methods. CoRR,abs/1206.5264,2012.
+Ramachandran,DeepakandAmir,Eyal. Bayesianinverse
+reinforcementlearning. Urbana,51:61801,2007.
+Ratliff,NathanD,Bagnell,JAndrew,andZinkevich,Mar-
+tinA.Maximummarginplanning. InProceedingsofthe
+23rdinternationalconferenceonMachinelearning,pp.
+729–736.ACM,2006.
+Sermanet, Pierre, Eigen, David, Zhang, Xiang, Mathieu,
+Michae¨l,Fergus,Rob,andLeCun,Yann.Overfeat:Inte-
+gratedrecognition,localizationanddetectionusingcon-
+volutionalnetworks. CoRR,abs/1312.6229,2013. URL
+http://arxiv.org/abs/1312.6229.
+Snyman,Jan. Practicalmathematicaloptimization: anin-
+troductiontobasicoptimizationtheoryandclassicaland
+new gradient-based algorithms, volume 97. Springer
+Science&BusinessMedia,2005.
+Syed,UmarandSchapire,RobertE. Agame-theoreticap-
+proachtoapprenticeshiplearning.InAdvancesinneural
+informationprocessingsystems,pp.1449–1456,2007.
+Tompson, Jonathan, Jain, Arjun, LeCun, Yann, and Bre-
+gler, Christoph. Joint training of a convolutional net-
+workandagraphicalmodelforhumanposeestimation.
+CoRR, abs/1406.2984, 2014. URL http://arxiv.
+org/abs/1406.2984.
+Vedaldi,A.andLenc,K. Matconvnet–convolutionalneu-
+ralnetworksformatlab. CoRR,abs/1412.4564,2014.
+Ziebart,BrianD,Maas,AndrewL,Bagnell,JAndrew,and
+Dey,AnindK. Maximumentropyinversereinforcement
+learning. InAAAI,pp.1433–1438,2008.

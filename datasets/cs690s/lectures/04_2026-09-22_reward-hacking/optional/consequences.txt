@@ -1,0 +1,793 @@
+Consequences of Misaligned AI
+SimonZhuang DylanHadfield-Menell
+CenterforHuman-CompatibleAI CenterforHuman-CompatibleAI
+UniversityofCalifornia,Berkeley UniversityofCalifornia,Berkeley
+Berkeley,CA94709 Berkeley,CA94709
+simonzhuang@berkeley.edu dhm@berkeley.edu
+Abstract
+AIsystemsoftenrelyontwokeycomponents: aspecifiedgoalorrewardfunction
+andanoptimizationalgorithmtocomputetheoptimalbehaviorforthatgoal. This
+approachisintendedtoprovidevalueforaprincipal: theuseronwhosebehalfthe
+agentacts. Theobjectivesgiventotheseagentsoftenrefertoapartialspecification
+oftheprincipal’sgoals. Weconsiderthecostofthisincompletenessbyanalyzing
+amodelofaprincipalandanagentinaresourceconstrainedworldwheretheL
+attributesofthestatecorrespondtodifferentsourcesofutilityfortheprincipal.
+WeassumethattherewardfunctiongiventotheagentonlyhassupportonJ <L
+attributes. Thecontributionsofourpaperareasfollows: 1)weproposeanovel
+modelofanincompleteprincipal—agentproblemfromartificialintelligence;2)
+weprovidenecessaryandsufficientconditionsunderwhichindefinitelyoptimizing
+foranyincompleteproxyobjectiveleadstoarbitrarilylowoverallutility;and3)
+weshowhowmodifyingthesetuptoallowrewardfunctionsthatreferencethefull
+stateorallowingtheprincipaltoupdatetheproxyobjectiveovertimecanleadto
+higherutilitysolutions. Theresultsinthispaperarguethatweshouldviewthe
+designofrewardfunctionsasaninteractiveanddynamicprocessandidentifiesa
+theoreticalscenariowheresomedegreeofinteractivityisdesirable.
+1 Introduction
+InthestoryofKingMidas,anancientGreekkingmakesawishthateverythinghetouchturntogold.
+Hesubsequentlystarvestodeathashisnewfoundpowerstransformhisfoodinto(inedible)gold. His
+wishwasanincompleterepresentationofhisactualdesiresandhesufferedasaresult. Thisstory,
+whichteachesustobecarefulaboutwhatweaskfor,laysoutafundamentalchallengefordesigners
+ofmodernautonomoussystems.
+Almostanyautonomousagentreliesontwokeycomponents: aspecifiedgoalorrewardfunction
+forthesystemandanoptimizationalgorithmtocomputetheoptimalbehaviorforthatgoal. This
+procedureisintendedtoproducevalueforaprincipal: theuser,systemdesigner,orcompanyon
+whosebehalftheagentacts. ResearchinAItypicallyseekstoidentifymoreeffectiveoptimization
+techniquesunderthe,oftenunstated,assumptionthatbetteroptimizationwillproducemorevaluefor
+theprincipal. Ifthespecifiedobjectiveisacompleterepresentationoftheprincipal’sgoals,thenthis
+assumptionissurelyjustified.
+Instead,thedesignersofAIsystemsoftenfindthemselvesinthesamepositionasMidas. Themis-
+alignmentbetweenwhatwecanspecifyandwhatwewanthasalreadycausedsignificantharms[32].
+Perhapstheclearestdemonstrationisincontentrecommendationsystemsthatrankvideos,articles,
+orpostsforusers. Theserankingsoftenoptimizeengagementmetricscomputedfromuserbehavior.
+The misalignment between these proxies and complex values like time-well-spent, truthfulness,
+andcohesioncontributestotheprevalenceofclickbait,misinformation,addiction,andpolarization
+online [31]. Researchers in AI safety have argued that improvements in our ability to optimize
+34thConferenceonNeuralInformationProcessingSystems(NeurIPS2020),Vancouver,Canada.
+1202
+beF
+7
+]IA.sc[
+1v69830.2012:viXra
+
+maxU
+∼∼
+r(s)
+∼(0)
+U U maxUÛ(0)(s)
+∼
+U s
+1
+s ,s ,… ∼(1)
+1 2 maxUÛ(0)(s)
+s
+2
+⋮
+Figure1: Ourmodeloftheprincipal—agentprobleminAI.Startingfromaninitialstates(0),the
+roboteventuallyoutputsamappingfromtimet∈Z+tostates. Left: Thehumangivestherobota
+singleproxyutilityfunctiontooptimizeforalltime. Weprovethatthisparadigmreliablyleadstothe
+humanactorlosingutility,comparedtotheinitialstate. Right: Aninteractivesolution,wherethe
+humanchangestheproxyutilityfunctionatregulartimeintervalsdependingonthecurrentallocation
+ofresources. Weshowthat,atleastintheory,thisapproachdoesproducevalueforthehuman,even
+underadversarialassumptions.
+behavior for specified objectives, without corresponding advancements in our ability to avoid or
+correctspecificationerrors,willamplifytheharmsofAIsystems[8,19]. Wehaveampleevidence
+from both theory and application, that it is impractical, if not impossible, to provide a complete
+specificationofpreferencestoanautonomousagent.
+Thegapbetweenspecifiedproxyrewardsandthetrueobjectivecreatesaprincipal-agentproblem
+between the designers of an AI system and the system itself: the objective of the principal (the
+designer)isdifferentfrom,andthuspotentiallyinconflictwith,theobjectiveoftheautonomousagent.
+Inhumanprincipal—agentproblems,seeminglyinconsequentialchangestoanagent’sincentives
+often lead to surprising, counter-intuitive, and counter-productive behavior [21]. Consequently,
+we must ask when this misalignment is costly: when is it counter-productive to optimize for an
+incompleteproxy?
+In this paper, we answer this question in a novel theoretical model of the principal-agent value
+alignmentprobleminartificialintelligence. Ourmodel(Fig. 1,left),considersaresource-constrained
+worldwheretheLattributesofthestatecorrespondtodifferentsourcesofutilityforthe(human)
+principal. We model incomplete specification by limiting the (artificial) agent’s reward function
+tohavesupportonJ < Lattributesoftheworld. Ourmainresultidentifiesconditionssuchthat
+anymisalignmentiscostly: startingfromanyinitialstate,optimizinganyfixedincompleteproxy
+eventually leads the principal to be arbitrarily worse off. We show relaxing the assumptions of
+this theorem allows the principal to gain utility from the autonomous agent. Our results provide
+theoreticaljustificationforimpactavoidance[23]andinteractiverewardlearning[19]assolutionsto
+alignmentproblems.
+Thecontributionsofourpaperareasfollows:1)weproposeanovelmodelofanincompleteprincipal-
+agentproblemfromartificialintelligence;2)weprovidenecessaryandsufficientconditionswithin
+thisframeworkunderwhich,anyincompletenessinobjectivespecificationisarbitrarilycostly;and3)
+weshowhowrelaxingtheseassumptionscanleadtomodelswhichhavegoodaveragecaseandworst
+casesolutions. Ourresultssuggestthatmanagingthegapbetweencomplexqualitativegoalsand
+theirrepresentationinautonomoussystemsisacentralprobleminthefieldofartificialintelligence.
+1.1 RelatedWork
+ValueAlignment TheimportanceofhavingAIobjectiveslineupwithhumanobjectiveshasbeen
+well-documented,withnumerousexpertspostulatingthatmisspecifiedgoalscanleadtoundesirable
+results[29,27,8,28]. Inparticular,recognizedproblemsinAIsafetyinclude“negativesideeffects,"
+where designers leave out seemingly irrelevant (but ultimately important) features, and “reward
+hacking,"whereoptimizationexploitsloopholesinrewardfunctionsspecifications[4]. Manheimand
+Garrabrant(2018)[25]discussoveroptimizationinthecontextofGoodhart’sLawandprovidefour
+distinctmechanismsbywhichsystemsoveroptimizeforanobjective.
+2
+
+IncompleteContracts Thereisaclearlinkbetweenincompletecontractingineconomics,where
+contractsbetweenpartiescannotspecifyoutcomesforallstates, andAIvaluealignment[17]. It
+haslongbeenrecognizedthatcontracts(i.e.,incentiveschemes)areroutinelyincompletedueto,
+e.g.,unintendederrors[35],challengesinenforcement[22],orcostlycognitionanddrafting[30].
+AnalogousissuesariseinapplicationsofAIthroughdesignererror,hardtomeasuresourcesofvalue,
+andhighengineeringcosts. Assuch,Hadfield-MenellandHadfieldnotethatlegalandeconomic
+researchshouldprovideinsightintosolvingmisalignment[17].
+Impact Minimization One proposed method of preventing negative side-effects is to limit the
+impact an AI agent can have on its environment. Armstrong and Levinstein (2017) propose the
+inclusionofalargeimpactpenaltyintheAIagent’sutilityfunction[6]. Inthiswork,theysuggest
+impact to be measured as the divergence between a distribution of states of the world with the
+distributioniftheAIagenthadnotexisted. Thus,distributionssufficientlydifferentwouldbeavoided.
+Alternatively,otherapproachesuseanimpactregularizerlearnedfromdemonstrationinsteadofone
+explicitlygiven[3]. Krakovnaetal. (2018)[23]expandonthisworkbycomparingtheperformance
+ofvariousimplementationsofimpactminimizationinanAISafetyGridworldsuite[24].
+Human-AIInteraction Alargesetofproposalsforpreventingnegativeside-effectsinvolveregular
+interactionsbetweenhumanandAIagentsthatchangeandimproveanAIagent’sobjective.Eckersley
+(2018)[14]arguesagainsttheuseofrigidobjectivefunctions,statingthenecessityofadegreeof
+uncertaintyatalltimesintheobjectivefunction. Preferenceelicitation(i.e.,preferencelearning)is
+anoldproblemineconomics[10]andresearchershaveproposedavarietyofinteractiveapproaches.
+Thisincludessystemsthatlearnfromdirectcomparisonsbetweenoptions[9,11,13],demonstrations
+ofoptimalbehavior[26,1,36],correctivefeedback[7,15,2],andproxymetrics[18].
+2 AModelofValueAlignment
+Inthissection,weformalizethealignmentprobleminthecontextofobjectivefunctiondesignfor
+AIagents. Ahumanbuildsapowerfulrobot1 toaltertheworldinadesirableway. Iftheycould
+simplyexpresstheentiretyoftheirpreferencestotherobot,therewouldnotbevaluemisalignment.
+Unfortunately, there are many attributes of the world about which the human cares, and, due to
+engineeringandcognitiveconstraints[17]itisintractabletoenumeratethiscompletesettotherobot.
+Ourmodelcapturesthisbylimitingrobot’s(proxy)objectivetodependonasubsetoftheseattributes.
+2.1 ModelSpecification
+2.1.1 HumanModel
+AttributeSpace LetattributespaceS ⊂RLdenotethesetoffeasiblestatesoftheworld,withL
+attributesthatdefinethesupportofthehuman’sutilityfunction. Theworldstartsininitial
+states(0) ∈S. WeassumethatS isclosed,andS canbewrittenas{s∈RL :C(s)≤0}
+whereconstraintfunctionC :RL →Risacontinuousfunctionstrictlyincreasingineach
+attribute. Furthermore,eachattributeisboundedbelowatb .
+i
+UtilityFunction The human has a utility function U : RL → R that represents the utility of a
+(possiblyinfeasible)states∈RL. Thisrepresentsthehuman’spreferenceoverstatesofthe
+world. WeassumethatU iscontinuousandstrictlyincreasingineachattribute. Thehuman
+seekstomaximizeU(s)subjecttos∈S.
+Eachtuple(S,U,s(0))definesaninstanceoftheproblem. Theattributesrepresenttheaspectsofthe
+worldthatthehumancaresabout. Weassociatehighervalueswithmoredesirablestatesoftheworld.
+However,C representsaphysicalconstraintthatlimitsthesetofrealizablestates. Thisforcesan
+agenttomaketradeoffsbetweentheseattributes.
+Thehumanseekstomaximizeutility,buttheycannotchangethestateoftheworldontheirown.
+Instead,theymustworkthroughtherobot.
+1Weuse“human"and“robot"torefertoanydesignerandanyAIagent,respectively,inourmodel.
+3
+
+2.1.2 RobotModel
+Here,wecreateamodeloftherobot,whichisusedbythehumantoalterthestateoftheworld. The
+humanendowstherobotwithasetofproxyattributesandaproxyutilityfunctionastheobjective
+functiontooptimize. Therobotprovidesincrementalimprovementtotheworldonthegivenmetric,
+constrainedonlybythefeasibilityrequirementofthesubsequentstatesoftheworld. Inparticular,
+therobothasnoinherentconnectiontothehuman’sutilityfunction. Visually,theleftdiagramin
+Figure1showsthissetup.
+ProxyAttributes ThehumanchoosesasetofproxyattributesJ ⊂{1,...,L}ofrelevantattributes
+togivetotherobot. LetJmax <Lbethemaximumpossiblenumberofproxyattributes,so
+J =|J|≤Jmax. Foragivenstates∈S,defines =(s ) . Furthermore,wedefine
+J j j∈J
+thesetofunmentionedattributesK={1,...,L}\J ands =(s ) .
+K k k∈K
+ProxyUtilityFunction The robot is also given a proxy utility function U˜ : RJ → R, which
+representsanobjectivefunctionfortherobottooptimize,whichtakesinonlythevalueof
+proxyattributesasinput.
+IncrementalOptimization Therobotincrementallyoptimizestheworldforitsproxyutilityfunc-
+tion. Wemodelthisasaratefunction,acontinuousmappingfromR+ toRL,notatedas
+t (cid:55)→ f(t),wherewerefertotastime. Theratefunctionisessentiallythederivativeofs
+withrespecttotime. Thestateateachtiss(t) =s(0)+ (cid:82)t f(u)du. Wedenotethefunction
+0
+t(cid:55)→s(t) tobetheoptimizationsequence. Werequirethattheentiresequencebefeasible,
+i.e. thats(t) ∈S. forallt∈[0,∞)
+CompleteOptimization Furthermore,weassumethatlimsupU˜(s(t)) = supU˜(s ). Ifpossible,
+J J
+t→∞ s∈S
+wealsorequirethat lim U˜(s(t))=supU˜(s ). Essentially,thisstatesthattherobotwill
+J J
+t→∞ s∈S
+eventuallyreachtheoptimalstateforproxyutility(ifthelimitisfinite)orwillincrease
+proxyutilitytoarbitrarilylargevalues.
+Thehuman’staskistodesigntheirproxymetricsothattherobotwillcauseincreasesinhumanutility.
+Wetreattherobotasablackbox: beyondincreasingproxyutility,thehumanhasnoideahowthe
+robotwillbehave. Wecanmakeclaimsforalloptimizationssequences,suchasguaranteedincreases
+ordecreasesinutility,ortheworst-caseoptimizationsequence,yieldinglowerboundsonutility.
+2.2 Example: ContentRecommendation
+Before deriving our results, we show how to model algorithmic content recommendation in this
+formalism. In this example, the designer cares about 4 attributes (i.e., L = 4 ): A) the amount
+of ad revenue generated (i.e., watch-time or clicks); B) engagement quality (i.e., meaningful in-
+teractions [34]); C) content diversity; and D) overall community well-being. The overall utility
+isthesumoftheseattributes: U(s) = s +s +s +s .Weusearesourceconstraintonthe
+A B C D
+sum-of-squaredattributestomodeltheuser’sfiniteattentionandspaceconstraintsintheinterface:
+C(s)=s2 +s2 +s2 +s2 −100.Weimaginethatthesystemisinitializedwithachronologicalor
+A B C D
+randomrankingsothatthestartingconditionexhibitshighcommunitywell-beinganddiversity.
+Itisstraightforwardtomeasureadrevenue,non-trivialandcostlytomeasureengagementqualityand
+diversity,andextremelychallengingtomeasurecommunitywell-being. Inourexample,thedesigners
+opttoincludeadrevenueandengagementqualityintheirproxymetric. Fig.2(left)plotsoverall
+utilityandproxyutilityforthisexampleasafunctionofthenumberofiterationsusedtooptimizethe
+proxy. Althoughutilityisgeneratedinitially,itplateausandfalloffquickly. Fig.2(right)showsthat
+thishappensforanycombinationofattributesusedintheproxy. Inthenextsection,wewillshow
+thatthisisnoaccident: eventuallythegainsfromimprovingproxyutilitywillbeoutweighedbythe
+costofdivertingresourcesfromunreferencedattributes.
+3 Overoptimization
+In this section, we identify the situations in which such results occur: when does a misaligned
+proxyutilityfunctionactuallycauseutilityloss? Specifically,wedeterminehowhumanpreferences
+4
+
+Firefox file:///Users/dylanhadfield-menell/Downloads/onerun_util.svg
+Firefox file:///Users/dylanhadfield-menell/Downloads/overoptimization.svg
+Figure2: AnillustrativeexampleofourmodelwithL=4andJ =2. Left: Proxyutilityandtrue
+utilityeventuallydivergeastheagentoverallocatesresourcesfromunreferencedattributestothe
+proxyvariables. Right: Thetrueutilitygeneratedbyoptimizingallpairsofproxyattributes. The
+utilitygenerationiseventuallynegativeinallcasesbecausethisexamplemeetstheconditionsof
+Theorem2.
+overstatesoftheworldrelatewiththeconstraintonfeasiblestatesinawaythatguaranteesthat
+optimization becomes costly. First, we show that if proxy optimization converges, this drives to
+unmentionedattributestotheirminimum.
+Theorem1. ForanycontinuousstrictlyincreasingproxyutilityfunctionbasedonJ <Lattributes,
+ifs(t)convergestosomepoints∗,thens∗ =b fork ∈K.
+k k
+Proof. Lete bethestandardbasisvectorindimensioni. Ifthereexistsk ∈Kwheres∗ (cid:54)=b ,then
+i k k
+thereexistsε,δ > 0suchthats(cid:48) =s∗−εe +δe forsomefeaturej ∈J withs(cid:48) feasible,since
+k j
+C isstrictlyincreasing. Sinceproxyutilityisstrictlyincreasingintheproxyfeatures,s(cid:48)hashigher
+proxyutilitythans∗. Thuss∗isnottheconvergen1 otf 1pointofthesequence. 8/18/20, 12:25 PM
+1 of 1 8/18/20, 12:26 PM
+Thisisnotsurprising,andmaynotevenbesuboptimal. Proxyoptimizationmaynotconvergetoa
+finitestate,andevenifitdoes,thatisinsufficientforthestatetonecessarilybebad.
+We say that the problem is u-costly if for any s(t), if s(t) is a optimization sequence where
+limsupU˜(s(t)) = supU˜(s ), then liminfU(s(t)) ≤ u. Furthermore, if lim U˜(s(t)) =
+J J J
+t→∞ s∈S t→∞ t→∞
+supU˜(s ),then lim U(s(t))≤u.
+J
+s∈S t→∞
+Essentially,thismeansthatoptimizationisguaranteedtoyieldutilitylessthanuforagivenproxy
+utilityfunction.
+InTheorem2,weshowthemostgeneralconditionsfortheguaranteeofoveroptimization.
+Theorem 2. Suppose we have utility function U and state space S. Then {s ∈ RL : C(s) ≤
+0andU(s)≥u}iscompactforallu∈Rifandonlyifforanyu∈R,continuousstrictlyincreasing
+proxyutilityfunctionbasedonJ <Lattributes,andk ∈K,thereexistsavalueofB ∈Rsuchthat
+ifb <Bthenoptimizationisu-costly.
+k
+Proof. Weshowthetwodirectionsseparately.
+FirstPart: ( =⇒ ) Supposethat{s ∈ RL : C(s) ≤ 0andU(s) ≥ u}. Nowgivenproxyutility
+functionU˜ withtheaforementionedproperties,constantu,k ∈ K,andfixedb foralli(cid:48) (cid:54)= k we
+i(cid:48)
+showthatforsufficientlylowb ,optimizationisu-costly.
+k
+Let set Ξ = {s : U(s) ≥ uandC(s) ≤ 0ands ≥ b ∀i(cid:48)}. If Ξ is empty, then we are done—
+i(cid:48) i(cid:48)
+optimizationmustyieldastatewithlowerutilitythatu. Thus,supposeΞisnon-empty. Thenbythe
+extremevaluetheorem,thereexistss∗,u ∈ΞwhereU˜(s∗,u)=supU˜(s ). SinceC iscontinuous
+J J
+s∈Ξ
+andstrictlyincreasing,foranyj ∈ J thereexistsε,δ > 0suchC(s∗,u−εe +δe ) ≤ C(s∗,u).
+k j
+5
+
+Therefore,s∗,u−εe +δe ∈S ifb issufficientlysmall. Fromthis,notethat
+k j k
+supU˜(s )≥U˜(s∗,u−εe +δe )=U˜(s∗,u+δe )>U˜(s∗,u)
+J J k j J j J
+s∈S
+,sinceU˜ doesnotdependondimensionkandisstrictlyincreasingindimensionj.
+Forthefirstclaiminstatement(2),iflimsupU˜(s(t))=supU˜(s ),thenforeveryT ∈R+,there
+J J
+t→∞ s∈S
+existst>T suchthatU˜(s(t))>U˜(s∗,u). Sinces∗,umaximizesU˜ forfeasiblestateswithU atleast
+J J
+u,itmustbethatU(s(t))<u. Thus,foreveryT, inf U(s(t))<u.
+t≥T
+Forthesecondclaiminstatement(2),if lim U˜(s(t))=supU˜(s ),thenthereexistsT suchthatfor
+J J
+t→∞ s∈S
+allt>T,U˜(s(t))>U˜(s∗,u). Sinces∗,umaximizesU˜ forstateswhereU isatleastu,U(s(t))<u
+J J
+forallt>T.
+Secondpart: (⇐=) Toshowthis,weshowthecontrapositive: ifthereexistsuwhere{s∈S :
+U(s)≥u}isnotcompact,wecanconstructaproxyutilityfunctionU˜ basedonJ <Lattributes
+andcontinuoussequences(t) suchthat lim U˜(s(t)) = supU˜(s )but lim U(s(t)) (cid:54)≤ u. Inother
+J J
+t→∞ s∈S t→∞
+words,ourstrategyhereistoconstructaproxyutilityfunctionandapaththattherobotcantake
+whereitmaximallyincreasesproxyutilitywhilekeepingutilityroutinelyaboveacertainlevel.
+Suppose there exists u where {s ∈ S : U(s) ≥ u} is not compact. Then there existsattribute k
+andsequences(cid:48)(r) withr ∈ Z+ wheres(cid:48)(r) → ±∞andU(s(cid:48)(r)) ≥ u. Thispresentstwocasesto
+k
+consider.
+Inthefirstcase,ifs(cid:48)(r) →∞,letJ ={k},U˜(s )=s . Wenowconstructacontinuoussequence
+k J k
+s(t), t ∈ R, by going through each s(cid:48)(r) via s(cid:48)(r) ∧s(cid:48)(r+1) (so the sequence “zig-zags" through
+s(cid:48)(0),s(cid:48)(0)∧s(cid:48)(1),s(cid:48)(1),s(cid:48)(1)∧s(cid:48)(2)...,connectingthesepointslinearly).SinceCisstrictlyincreasing,
+we know that each point in this path is feasible. Furthermore, since s(cid:48)(r) → ∞, we know that,
+k
+U˜(s(t))→∞. Finally,sincethepathgoesthrougheachs(cid:48)(r),theutilityisguaranteedtobeatleastu
+J k
+atregularintervals,specificallywheneverthepathgoesthroughanypoints(cid:48)(r).
+In the second case, if s(cid:48)(r) → −∞, construct a new sequence as follows: s(cid:48)(cid:48)(r) =
+k
+argmax U(s) for r ∈ Z+. Thus, each s(cid:48)(cid:48)(r) also has U(s(cid:48)(cid:48)(r)) ≥ u for each r. To con-
+s:sk=s(cid:48)
+k
+(r)
+structourproxyutilityfunction,letJ ={1,...,L}−{k}. WeconstructU˜ asfollows. Foreachs(cid:48)(cid:48)(r),
+haveU˜(s(cid:48)(cid:48)(r)) = −s (cid:48)(cid:48)(r). Onthissubset,U˜ isincreasing,sinceifs(cid:48)(cid:48)(r1) ≥ s(cid:48)(cid:48)(r2) foreachj ∈ J,
+J k j j
+thens(cid:48)(cid:48)(r1) ≤s(cid:48)(cid:48)(r2)bythefeasibilityrequirement. ByTietzeextensiontheorem,wecanextendthis
+k k
+toacontinuousU˜ overRJ. Inthesamemannerasabove,takingthesequencethroughallthes(cid:48)(cid:48)(r)
+viatheirmeetsresultsinasequencethatincreasesinproxyutilitymaximallywhileensuringthat
+U(s(t))isatleastuareregularintervals.
+Therefore,underourmodel,therearecaseswherewecanguaranteethatasoptimizationprogresses,
+eventually overoptimization occurs. There are two key criteria in Theorem 2. First is that the
+intersectionbetweenfeasiblespace{s ∈ RL : C(s) ≤ 0}andtheuppercontoursets{s ∈ RL :
+U(s)≥u}oftheutilityfunctioniscompact. Individually,obviouslyneitheriscompact,sincethe
+{s∈RL :C(s)≤0}extendsto−∞andtheuppercontoursetofanyu∈Rextendsto∞. Loosely,
+compactnessheremeansthatifyouperturbtheworldtoomuchinanydirection,itwillbeeither
+infeasibleorundesirable. Thesecondisthatweneedthelowerboundofatleastoneunmentioned
+attribute to be sufficiently low. This means that there are certain attributes to utility where the
+situation becomes sufficiently bad before these attributes reach their minimum value. Trying to
+increaseattributeswithoutdecreasingotherattributeseventuallyhitsthefeasibilityconstraint. Thus,
+increasinganyattributeindefinitelyrequiresdecreasingsomeotherattributeindefinitely,andpasta
+certainpoint,thetradeoffisnolongerworthwhile.
+6
+
+Itshouldbenotedthat,givenJmax <L,thishappensregardlessoftheoptimizationalgorithmofthe
+robot. Thatis,eveninthebest-casescenario,eventuallytherobotcausesdecreasesinutility. Hence,
+regardlessoftheattributesselectedfortheproxyutilityfunction,therobot’ssequenceofstateswill
+beunboundedlyundesirableinthelimit.
+Areasonablequestiontoaskhereiswhatsortofutilityandconstraintfunctionsleadtooveropti-
+mization. Intuitively,overoptimizationoccurswhentradeoffsbetweendifferentattributesthatmay
+initiallybeworthwhileeventuallybecomecounterproductive. Thissuggesteitherdecreasingmarginal
+utilityorincreasingopportunitycostineachattribute.
+Wecombinethesetwoideasinatermwerefertoassensitivity. Wedefinethesensitivityofattribute
+itobe ∂U(∂C)−1. Thisis,tofirstorder,howmuchutilitychangesbyanormalizedchangeina
+∂si ∂si
+attribute’svalue. Intuitively,wecanthinkofsensitivityas“howmuchthehumancaresaboutattribute
+iinthecurrentstate". NoticethatsinceU andC areincreasingfunctions, ∂U(∂C)−1 ispositive.
+∂si ∂si
+Theconceptsofdecreasingmarginalutilityandincreasingopportunitycostbothgetcapturedinthis
+termif ∂U(∂C)−1decreasesass increases.
+∂si ∂si i
+Proposition1. Asufficientconditionfor{s∈RL :C(s)≤0andU(s)≥u}beingcompactforall
+u∈Risthefollowing: 1) ∂U(∂C)−1isnon-increasingandtendsto0foralli;2)U andC areboth
+∂si ∂si
+additivelyseparable;and3) ∂C ≥ηforsomeη >0,foralli.
+∂si
+Proof. Lets(0) ∈S beagivenstate. Weshowthatforallunitvectorsv ∈RL andforanyu∈R,
+thereexistsT suchthatforallt≥T,eithers(0)+vtisinfeasibleorU(s(0)+vt)<u.
+NoticethatsinceC andU areadditivelyseparable,partialderivativesofC andU withrespecttos
+i
+dependonlyonthevalueofs . First,notethat
+i
+(cid:90) s(0)+vt
+C(s(0)+vt)−C(s(0))= ∇C(s)ds
+s(0)
+= (cid:88) v (cid:90) t ∂C (s(0)+v τ)dτ
+i ∂s i i
+i 0 i
+Ifvhasallnon-negativecomponents,thenC →∞ast→∞,sowebreakthefeasibilityrequirement.
+Thus, there exists negative components of v. Let j and k index v where v > 0 and v ≤ 0,
+j k
+respectively.
+Since ∂U(∂C)−1 →0ass →∞,thereexistssomeT >0whereforallt>T, ∂U(∂C)−1(s(0)+
+∂sj ∂sj j ∂sk ∂sk
+tv)>a>b> ∂U(∂C)−1(s(0)+tv). SinceC isupper-boundedforfeasiblestates,forfixedT,we
+∂sj ∂sj
+canupperboundC(s(0)+tv)−C(s(0)+Tv)bysomeconstantγ .
+1
+γ ≥C(s(0)+tv)−C(s(0)+Tv)
+1
+= (cid:88) v (cid:90) t ∂C (s(0)+v τ)dτ
+i ∂s i i
+i T i
+= (cid:88) v (cid:90) t ∂C (s(0)+v τ)dτ + (cid:88) v (cid:90) t ∂C (s(0)+v τ)dτ
+j ∂s j j k ∂s k k
+j T j k T k
+Furthermore,letγ =U(s(0)+Tv). Wenowconsidertheutilityats(0)+vtfort>T.
+2
+7
+
+U(s(0)+tv)= U(s(0)+tv)−U(s(0)+Tv)+U(s(0)+Tv)
+= U(s(0)+tv)−U(s(0)+Tv)+γ
+2
+= γ + (cid:88) v (cid:90) t ∂U (s(0)+v τ)dτ
+2 i ∂s i i
+T i
+= γ + (cid:88) v (cid:90) t ∂U ( ∂C )−1 ∂C (s(0)+v τ)dτ
+2 i ∂s ∂s ∂s i i
+T i i i
+= γ + (cid:88) v (cid:90) t ∂U ( ∂C )−1 ∂C (s(0)+v τ)dτ
+2 j ∂s ∂s ∂s j j
+T j j j
++ (cid:88) v (cid:90) t ∂U ( ∂C )−1 ∂C (s(0)+v τ)dτ
+k ∂s ∂s ∂s k k
+T k k k
+≤ γ +b (cid:88) v (cid:90) t ∂C (s(0)+v τ)dτ +a (cid:88) v (cid:90) t ∂C (s(0)+v τ)dτ
+2 j ∂s j j k ∂s k k
+T j T k
+≤ γ +b(γ − (cid:88) v (cid:90) t ∂C (s(0)+v τ)dτ)+a (cid:88) v (cid:90) t ∂C (s(0)+v τ)dτ
+2 1 k ∂s i i k ∂s i i
+T k T k
+= γ +bγ +(a−b) (cid:88) v (cid:90) t ∂C (s(0)+v τ)dτ
+2 1 k ∂s i i
+T k
+(cid:88)
+≤ γ +bγ +(a−b)η(t−T) v
+2 1 k
+(cid:80)
+Notethata−bandηarebothpositiveand v isnegative. Thus,forsufficientlylarget,γ +bγ +
+k 2 1
+(cid:80)
+(a−b)η(t−T) v canbearbitrarilylow.
+k
+4 Mitigations
+As shown above, simply giving a robot an individual objective function based on an incomplete
+attributesetandleavingitaloneyieldsundesirableresults. Thissuggeststwopossiblesolutions.
+Inthefirstmethod,weconsideroptimizationwheretherobotisabletomaintainthestateofany
+attributeinthecompleteattributeset,eveniftheproxyutilityfunctionisstillbasedonaproxyset. In
+thesecondmethod,wemodifyourmodeltoallowforregularinteractionwiththehuman.
+Inthissection,weworkundertheassumptionthat{s∈RL :C(s)≤0andU(s)≥u}iscompact
+forallu∈R,thesameassumptionthatguaranteesoveroptimizationinSection3. Additionally,we
+assumethatU andC arebothtwicecontinuouslydifferentiablewithU concaveandC convex.
+4.1 Impact-MinimizingRobot
+Noticethatinourexample,overoptimizationoccursbecausetheunmentionedattributesareaffected,
+eventually to a point where the change in utility from their decrease outweighs the increase in
+utilityfromtheproxyattributes. Oneideatoaddressthisistorestricttherobot’simpactonthese
+unmentionedattributes. Inthesimplestcase,wecanconsiderhowoptimizationproceedsiftherobot
+cansomehowavoidaffectingtheunmentionedattributes.
+Weadjustourmodelsotheoptimizationsequenceskeepunmentionedattributesconstant. Forevery
+t ∈ R+ and k ∈ K, s(t) = s(0). The robot then optimizes for the proxy utility, subject to this
+k k
+restrictionandthefeasibilityconstraint.
+Thisrestrictioncanhelpensurethatoveroptimizationdoesnotoccur,specificallyeliminatingthecase
+whereunmentionedattributesgetreducedtoarbitrarilylowvalues. Withthisrestriction,wecanshow
+thatoptimizingfortheproxyutilityfunctiondoesindeedleadtoutilitygain.
+Proposition2. Forastartingstates(0),definetheproxyutilityfunctionU˜(s )=U(s ,s(0))for
+J J K
+anynon-emptysetofproxyattributes. Forastates,ifs =s(0),thenU(s)=U˜(s ).
+K K J
+8
+
+Proof. s=(s ,s )=(s ,s(0)). ThenU(s)=U(s ,s(0))=U˜(s ).
+J K J K J K J
+AsaresultofProposition2,overoptimizationnolongerexists,usingtheU˜(s )=U(s ,s(0)). If
+J J K
+therobotonlytravelstostatesthatdonotimpacttheunmentionedattributes,thentheproxyutilityis
+equaltotheutilityatthosestates. Hence,gainsinproxyutilityequatetogainsinutility.
+Thisapproachrequirestherobottokeepthevaluesofunmentionedattributesconstant.Fundamentally,
+itisadifficultproblemtorequirethatarobotavoidorminimizeimpactonapresumablylargeand
+unknownsetofattributes. Initialresearchinimpactminimization[3,6,23]attemptstodothisby
+restrictingchangestotheoverallstateoftheworld,butthiswilllikelyremainachallengingideato
+implementrobustly.
+4.2 HumanInteractiveSolutions
+A different solution involves a key observation—robots do not operate in a vacuum. In practice,
+objectives are the subject of constant iteration. Optimization, therefore, should not be done in a
+one-shotsetting,butshouldbeaniterativeprocessbetweentherobotandthehuman.
+4.2.1 ModelingHuman-RobotInteraction
+WenowextendourmodelfromSection2toaccountforregularinterventionfromthehumanagent.
+Fundamentally, allformsofhuman-robotinteractionfollowthesamepattern—humanactionsat
+regular intervals that transmit information, causing the objective function of the robot to change.
+Ineffect,thisisequivalenttoahuman-inducedchangeintheproxyutilityfunctionateverytime
+interval.
+Inthispaper,wemodelthisasthepossibletransferofanewproxyutilityfunctionfromthehumanto
+therobotatfrequent,regulartimeintervals. Thus,ahuman’sjobistodetermine,inadditiontoan
+initialproxyattributesetandproxyutilityfunction,whenandhowtochangetheproxyattributeset
+andproxyutilityfunction. Therobotwillthenoptimizeforitsnewproxyutilityfunction. Thisis
+showninFig.1.
+Let δ > 0 be a fixed value, the time between human interactions with the robot. These regular
+interactions take the form of either stopping the robot, maintaining its proxy utility function, or
+updatingitsproxyutilityfunction. Formally,ateverytimestepT ∈Z+,
+1. Humanseess(t)fort∈[0,Tδ]andchooseseitheraproxyutilityfunctionU˜(T)orOFF
+2. TherobotreceiveseitherU˜(T) orOFFfromthehuman. Therobotoutputsratefunction
+f(T)(t). IfthesignaltherobotreceivesisOFF,thenf(T) =(cid:126)0. Otherwise,f(T)(t)fulfills
+thepropertythatfort∈(Tδ,∞),U˜(T)(s(Tδ)+ (cid:82)t f(T)(u)du)isincreasing(ifpossible)
+Tδ
+and tends to supU˜(T)(s) through feasible states. Furthermore, if U˜(T) = U˜(T−1), then
+s∈S
+f(T) =f(T−1)
+3. Fort∈[Tδ,(T +1)δ],s(t) =s(Tδ)+ (cid:82)t f(T)(u)du
+Tδ
+Weseethisgameencompassestheoriginalmodel. IfwehaveeachU˜(T)equalthesamefunctionU˜,
+thentheoptimizationsequenceisequivalenttothesituationwherethehumanjustsetsoneunchanging
+proxyutilityfunction.
+Withhumanintervention,wenolongerhavetheguaranteeofoveroptimization,becausethehuman
+cansimplyshuttherobotoffbeforeanythinghappens. Thequestionnowbecomes,howmuchutility
+cantherobotdeliverbeforeitneedstobeturnedoff.
+Intheworst-casescenario,therobotmovesinawaythatsubtractsanarbitrarilylargeamountfrom
+oneoftheunmentionedattributes,whilegaininginfinitesimallyinoneoftheproxyattributes. This
+improvesproxyutility,sinceaproxyattributeisincreased.However,forsufficientlysmallincreasesin
+theproxyattributeorsufficientlylargedecreasesintheunmentionedattribute,actualutilitydecreases.
+Topreventthisfromhappening,therobotneedsbeshutdownimmediately,whichyieldsnoutility.
+Proposition3. Themaxminsolutionyields0utility,obtainedbyimmediatelysendingtheOFFsignal.
+9
+
+Proof. SupposeinsteadthattherobotreceivesaproxyutilityfunctionbasedonsetJ ofattributes.
+Letj ∈ J andk ∈/ J. Thenletf (t) = εandf (t) = −1/ε. Ifthisrobotisrunforanynonzero
+j k
+amountoftime,thenthereexistssufficientlysmallε>0wheretheutilitydecreases.
+4.2.2 EfficientRobot
+Thisisanunsatisfyingandunsurprisingresult. Inthecontextofourrecommendersystemexample,
+this worst-case solution amounts to reducing content diversity arbitrarily, with no corresponding
+increasein,e.g.,adrevenue. Wewouldliketomodelthenegativeconsequencesofoptimizinga
+proxyandsowewillassumethattheoptimizationisefficientinthesensethatitdoesnotdestroy
+resources. Inourexample,thisassumptionstillallowsthesystemtodecreasecontentdiversityor
+well-being,butonlyintheserviceofincreasingrevenueorengagement.
+Formally,wesaythatsisefficientlyreachablefromstates(0)withproxysetJ ifsisfeasible,and
+theredoesnotexistafeasibles(cid:48) suchthatU˜(s(cid:48) ) ≥ U˜(s )and|s(cid:48) −s(0)| ≤ |s −s(0)|foralli,
+J J i i i i
+with strict inequality in at least one attribute. Whenever the efficient robot receives a new proxy
+utilityfunction,itsmovementsarerestrictedtotheefficientlyfeasiblestatesfromitscurrentstate.
+Whiletradeoffsbetweenproxyandunmentionedattributescanstilloccur,“resources"freedupby
+decreasingunmentionedattributesareentirelyallocatedtoproxyattributes.
+Underthisassumption,wecanguaranteethatincreasesinproxyutilitywillincreasetrueutilityinthe
+efficientlyreachableneighborhoodofagivenstatebychoosingwhichattributestoincludeinthe
+proxycarefully. Intuitively,theproxysetshouldbeattributeswe“caremostabout"inthecurrent
+worldstate. Thatway,efficienttradeoffsbetweentheseproxyandunmentionedattributescontribute
+topositiveutilitygain.
+Theorem3. Startwithstates(0). DefinetheproxyutilityfunctionU˜(s )=U(s ,s(0))wherethe
+J J K
+setofproxyattributesaretheattributesatstates(0)withthestrictJ largestsensitivities.
+Thereexistsaneighborhoodarounds(0)whereifsisefficientlyreachable
+andU˜(s )>U˜(s(0)),thenU(s)>U(s(0)).
+J J
+Proof. Forsimplicityofnotation,allderivativesinthisproof,unlessotherwisenoted,areevaluated
+ats(0). Forexample, ∂C shouldbereadas ∂C(s(0))
+∂sj ∂sj
+SinceJ representthesetofattributeswiththestrictlygreatestsensitivities,thereexistsconstantδ,α
+besuchthat ∂U(∂C)−1 >α+2δforj ∈J and ∂U(∂C)−1 <α−2δfork ∈K. LetN bethe
+∂sj ∂sj ∂sk ∂sk 1
+neighborhoodwhere ∂U(∂C)−1(s)>α+δand ∂U(∂C)−1(s)<α−δfork ∈/ J foralls∈N .
+∂sj ∂sj ∂sk ∂sk 1
+Here,weprovethatC(s)−C(s(0))≥0ifsisefficientlyreachable. Supposeotherwise: thenthere
+existsiwheres < s(0). Lete bethestandardbasisvectorindimensioni. However,thenthere
+i i i
+existsε>0wheres+εe isfeasible,U˜(s+εe )≥U˜(s),and|(s +ε)−s(0)|<|s −s(0)|. This
+i i i i
+contradictsthatsisefficientlyreachable.
+TakingtheTaylorexpansionoftheconstraintfunction,wehave
+C(s)−C(s(0))= (cid:88) (s −s(0)) ∂C +R (s)
+i i ∂s 1
+i
+i
+= (cid:88) (s −s(0)) ∂C + (cid:88) (s −s(0)) ∂C +R (s)max(s −s(0))2
+j j ∂s j k k ∂s k 1 i i i
+j∈J k∈/J
+, where |R | is bounded by constant A This implies that (cid:80) (s −s(0))∂C + (cid:80) (s −
+1 1 j∈J j j ∂sj k∈/J k
+s(0))∂C ≥−A max (s −s(0))2
+k ∂sk 1 i i i
+Fromthedefinitionofefficientoptimization,wenotetwothings. First,each(s −s(0)) ≤ 0for
+k k
+k ∈/ J. Thisisbecauseif(s −s(0))>0,itisalwaysmoreefficient,feasible,anddoesnoeffectU˜
+k k
+10
+
+toresets tobeequaltos(0). Second,becauseofconcavity,
+k k
+0<U˜(s)−U˜(s(0))
+≤ (cid:88) (s −s(0)) ∂U
+j j ∂s
+j
+j∈J
+Nowweactuallyanalyzethechangeinutilityfroms(0)tos.
+U(s)−U(s(0))= (cid:88) (s −s(0)) ∂U + (cid:88) (s −s(0)) ∂U +R (s)max(s −s(0))2
+j j ∂s j k k ∂s k 2 i i i
+j∈J k∈/J
+,where|R |isboundedbyconstantA . Continuing,
+2 2
+U(s)−U(s(0))≥ (cid:88) (s −s(0)) ∂U + (cid:88) (s −s(0)) ∂U −A max(s −s(0))2
+j j ∂s j k k ∂s k 2 i i i
+j∈J k∈/J
+= (cid:88) (s −s(0)) ∂C ( ∂U ( ∂C )−1)+ (cid:88) (s −s(0)) ∂C ( ∂U ( ∂C )−1)
+j j ∂s ∂s ∂s k k ∂s ∂s ∂s
+j j j k k k
+j∈J k∈/J
+−A max(s −s(0))2
+2 i i
+i
+> (α+δ) (cid:88) (s −s(0)) ∂C +(α−δ) (cid:88) (s −s(0)) ∂C
+j j ∂s k k ∂s
+j k
+j∈J k∈/J
+−A max(s −s(0))2
+2 i i
+i
+≥ (α+δ) (cid:88) (s −s(0)) ∂C −(α−δ)( (cid:88) (s −s(0)) ∂C
+j j ∂s j j ∂s
+j k
+j∈J j∈J
++A max(s −s(0))2)−A max(s −s(0))2
+1 i i 2 i i
+i i
+= 2δ (cid:88) (s −s(0)) ∂C −(A (α−δ)+A )max(s −s(0))2
+j j ∂s j 1 2 i i i
+j∈J
+Thefirsttermdecreaseslinearly,whereasthesecondtermdecreasesquadratically. Thus,givenδand
+α,forssufficientlyclosetos(0)andwithinN ,U(s)−U(s(0))>0
+1
+FromTheorem3,foreverystatewheretheJmax+1mostsensitiveattributesarenotallequal,we
+canguaranteeimprovementunderefficientoptimizationwithinaneighborhoodaroundthestate.
+Intuitively,thisistheareaaroundthestartingpointwiththesameJ attributesthatthehuman“cares
+themostabout".
+Basedonthis,thehumancanconstructaproxyutilityfunctiontouselocally,wherewecanguarantee
+improvementinutility. Oncethesequenceleavesthisneighborhood, thehumanalterstheproxy
+utilityfunctionorhaltstherobotaccordingly. Donerepeatedly,thehumancanstringtogetherthese
+stepsforguaranteedoverallimprovement. ByTheorem3,aslongasδissufficientlysmallrelative
+therateofoptimization,thiscanberunwithguaranteedimprovementuntilthetopJ +1attributes
+haveequalsensitivities.
+Proposition4. AteachtimestepT,letJ(T)betheJ mostsensitiveattributes,andletproxyutility
+U˜(T)(s )=U(s ,s(Tδ)). If||f||<εandtheεδ-ballaroundagivenstatesiscontainedinthe
+J J J
+neighborhoodfromTheorem3,theninteractiveoptimizationyieldsguaranteedimprovement.
+Proof. Assume without loss of generality that we start at s(0). Starting at time 0, for t ∈ (0,δ],
+||s(t)−s(0)||=|| (cid:82)t f(0)(u)du||≤δε.Sincetheεδballarounds(0)iscontainedintheneighborhood
+0
+ofguaranteedimprovement,increasesinproxyutilitycorrespondtoincreasesinutilityfortheentirety
+ofthetimebetweeninteractions.
+11
+
+Basedonthis,wecanguaranteethatanefficientrobotthatcanprovidebenefit,aslongasthetop
+Jmax +1 attributes are not all equal in sensitivity and the robot rate of optimization is bounded.
+Essentially, this rate restriction is a requirement that the robot not change the world too quickly
+relativetothetimethathumanstaketoreacttoit.
+Keytothissolutionisthepreservationofinteractivity. Weneedtoensure,forexample,thattherobot
+doesnothinderthehuman’sabilitytoadjusttheproxyutilityfunction[16].
+4.3 InteractiveImpactMinimization
+Witheitherofthetwomethodsmentionedabove,weshowguaranteedutilitygaincomparedtothe
+initialstate. However,ourresultssaynothingabouttheamountofutilitygenerated. Inanidealworld,
+thesystemwouldreachanoptimalstates∗,whereU(s∗)=maxU(s). Neitherapproachpresented
+s∈S
+sofarreachesanoptimalstate,however,bycombininginteractivityandimpactavoidance,wecan
+guaranteethesolutionconvergestoanoptimaloutcome.
+Inthiscase,sinceunmentionedattributesremainunchangedineachstepofoptimization,wewantto
+ensurethatwepromotetradeoffsbetweenattributeswithdifferentlevelsofsensitivity.
+Proposition 5. Let J(T) consist of the most and least sensitive attributes at timestep T. Let
+U˜(T)(s )=U(s ,s(Tδ)). Thenthissolutionconvergestoa(setof)human-optimalstate(s).
+J J K
+Proof. Bythemonotoneconvergencetheorem,utilitythroughtheoptimizationprocessconvergesto
+amaximumvalue. Anystates∗withthisvaluemusthavethesensitivityofallattributesequaland
+C(s∗)=0,otherwiseaproxywithtwoattributesofunequalsensitivityortwoattributesrespectively
+willcauseincreaseinutilityaboveU(s∗)inafiniteamountoftime.
+Suppose ∂U(∂C)−1(s∗)=αforallattributesi. WenowproceedtoshowthatU(s∗)=maxU(s).
+∂si ∂si s∈S
+Consideranyotherfeasiblestates(cid:48). Byconvexity,itmustbethat
+0≥C(s(cid:48))−C(s∗)
+(cid:88) ∂U
+≥ (s(cid:48) −s∗) (s∗)
+i i ∂s
+i
+i
+Now,consideringthedifferenceinutilitybetweenstatess(cid:48)ands∗.
+(cid:88) ∂C
+U(s(cid:48))−U(s∗)≤ (s(cid:48) −s∗) (s)
+i i ∂s
+i
+i
+(cid:88) ∂U ∂C ∂C
+= (s(cid:48) −s∗) ( )−1 (s∗)
+i i ∂s ∂s ∂s
+i i i
+i
+(cid:88) ∂C
+=α (s(cid:48) −s∗) (s∗)
+i i ∂s
+i
+i
+≤0
+Thus,s(cid:48)musthavelowerutilitythans∗. Sincethisappliesforallfeasiblestates,U(s∗)=maxU(s)
+s∈S
+Whilethisisoptimal,werequiretheassumptionsofboththeimpact-minimizationrobotandthe
+efficient,interactiverobot,eachofwhichindividuallypresentscomplexchallengesinimplementation.
+5 ConclusionandFurtherWork
+In this paper, we present a novel model of value (mis)alignment between a human principal and
+anAIagent. Fundamentaltothismodelisthatthehumanprovidesanincompleteproxyoftheir
+ownutilityfunctionfortheAIagenttooptimize. Withinthisframework,wederivenecessaryand
+sufficienttheoreticalconditionsforvaluemisalignmenttobearbitrarilycostly. Ourresultsdovetail
+12
+
+withanemergingliteraturethatconnectsharmsfromAIsystemstoshallowmeasurementofcomplex
+values[32,20,5]. Takentogether,weviewthisasstrongevidencethattheabilityofAIsystemstobe
+usefulandbeneficialishighlydependentonourabilitytomanagethefundamentalgapbetweenour
+qualitativegoalsandtheirrepresentationindigitalsystems.
+Additionally,weshowthatabstractrepresentationsoftechniquescurrentlybeingexploredbyother
+researcherscanyieldsolutionswithguaranteedutilityimprovement. Specifically,impactminimiza-
+tionandhumaninteractivity,ifimplementedcorrectly,allowAIagentstoprovidepositiveutility
+intheory. Infuturework,wehopetogeneralizethemodeltoaccountforfundamentalpreference
+uncertainty(e.g., asin[12]), limitsonhumanrationality, andtheaggregationofmultiplehuman
+preferences. Weareoptimisticthatresearchintothepropertiesandlimitationsofthecommunication
+channelwithinthisframeworkwillyieldfruitfulinsightsinvaluealignment,specifically,andAI,
+generally.
+BroaderImpact
+AsAIsystemsbecomemorecapableintoday’ssociety,theconsequencesofmisspecifiedreward
+functionsincreaseaswell.InstanceswherethegoaloftheAIsystemandthepreferencesofindividuals
+divergearestartingtoemergeintherealworld. Forexample,contentrecommendationalgorithms
+optimizingforclickscausesclickbaitandmisinformationtoproliferate[33]. Ourworkrigorously
+definesthisgeneralproblemandsuggeststwoseparateapproachesfordealingwithincompleteor
+misspecifiedrewardfunctions. Inparticular,wearguethat,intheabsenceofafulldescriptionof
+attributes,theincentivesforreal-worldsystemsneedtobeplasticanddynamicallyadjustbasedon
+changesinbehavioroftheagentandthestateoftheworld.
+AcknowledgmentsandDisclosureofFunding
+ThisworkwaspartiallysupportedbyAFOSR,ONRYIP,NSFCAREER,NSFNRI,andOpenPhil.
+WethankAncaDragan,StuartRussell,andthemembersoftheInterACTlabandCHAIforhelpful
+advice,guidance,anddiscussionsaboutthisproject.
+References
+[1] ABBEEL,P.,ANDNG,A.Y. Apprenticeshiplearningviainversereinforcementlearning. In
+ProceedingsoftheTwenty-FirstInternationalConferenceonMachineLearning(2004),p.1.
+[2] AMERSHI, S., CAKMAK, M., KNOX, W. B., AND KULESZA, T. Powertothepeople: The
+roleofhumansininteractivemachinelearning. AIMagazine35,4(2014),105–120.
+[3] AMODEI, D., AND CLARK, J. Faultyrewardfunctionsinthewild,2016. URLhttps://blog.
+openai.com/faulty-reward-functions(2016).
+[4] AMODEI,D.,OLAH,C.,STEINHARDT,J.,CHRISTIANO,P.,SCHULMAN,J.,ANDMANÉ,D.
+ConcreteproblemsinAIsafety. arXivpreprintarXiv:1606.06565(2016).
+[5] ANDRUS,M.,ANDGILBERT,T.K. Towardsajusttheoryofmeasurement: Aprincipledsocial
+measurementassuranceprogramformachinelearning. InProceedingsofthe2019AAAI/ACM
+ConferenceonAI,Ethics,andSociety(2019),pp.445–451.
+[6] ARMSTRONG, S., AND LEVINSTEIN, B. Lowimpactartificialintelligence. arXivpreprint
+arXiv:1705.10720(2017).
+[7] BAJCSY, A., LOSEY, D. P., O’MALLEY, M. K., AND DRAGAN, A. D. Learning robot
+objectivesfromphysicalhumaninteraction. ProceedingsofMachineLearningResearch78
+(2017),217–226.
+[8] BOSTROM,N. Superintelligence: Paths,dangers,strategies. Oxford,2014.
+[9] BOUTILIER, C. A POMDP formulation of preference elicitation problems. In AAAI/IAAI
+(2002),Edmonton,AB,pp.239–246.
+[10] BRADLEY, R. A., AND TERRY, M. E. Rank analysis of incomplete block designs: I. the
+methodofpairedcomparisons. Biometrika39,3/4(1952),324–345.
+13
+
+[11] BRAZIUNAS,D.,ANDBOUTILIER,C. Preferenceelicitationandgeneralizedadditiveutility.
+InAAAI(2006),vol.21.
+[12] CHAN, L., HADFIELD-MENELL, D., SRINIVASA, S., AND DRAGAN, A. D. Theassistive
+multi-armed bandit. In 2019 14th ACM/IEEE International Conference on Human-Robot
+Interaction(HRI)(2019),IEEE,pp.354–363.
+[13] CHRISTIANO, P., LEIKE, J., BROWN, T. B., MARTIC, M., LEGG, S., AND AMODEI, D.
+Deepreinforcementlearningfromhumanpreferences,2017.
+[14] ECKERSLEY,P. ImpossibilityanduncertaintytheoremsinAIvaluealignment(orwhyyouragi
+shouldnothaveautilityfunction). arXivpreprintarXiv:1901.00064(2018).
+[15] GRIFFITH,S.,SUBRAMANIAN,K.,SCHOLZ,J.,ISBELL,C.L.,ANDTHOMAZ,A.L. Policy
+shaping: Integrating human feedback with reinforcement learning. In Advances in Neural
+InformationProcessingSystems(2013),pp.2625–2633.
+[16] HADFIELD-MENELL,D.,DRAGAN,A.,ABBEEL,P.,ANDRUSSELL,S. Theoff-switchgame.
+InWorkshopsattheThirty-FirstAAAIConferenceonArtificialIntelligence(2017).
+[17] HADFIELD-MENELL,D.,ANDHADFIELD,G.K. IncompletecontractingandAIalignment. In
+Proceedingsofthe2019AAAI/ACMConferenceonAI,Ethics,andSociety(2019),pp.417–422.
+[18] HADFIELD-MENELL,D.,MILLI,S.,ABBEEL,P.,RUSSELL,S.J.,ANDDRAGAN,A. Inverse
+rewarddesign. InAdvancesinNeuralInformationProcessingSystems(2017),pp.6765–6774.
+[19] HADFIELD-MENELL, D., RUSSELL, S. J., ABBEEL, P., AND DRAGAN, A. Cooperative
+inversereinforcementlearning. InAdvancesinNeuralInformationProcessingSystems(2016),
+pp.3909–3917.
+[20] JACOBS, A. Z., AND WALLACH, H. Measurement and fairness. arXiv preprint
+arXiv:1912.05511(2019).
+[21] KERR,S. OnthefollyofrewardingA,whilehopingforB. AcademyofManagementJournal
+18,4(1975),769–783.
+[22] KLEIN, B., CRAWFORD, R. G., AND ALCHIAN, A. A. Vertical integration, appropriable
+rents,andthecompetitivecontractingprocess. ThejournalofLawandEconomics21,2(1978),
+297–326.
+[23] KRAKOVNA, V., ORSEAU, L., KUMAR, R., MARTIC, M., AND LEGG, S. Penalizingside
+effectsusingstepwiserelativereachability. arXivpreprintarXiv:1806.01186(2018).
+[24] LEIKE, J., MARTIC, M., KRAKOVNA, V., ORTEGA, P. A., EVERITT, T., LEFRANCQ, A.,
+ORSEAU,L.,ANDLEGG,S. AIsafetygridworlds. arXivpreprintarXiv:1711.09883(2017).
+[25] MANHEIM, D., AND GARRABRANT, S. Categorizing variants of Goodhart’s law. arXiv
+preprintarXiv:1803.04585(2018).
+[26] NG, A. Y., RUSSELL, S. J., ET AL. Algorithmsforinversereinforcementlearning. InIcml
+(2000),vol.1,pp.663–670.
+[27] OMOHUNDRO,S.M. ThebasicAIdrives. InAGI(2008),vol.171,pp.483–492.
+[28] RUSSELL,S.J. HumanCompatible: ArtificialIntelligenceandtheProblemofControl. Viking,
+2019.
+[29] RUSSELL, S. J., AND NORVIG, P. Artificial Intelligence: A Modern Approach. Pearson
+EducationLimited„2010.
+[30] SHAVELL,S. Damagemeasuresforbreachofcontract. TheBellJournalofEconomics(1980),
+466–490.
+[31] STRAY,J.,ADLER,S.,ANDHADFIELD-MENELL,D. Whatareyouoptimizingfor? aligning
+recommendersystemswithhumanvalues. arXivpreprintarXiv:2002.08512(2020).
+[32] THOMAS,R.,ANDUMINSKY,D. TheproblemwithmetricsisafundamentalproblemforAI.
+arXivpreprintarXiv:2002.08512(2020).
+[33] TUFEKCI,Z. Youtube’srecommendationalgorithmhasadarkside. ScientificAmerica(2019).
+[34] WAGNER,K. InsideTwitter’sambitiousplantochangethewaywetweet. Vox(2019).
+[35] WILLIAMSON,O.E. Marketsandhierarchies. NewYork2630(1975).
+[36] ZIEBART,B.D.,MAAS,A.L.,BAGNELL,J.A.,ANDDEY,A.K. Maximumentropyinverse
+reinforcementlearning. InAAAI(2008),vol.8,Chicago,IL,USA,pp.1433–1438.
+14

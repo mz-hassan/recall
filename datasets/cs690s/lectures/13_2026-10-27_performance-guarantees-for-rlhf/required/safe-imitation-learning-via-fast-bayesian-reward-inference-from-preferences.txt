@@ -1,0 +1,2198 @@
+--- PDF page 1 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Daniel S. Brown 1 Russell Coleman 1 2 Ravi Srinivasan 2 Scott Niekum 1
+Abstract
+Bayesian reward learning from demonstrations
+enables rigorous safety and uncertainty analysis
+when performing imitation learning. However,
+Bayesian reward learning methods are typically
+computationally intractable for complex control
+problems. We propose Bayesian Reward Ex-
+trapolation (Bayesian REX), a highly efﬁcient
+Bayesian reward learning algorithm that scales
+to high-dimensional imitation learning problems
+by pre-training a low-dimensional feature encod-
+ing via self-supervised tasks and then leveraging
+preferences over demonstrations to perform fast
+Bayesian inference. Bayesian REX can learn to
+play Atari games from demonstrations, without
+access to the game score and can generate 100,000
+samples from the posterior over reward functions
+in only 5 minutes on a personal laptop. Bayesian
+REX also results in imitation learning perfor-
+mance that is competitive with or better than state-
+of-the-art methods that only learn point estimates
+of the reward function. Finally, Bayesian REX en-
+ables efﬁcient high-conﬁdence policy evaluation
+without having access to samples of the reward
+function. These high-conﬁdence performance
+bounds can be used to rank the performance and
+risk of a variety of evaluation policies and provide
+a way to detect reward hacking behaviors.
+1. Introduction
+It is important that robots and other autonomous agents can
+safely learn from and adapt to a variety of human prefer-
+ences and goals. One common way to learn preferences
+and goals is via imitation learning, in which an autonomous
+agent learns how to perform a task by observing demonstra-
+tions of the task (Argall et al., 2009). When learning from
+1Computer Science Department, The University of Texas
+at Austin. 2Applied Research Laboratories, The University
+of Texas at Austin. Correspondence to: Daniel Brown <ds-
+brown@cs.utexas.edu>.
+Proceedings of the 37th International Conference on Machine
+Learning, Online, PMLR 119, 2020. Copyright 2020 by the au-
+thor(s).
+demonstrations, it is important for an agent to be able to
+provide high-conﬁdence bounds on its performance with re-
+spect to the demonstrator; however, while there exists much
+work on high-conﬁdence off-policy evaluation in the rein-
+forcement learning (RL) setting, there has been much less
+work on high-conﬁdence policy evaluation in the imitation
+learning setting, where the reward samples are unavailable.
+Prior work on high-conﬁdence policy evaluation for im-
+itation learning has used Bayesian inverse reinforcement
+learning (IRL) (Ramachandran & Amir, 2007) to allow an
+agent to reason about reward uncertainty and policy gen-
+eralization error (Brown et al., 2018). However, Bayesian
+IRL is typically intractable for complex problems due to the
+need to repeatedly solve an MDP in the inner loop, resulting
+in high computational cost as well as high sample cost if a
+model is not available. This precludes robust safety and un-
+certainty analysis for imitation learning in high-dimensional
+problems or in problems in which a model of the MDP is
+unavailable. We seek to remedy this problem by propos-
+ing and evaluating a method for safe and efﬁcient Bayesian
+reward learning via preferences over demonstrations. Pref-
+erences over trajectories are intuitive for humans to provide
+(Akrour et al., 2011; Wilson et al., 2012; Sadigh et al., 2017;
+Christiano et al., 2017; Palan et al., 2019) and enable better-
+than-demonstrator performance (Brown et al., 2019b;a). To
+the best of our knowledge, we are the ﬁrst to show that
+preferences over demonstrations enable both fast Bayesian
+reward learning in high-dimensional, visual control tasks as
+well as efﬁcient high-conﬁdence performance bounds.
+We ﬁrst formalize the problem of high-conﬁdence policy
+evaluation (Thomas et al., 2015) for imitation learning. We
+then propose a novel algorithm, Bayesian Reward Extrapola-
+tion (Bayesian REX), that uses a pairwise ranking likelihood
+to signiﬁcantly increase the efﬁciency of generating samples
+from the posterior distribution over reward functions. We
+demonstrate that Bayesian REX can leverage neural network
+function approximation to learn useful reward features via
+self-supervised learning in order to efﬁciently perform deep
+Bayesian reward inference from visual demonstrations. Fi-
+nally, we demonstrate that samples obtained from Bayesian
+REX can be used to solve the high-conﬁdence policy evalua-
+tion problem for imitation learning. We evaluate our method
+on imitation learning for Atari games and demonstrate that
+we can efﬁciently compute high-conﬁdence bounds on pol-
+arXiv:2002.09089v4  [cs.LG]  17 Dec 2020
+
+--- PDF page 2 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+icy performance, without access to samples of the reward
+function. We use these high-conﬁdence performance bounds
+to rank different evaluation policies according to their risk
+and expected return under the posterior distribution over
+the unknown ground-truth reward function. Finally, we pro-
+vide evidence that bounds on uncertainty and risk provide a
+useful tool for detecting reward hacking/gaming (Amodei
+et al., 2016), a common problem in reward inference from
+demonstrations (Ibarz et al., 2018) as well as reinforcement
+learning (Ng et al., 1999; Leike et al., 2017).
+2. Related work
+2.1. Imitation Learning
+Imitation learning is the problem of learning a policy from
+demonstrations and can roughly be divided into techniques
+that use behavioral cloning and techniques that use in-
+verse reinforcement learning. Behavioral cloning methods
+(Pomerleau, 1991; Torabi et al., 2018) seek to solve the imi-
+tation learning problem via supervised learning, in which
+the goal is to learn a mapping from states to actions that
+mimics the demonstrator. While computationally efﬁcient,
+these methods suffer from compounding errors (Ross et al.,
+2011). Methods such as DAgger (Ross et al., 2011) and
+DART (Laskey et al., 2017) avoid this problem by repeat-
+edly collecting additional state-action pairs from an expert.
+Inverse reinforcement learning (IRL) methods seek to solve
+the imitation learning problem by estimating the reward
+function that the demonstrator is optimizing (Ng & Russell,
+2000). Classical approaches repeatedly alternate between a
+reward estimation step and a full policy optimization step
+(Abbeel & Ng, 2004; Ziebart et al., 2008; Ramachandran
+& Amir, 2007). Bayesian IRL (Ramachandran & Amir,
+2007) samples from the posterior distribution over reward
+functions, whereas other methods seek a single reward func-
+tion that induces the demonstrator’s feature expectations
+(Abbeel & Ng, 2004), often while also seeking to maximize
+the entropy of the resulting policy (Ziebart et al., 2008).
+Most deep learning approaches for IRL use maximum en-
+tropy policy optimization and divergence minimization be-
+tween marginal state-action distributions (Ho & Ermon,
+2016; Fu et al., 2017; Ghasemipour et al., 2019) and are
+related to Generative Adversarial Networks (Finn et al.,
+2016a). These methods scale to complex control problems
+by iterating between reward learning and policy learning
+steps. Alternatively, Brown et al. (2019b) use ranked demon-
+strations to learn a reward function via supervised learning
+without requiring an MDP solver or any inference time data
+collection. The learned reward function can then be used
+to optimize a potentially better-than-demonstrator policy.
+Brown et al. (2019a) automatically generate preferences
+over demonstrations via noise injection, allowing better-
+than-demonstrator performance even in the absence of ex-
+plicit preference labels. However, despite their successes,
+deep learning approaches to IRL typically only return a point
+estimate of the reward function, precluding uncertainty and
+robustness analysis.
+2.2. Safe Imitation Learning
+While there has been much interest in imitation learning,
+less attention has been given to problems related to safety.
+SafeDAgger (Zhang & Cho, 2017) and EnsembleDAgger
+(Menda et al., 2019) are extensions of DAgger that give
+control to the demonstrator in states where the imitation
+learning policy is predicted to have a large action difference
+from the demonstrator. Other approaches to safe imitation
+learning seek to match the tail risk of the expert as well as
+ﬁnd a policy that is indistinguishable from the demonstra-
+tions (Majumdar et al., 2017; Lacotte et al., 2019).
+Brown & Niekum (2018) propose a Bayesian sampling
+approach to provide explicit high-conﬁdence performance
+bounds in the imitation learning setting, but require an MDP
+solver in the inner-loop. Their method uses samples from the
+posterior distributionP (R|D) to compute sample efﬁcient
+probabilistic upper bounds on the policy loss of any evalu-
+ation policy. Other work considers robust policy optimiza-
+tion over a distribution of reward functions conditioned on
+demonstrations or a partially speciﬁed reward function, but
+these methods require an MDP solver in the inner loop, lim-
+iting their scalability (Hadﬁeld-Menell et al., 2017; Brown
+et al., 2018; Huang et al., 2018). We extend and generalize
+the work of Brown & Niekum (2018) by demonstrating,
+for the ﬁrst time, that high-conﬁdence performance bounds
+can be efﬁciently obtained when performing imitation learn-
+ing from high-dimensional visual demonstrations without
+requiring an MDP solver or model during reward inference.
+2.3. Value Alignment and Active Preference Learning
+Safe imitation learning is closely related to the problem of
+value alignment, which seeks to design methods that prevent
+AI systems from acting in ways that violate human values
+(Hadﬁeld-Menell et al., 2016; Fisac et al., 2020). Research
+has shown that difﬁculties arise when an agent seeks to align
+its value with a human who is not perfectly rational (Milli
+et al., 2017) and there are fundamental impossibility results
+regarding value alignment unless the objective is represented
+as a set of partially ordered preferences (Eckersley, 2018).
+Prior work has used active queries to perform Bayesian re-
+ward inference on low-dimensional, hand-crafted reward
+features (Sadigh et al., 2017; Brown et al., 2018; Bıyık
+et al., 2019). Christiano et al. (2017) and Ibarz et al. (2018)
+use deep networks to scale active preference learning to
+high-dimensional tasks, but require large numbers of ac-
+tive queries during policy optimization and do not perform
+
+--- PDF page 3 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Bayesian reward inference. Our work complements and
+extends prior work by: (1) removing the requirement for ac-
+tive queries during reward inference or policy optimization,
+(2) showing that preferences over demonstrations enable
+efﬁcient Bayesian reward inference in high-dimensional vi-
+sual control tasks, and (3) providing an efﬁcient method for
+computing high-conﬁdence bounds on the performance of
+any evaluation policy in the imitation learning setting.
+2.4. Safe Reinforcement Learning
+Research on safe reinforcement learning (RL) usually fo-
+cuses on safe exploration strategies or optimization objec-
+tives other than expected return (Garcıa & Fern´andez, 2015).
+Recently, objectives based on measures of risk such as value
+at risk (VaR) and conditional VaR have been shown to pro-
+vide tractable and useful risk-sensitive measures of perfor-
+mance for MDPs (Tamar et al., 2015; Chow et al., 2015).
+Other work focuses on ﬁnding robust solutions to MDPs
+(Ghavamzadeh et al., 2016; Petrik & Russell, 2019), us-
+ing model-based RL to safely improve upon suboptimal
+demonstrations (Thananjeyan et al., 2019), and obtaining
+high-conﬁdence off-policy bounds on the performance of an
+evaluation policy (Thomas et al., 2015; Hanna et al., 2019).
+Our work provides an efﬁcient solution to the problem of
+high-conﬁdence policy evaluation in the imitation learning
+setting, in which samples of rewards are not observed and
+the demonstrator’s policy is unknown.
+2.5. Bayesian Neural Networks
+Bayesian neural networks typically either perform Markov
+Chain Monte Carlo (MCMC) sampling (MacKay, 1992),
+variational inference (Sun et al., 2019; Khan et al., 2018), or
+use hybrid methods such as particle-based inference (Liu &
+Wang, 2016) to approximate the posterior distribution over
+neural network weights. Alternative approaches such as
+ensembles (Lakshminarayanan et al., 2017) or approxima-
+tions such as Bayesian dropout (Gal & Ghahramani, 2016;
+Kendall & Gal, 2017) have also been used to obtain a distri-
+bution on the outputs of a neural network in order to provide
+uncertainty quantiﬁcation (Maddox et al., 2019). We are not
+only interested in the uncertainty of the output of the reward
+function, but also in the uncertainty over the performance
+of a policy when evaluated under an uncertain reward func-
+tion. Thus, we face the difﬁcult problem of measuring the
+uncertainty in the evaluation of a policy, which depends on
+the stochasticity of the policy and the environment, as well
+as the uncertainty over the unobserved reward function.
+3. Preliminaries
+We model the environment as a Markov Decision Process
+(MDP) consisting of states S, actions A, transition dynam-
+icsT : S × A × S → [0, 1], reward functionR : S → R,
+initial state distribution S0, and discount factor γ. Our
+approach extends naturally to rewards deﬁned as R(s,a )
+orR(s,a,s′); however, state-based rewards have some ad-
+vantages. Fu et al. (2017) prove that a state-only reward
+function is a necessary and sufﬁcient condition for a reward
+function that is disentangled from dynamics. Learning a
+state-based reward also allows the learned reward to be used
+as a potential function for reward shaping (Ng et al., 1999),
+if a sparse ground-truth reward function is available.
+A policyπ is a mapping from states to a probability distribu-
+tion over actions. We denote the value of a policyπ under
+reward function R asVπ
+R = Eπ[∑∞
+t=0γtR(st)|s0 ∼ S0]
+and denote the value of executing policyπ starting at state
+s ∈ S as Vπ
+R (s) = Eπ[∑∞
+t=0γtR(st)|s0 = s]. Given a
+reward functionR, the Q-value of a state-action pair (s,a )
+isQπ
+R(s,a ) = Eπ[∑∞
+t=0γtR(st)|s0 =s,a 0 =a]. We also
+denoteV∗
+R = maxπVπ
+R andQ∗
+R(s,a ) = maxπQπ
+R(s,a ).
+Bayesian inverse reinforcement learning (IRL) (Ramachan-
+dran & Amir, 2007) models the environment as an MDP\R
+in which the reward function is unavailable. Bayesian IRL
+seeks to infer the latent reward function of a Boltzman-
+rational demonstrator that executes the following policy
+πβ
+R(a|s) = eβQ∗
+R(s,a)
+∑
+b∈AeβQ∗
+R(s,b), (1)
+in whichR is the true reward function of the demonstrator,
+andβ ∈ [0, ∞) represents the conﬁdence that the demon-
+strator is acting optimally. Under the assumption of Boltz-
+man rationality, the likelihood of a set of demonstrated
+state-action pairs, D = {(s,a ) : ( s,a ) ∼ πD}, given a
+speciﬁc reward function hypothesisR, can be written as
+P (D|R) =
+∏
+(s,a)∈D
+πβ
+R(a|s) =
+∏
+(s,a)∈D
+eβQ∗
+R(s,a)
+∑
+b∈AeβQ∗
+R(s,b).
+(2)
+Bayesian IRL generates samples from the posterior distri-
+butionP (R|D) ∼P (D|R)P (R) via Markov Chain Monte
+Carlo (MCMC) sampling, but this requires solving forQ∗
+R′
+to compute the likelihood of each new proposalR′. Thus,
+Bayesian IRL methods are only used for low-dimensional
+problems with reward functions that are often linear combi-
+nations of a small number of hand-crafted features (Bobu
+et al., 2018; Bıyık et al., 2019). One of our contributions
+is an efﬁcient Bayesian reward inference algorithm that
+leverages preferences over demonstrations in order to signif-
+icantly improve the efﬁciency of Bayesian reward inference.
+4. High Conﬁdence Policy Evaluation for
+Imitation Learning
+Before detailing our approach, we ﬁrst formalize the prob-
+lem of high-conﬁdence policy evaluation for imitation learn-
+
+--- PDF page 4 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+ing. We assume access to an MDP\R, an evaluation policy
+πeval, a set of demonstrations,D = {τ1,...,τ m}, in which
+τi is either a complete or partial trajectory comprised of
+states or state-action pairs, a conﬁdence levelδ, and perfor-
+mance statistic g : Π × R → R, in which R denotes the
+space of reward functions and Π is the space of all policies.
+The High-Conﬁdence Policy Evaluation problem for Imita-
+tion Learning (HCPE-IL) is to ﬁnd a high-conﬁdence lower
+bound ˆg : Π × D → R such that
+Pr(g(πeval,R∗) ≥ ˆg(πeval,D )) ≥ 1 −δ, (3)
+in whichR∗ denotes the demonstrator’s true reward function
+and D denotes the space of all possible demonstration sets.
+HCPE-IL takes as input an evaluation policy πeval, a set
+of demonstrationsD, and a performance statistic,g, which
+evaluates a policy under a reward function. The goal of
+HCPE-IL is to return a high-conﬁdence lower boundˆg on
+the performance statisticg(πeval,R∗).
+5. Deep Bayesian Reward Extrapolation
+We now describe our main contribution: a method for scal-
+ing Bayesian reward inference to high-dimensional visual
+control tasks as a way to efﬁciently solve the HCPE-IL
+problem for complex imitation learning tasks. Our ﬁrst
+insight is that the main bottleneck for standard Bayesian
+IRL (Ramachandran & Amir, 2007) is computing the like-
+lihood function in Equation (2) which requires optimal Q-
+values. Thus, to make Bayesian reward inference scale to
+high-dimensional visual domains, it is necessary to either
+efﬁciently approximate optimal Q-values or to formulate
+a new likelihood. Value-based reinforcement learning fo-
+cuses on efﬁciently learning optimal Q-values; however, for
+complex visual control tasks, RL algorithms can take sev-
+eral hours or even days to train (Mnih et al., 2015; Hessel
+et al., 2018). This makes MCMC, which requires evaluat-
+ing large numbers of likelihood ratios, infeasible given the
+current state-of-the-art in value-based RL. Methods such
+as transfer learning have great potential to reduce the time
+needed to calculateQ∗
+R for a new proposed reward function
+R; however, transfer learning is not guaranteed to speed up
+reinforcement learning (Taylor & Stone, 2009). Thus, we
+choose to focus on reformulating the likelihood function as
+a way to speed up Bayesian reward inference.
+An ideal likelihood function requires little computation and
+minimal interaction with the environment. To accomplish
+this, we leverage recent work on learning control policies
+from preferences (Christiano et al., 2017; Palan et al., 2019;
+Bıyık et al., 2019). Given ranked demonstrations, Brown
+et al. (2019b) propose Trajectory-ranked Reward Extrap-
+olation (T-REX): an efﬁcient reward inference algorithm
+that transforms reward function learning into classiﬁcation
+problem via a pairwise ranking loss. T-REX removes the
+need to repeatedly sample from or partially solve an MDP in
+the inner loop, allowing it to scale to visual imitation learn-
+ing domains such as Atari and to extrapolate beyond the
+performance of the best demonstration. However, T-REX
+only solves for a point estimate of the reward function. We
+now discuss how a similar approach based on a pairwise
+preference likelihood allows for efﬁcient sampling from the
+posterior distribution over reward functions.
+We assume access to a sequence of m trajectories, D =
+{τ1,...,τ m}, along with a set of pairwise preferences over
+trajectories P = {(i,j ) : τi ≺ τj}. Note that we do not
+require a total-ordering over trajectories. These preferences
+may come from a human demonstrator or could be auto-
+matically generated by watching a learner improve at a task
+(Jacq et al., 2019; Brown et al., 2019b) or via noise injec-
+tion (Brown et al., 2019a). Given trajectory preferences,
+we can formulate a pair-wise ranking likelihood to compute
+the likelihood of a set of preferences over demonstrations
+P, given a parameterized reward function hypothesis Rθ.
+We use the standard Bradley-Terry model (Bradley & Terry,
+1952) to obtain the following pairwise ranking likelihood
+function, commonly used in learning to rank applications
+such collaborative ﬁltering (V olkovs & Zemel, 2014):
+P (D, P | Rθ) =
+∏
+(i,j)∈P
+eβRθ(τj)
+eβRθ(τi) +eβRθ(τj), (4)
+in which Rθ(τ) = ∑
+s∈τRθ(s) is the predicted return
+of trajectory τ under the reward function Rθ, and β is
+the inverse temperature parameter that models the con-
+ﬁdence in the preference labels. We can then perform
+Bayesian inference via MCMC to obtain samples from
+P (Rθ | D, P) ∝ P (D, P | Rθ)P (Rθ). We call this ap-
+proach Bayesian Reward Extrapolation or Bayesian REX.
+Note that using the likelihood function deﬁned in Equation
+(4) does not require solving an MDP. In fact, it does not re-
+quire any rollouts or access to the MDP. All that is required
+is that we ﬁrst calculate the return of each trajectory under
+Rθ and compare the relative predicted returns to the prefer-
+ence labels to determine the likelihood of the demonstrations
+under the reward hypothesisRθ. Thus, given preferences
+over demonstrations, Bayesian REX is signiﬁcantly more ef-
+ﬁcient than standard Bayesian IRL. In the following section,
+we discuss further optimizations that improve the efﬁciency
+of Bayesian REX and make it more amenable to our end
+goal of high-conﬁdence policy evaluation bounds.
+5.1. Optimizations
+In order to learn rich, complex reward functions, it is desir-
+able to use a deep network to represent the reward function
+Rθ. While MCMC remains the gold-standard for Bayesian
+Neural Networks, it is often challenging to scale to deep net-
+works. To make Bayesian REX more efﬁcient and practical,
+
+--- PDF page 5 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Figure 1. Bayesian Reward Extrapolation uses ranked demonstrations to pre-train a low-dimensional state feature embeddingφ(s) via
+self-supervised losses. After pre-training, the latent embedding function φ(s) is frozen and the reward function is represented as a
+linear combination of the learned features: R(s) = wTφ(s). MCMC proposal evaluations use a pairwise ranking likelihood that gives
+the likelihood of the preferences P over demonstrations D, given a proposal w. By pre-computing the embeddings of the ranked
+demonstrations, Φτi, MCMC sampling is highly efﬁcient—it does not require access to an MDP solver or data collection during inference.
+we propose to limit the proposal to only change the last layer
+of weights inRθ when generating MCMC proposals—we
+will discuss pre-training the bottom layers ofRθ in the next
+section. After pre-training, we freeze all but the last layer
+of weights and use the activations of the penultimate layer
+as the latent reward features φ(s) ∈ Rk. This allows the
+reward at a state to be represented as a linear combination
+ofk features:Rθ(s) =wTφ(s). Similar to work by Pradier
+et al. (2018), operating in a lower-dimensional latent space
+makes full Bayesian inference tractable.
+A second advantage of using a learned linear reward func-
+tion is that it allows us to efﬁciently compute likelihood
+ratios when performing MCMC. Consider the likelihood
+function in Equation (4). If we do not represent Rθ as a
+linear combination of pretrained features, and instead let any
+parameter inRθ change during each proposal, then form
+demonstrations of lengthT , computingP (D, P | Rθ) for a
+new proposalRθ requiresO(mT ) forward passes through
+the entire network to computeRθ(τi). Thus, the complex-
+ity of generating N samples from the posterior results is
+O(mTN |Rθ|), where |Rθ| is the number of computations
+required for a full forward pass through the entire network
+Rθ. Given that we would like to use a deep network to
+parameterizeRθ and generate thousands of samples from
+the posterior distribution overRθ, this many computations
+will signiﬁcantly slow down MCMC proposal evaluation.
+If we represent Rθ as a linear combination of pre-trained
+features, we can reduce this computational cost because
+Rθ(τ) =
+∑
+s∈τ
+wTφ(s) =wT ∑
+s∈τ
+φ(s) =wT Φτ. (5)
+Thus, we can precompute and cache Φτi = ∑
+s∈τiφ(s) for
+i = 1,...,m and rewrite the likelihood as
+P (D, P | Rθ) =
+∏
+(i,j)∈P
+eβwT Φτj
+eβwT Φτj +eβwT Φτi
+. (6)
+Note that demonstrations only need to be passed through
+the reward network once to compute Φτi since the pre-
+trained embedding remains constant during MCMC pro-
+posal generation. This results in an initial O(mT ) passes
+through all but the last layer of Rθ to obtain Φτi, for
+i = 1,...,m , and then only O(mk) multiplications per
+proposal evaluation thereafter—each proposal requires that
+we compute wT Φτi for i = 1 ,...,m and Φτi ∈ Rk.
+Thus, when using feature pre-training, the total complex-
+ity is onlyO(mT |Rθ| +mkN ) to generateN samples via
+MCMC. This reduction in the complexity of MCMC from
+O(mTN |Rθ|) toO(mT |Rθ| +mkN ) results in signiﬁcant
+and practical computational savings because (1) we want to
+makeN andRθ large and (2) the number of demonstrations,
+m, and the size of the latent embedding, k, are typically
+several orders of magnitude smaller thanN and |Rθ|.
+A third, and critical advantage of using a learned linear re-
+ward function is that it makes solving the HCPE-IL problem
+discussed in Section 4 tractable. Performing a single pol-
+icy evaluation is a non-trivial task (Sutton et al., 2000) and
+even in tabular settings has complexity O(|S|3) in which
+|S| is the size of the state-space (Littman et al., 1995). Be-
+cause we are in an imitation learning setting, we would like
+to be able to efﬁciently evaluate any given policy across
+the posterior distribution over reward functions found via
+Bayesian REX. Given a posterior distribution over N re-
+ward function hypotheses we would need to solveN policy
+evaluations. However, note that givenR(s) =wTφ(s), the
+
+--- PDF page 6 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+value function of a policy can be written as
+Vπ
+R = Eπ[
+T∑
+t=0
+R(st)] =wT Eπ[
+T∑
+t=0
+φ(st)] =wT Φπ, (7)
+in which we assume a ﬁnite horizon MDP with horizonT
+and in which Φπ are the expected feature counts (Abbeel
+& Ng, 2004; Barreto et al., 2017) of π. Thus, given any
+evaluation policyπeval, we only need to solve one policy
+evaluation problem to compute Φeval. We can then com-
+pute the expected value of πeval over the entire posterior
+distribution of reward functions via a single matrix vector
+multiplicationW Φπeval, whereW is anN-by-k matrix with
+each row corresponding to a single reward function weight
+hypothesiswT . This signiﬁcantly reduces the complexity
+of policy evaluation over the reward function posterior dis-
+tribution fromO(N |S|3) toO(|S|3 +Nk ).
+When we refer to Bayesian REX we will refer to the opti-
+mized version described in this section (see the Appendix
+for full implementation details and pseudo-code) 1 . Run-
+ning MCMC with 66 preference labels to generate 100,000
+reward hypothesis for Atari imitation learning tasks takes
+approximately 5 minutes on a Dell Inspiron 5577 personal
+laptop with an Intel i7-7700 processor without using the
+GPU. In comparison, using standard Bayesian IRL to gen-
+erate one sample from the posterior takes 10+ hours of
+training for a parallelized PPO reinforcement learning agent
+(Dhariwal et al., 2017) on an NVIDIA TITAN V GPU.
+5.2. Pre-training the Reward Function Network
+The previous section presupposed access to a pretrained
+latent embedding functionφ :S → Rk. We now discuss our
+pre-training process. Because we are interested in imitation
+learning problems, we need to be able to trainφ(s) from the
+demonstrations without access to the ground-truth reward
+function. One potential method is to train Rθ using the
+pairwise ranking likelihood function in Equation (4) and
+then freeze all but the last layer of weights; however, the
+learned embedding may overﬁt to the limited number of
+preferences over demonstrations and fail to capture features
+relevant to the ground-truth reward function. Thus, we
+supplement the pairwise ranking objective with auxiliary
+objectives that can be optimized in a self-supervised fashion
+using data from the demonstrations.
+We use the following self-supervised tasks to pre-trainRθ:
+(1) Learn an inverse dynamics model that uses embeddings
+φ(st) andφ(st+1) to predict the corresponding action at
+(Torabi et al., 2018; Hanna & Stone, 2017), (2) Learn a
+forward dynamics model that predictsst+1 fromφ(st) and
+at (Oh et al., 2015; Thananjeyan et al., 2019), (3) Learn an
+1Project page, code, and demonstration data are available at
+https://sites.google.com/view/bayesianrex/
+Table 1. Self-supervised learning objectives used to pre-trainφ(s).
+Inverse Dynamics fID(φ(st),φ (st+1)) →at
+Forward Dynamics fFD(φ(st),at) →st+1
+Temporal Distance fTD(φ(st),φ (st+x) →x
+Variational Autoencoder fA(φ(st)) →st
+embeddingφ(s) that predicts the temporal distance between
+two randomly chosen states from the same demonstration
+(Aytar et al., 2018), and (4) Train a variational pixel-to-pixel
+autoencoder in which φ(s) is the learned latent encoding
+(Makhzani & Frey, 2017; Doersch, 2016). Table 1 summa-
+rizes the self-supervised tasks used to trainφ(s).
+There are many possibilities for pre-trainingφ(s). We used
+the objectives described above to encourage the embedding
+to encode different features. For example, an accurate in-
+verse dynamics model can be learned by only attending to
+the movement of the agent. Learning forward dynamics sup-
+plements this by requiringφ(s) to encode information about
+short-term changes to the environment. Learning to predict
+the temporal distance between states in a trajectory forces
+φ(s) to encode long-term progress. Finally, the autoencoder
+loss acts as a regularizer to the other losses as it seeks to
+embed all aspects of the state (see the Appendix for details).
+The Bayesian REX pipeline for sampling from the reward
+function posterior is shown in Figure 1.
+5.3. HCPE-IL via Bayesian REX
+We now discuss how to use Bayesian REX to ﬁnd an ef-
+ﬁcient solution to the high-conﬁdence policy evaluation
+for imitation learning (HCPE-IL) problem (see Section 4).
+Given samples from the distribution P (w | D, P), where
+R(s) =wTφ(s), we compute the posterior distribution over
+any performance statisticg(πeval,R∗) as follows. For each
+sampled weight vectorw produced by Bayesian REX, we
+computeg(πeval,w ). This results in a sample from the pos-
+terior distributionP (g(πeval,R ) |D, P), i.e., the posterior
+distribution over performance statisticg. We then compute
+a (1 −δ) conﬁdence lower bound,ˆg(πeval,D ), by ﬁnding
+theδ-quantile ofg(πeval,w ) forw ∼P (w |D, P).
+While there are many potential performance statisticsg, we
+chose to focus on bounding the expected value of the eval-
+uation policy, i.e.,g(πeval,R∗) =Vπeval
+R∗ =w∗T Φπeval. To
+compute a 1 −δ conﬁdence bound onVπeval
+R∗ , we take advan-
+tage of the learned linear reward representation to efﬁciently
+calculate the posterior distribution over policy returns given
+preferences and demonstrations. This distribution over re-
+turns is calculated via a matrix vector product,W Φπeval, in
+which each row ofW is a sample,w, from the MCMC chain
+andπeval is the evaluation policy. We then sort the resulting
+vector and select theδ-quantile lowest value. This results in
+
+--- PDF page 7 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+a 1 −δ conﬁdence lower bound onVπeval
+R∗ and corresponds
+to the δ-Value at Risk (VaR) overVπeval
+R ∼ P (R | D, P)
+(Jorion, 1997; Brown & Niekum, 2018).
+6. Experimental Results
+6.1. Bayesian IRL vs. Bayesian REX
+As noted previously, Bayesian IRL does not scale to high-
+dimensional tasks due to the requirement of repeatedly
+solving for an MDP in the inner loop. However, for
+low-dimensional problems it is still interesting to compare
+Bayesian IRL with Bayesian REX. We performed a large
+number of experiments on a variety of randomly generated
+gridworlds with low-dimensional reward features. We sum-
+marize our results here for three different ablations and give
+full results and implementation details in the Appendix.
+Ranked Suboptimal vs. Optimal Demos: Given a sufﬁ-
+cient number of suboptimal ranked demonstrations (> 5),
+Bayesian REX performs on par and occasionally better
+than Bayesian IRL when given the same number of optimal
+demonstrations.
+Only Ranked Suboptimal Demos Bayesian REX always
+signiﬁcantly outperforms Bayesian IRL when both algo-
+rithms receive suboptimal ranked demonstrations. For fairer
+comparison, we used a Bayesian IRL algorithm designed
+to learn from both good and bad demonstrations (Cui &
+Niekum, 2018). We labeled the topX% ranked demonstra-
+tions as good and bottomX% ranked as bad. This improved
+results for Bayesian IRL, but Bayesian REX still performed
+signiﬁcantly better across allX.
+Only Optimal Demos: Given a sufﬁcient number of opti-
+mal demonstrations (> 5), Bayesian IRL signiﬁcantly out-
+performs Bayesian REX. To use Bayesian REX with only
+optimal demonstrations, we followed prior work (Brown
+et al., 2019a) and auto-generated pairwise preferences using
+uniform random rollouts that were labeled as less preferred
+than the demonstrations. In general, this performed much
+worse than Bayesian IRL, but for small numbers of demon-
+strations ( ≤ 5) Bayesian REX leverages self-supervised
+rankings to perform nearly as well as full Bayesian IRL.
+These results demonstrate that if a very small number of
+unlabeled near-optimal demonstrations are available, then
+classical Bayesian IRL is the natural choice for performing
+reward inference. However, if any of these assumptions are
+not true, then Bayesian REX is a competitive and often su-
+perior alternative for performing Bayesian reward inference
+even in low-dimensional problems where an MDP solver is
+tractable. If a highly efﬁcient MDP solver is not available,
+then Bayesian IRL is infeasible and Bayesian REX is the
+natural choice for Bayesian reward inference.
+6.2. Visual Imitation Learning via Bayesian REX
+We next tested the imitation learning performance of
+Bayesian REX for high-dimensional problems where classi-
+cal Bayesian reward inferernce is infeasible. We pre-trained
+a 64 dimensional latent state embeddingφ(s) using the self-
+supervised losses shown in Table 1 and the T-REX pairwise
+preference loss. We found via ablation studies that combin-
+ing the T-REX loss with the self-supervised losses resulted
+in better performance than training only with the T-REX loss
+or only with the self-supervised losses (see Appendix for
+details). We then used Bayesian REX to generate 200,000
+samples from the posteriorP (R |D, P). To optimize a con-
+trol policy, we used Proximal Policy Optimization (PPO)
+(Schulman et al., 2017) with the MAP and mean reward
+functions from the posterior (see Appendix for details).
+To test whether Bayesian REX scales to complex imitation
+learning tasks we selected ﬁve Atari games from the Ar-
+cade Learning Environment (Bellemare et al., 2013). We
+do not give the RL agent access to the ground-truth reward
+signal and mask the game scores and number of lives in
+the demonstrations. Table 2 shows the imitation learning
+performance of Bayesian REX. We also compare against
+the results reported by (Brown et al., 2019b) for T-REX, and
+GAIL (Ho & Ermon, 2016) and use the same 12 subopti-
+mal demonstrations used by Brown et al. (2019b) to train
+Bayesian REX (see Appendix for details).
+Table 2 shows that Bayesian REX is able to utilize prefer-
+ences over demonstrations to infer an accurate reward func-
+tion that enables better-than-demonstrator performance. The
+average ground-truth return for Bayesian REX surpasses the
+performance of the best demonstration across all 5 games.
+In comparison, GAIL seeks to match the demonstrator’s
+state-action distributions which makes imitation learning
+difﬁcult when demonstrations are suboptimal and noisy. In
+addition to providing uncertainty information, Bayesian
+REX remains competitive with T-REX (which only ﬁnds a
+maximum likelihood estimate of the reward function) and
+achieves better performance on 3 out of 5 games.
+6.3. High-Conﬁdence Policy Performance Bounds
+Next, we ran an experiment to validate whether the poste-
+rior distribution generated by Bayesian REX can be used to
+solve the HCPE-IL problem described in Section 4. We eval-
+uated four different evaluation policies,A ≺B ≺C ≺D,
+created by partially training a PPO agent on the ground-
+truth reward function and checkpointing the policy at vari-
+ous stages of learning. We ran Bayesian REX to generate
+200,000 samples from P (R | D, P). To address some of
+the ill-posedness of IRL, we normalize the weightsw such
+that ∥w∥2 = 1. Given a ﬁxed scale for the reward weights,
+we can compare the relative performance of the different
+evaluation policies when evaluated over the posterior.
+
+--- PDF page 8 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Table 2. Ground-truth average scores when optimizing the mean and MAP rewards found using Bayesian REX. We also compare against
+the performnace of T-REX (Brown et al., 2019b) and GAIL (Ho & Ermon, 2016). Bayesian REX and T-REX are each given 12
+demonstrations with ground-truth pairwise preferences. GAIL cannot learn from preferences so it is given 10 demonstrations comparable
+to the best demonstration given to the other algorithms. The average performance for each IRL algorithm is the average over 30 rollouts.
+Ranked Demonstrations Bayesian REX Mean Bayesian REX MAP T-REX GAIL
+Game Best Avg Avg (Std) Avg (Std) Avg Avg
+Beam Rider 1332 686.0 5,504.7 (2121.2) 5,870.3 (1905.1) 3,335.7 355.5
+Breakout 32 14.5 390.7 (48.8) 393.1 (63.7) 221.3 0.28
+Enduro 84 39.8 487.7 (89.4) 135.0 (24.8) 586.8 0.28
+Seaquest 600 373.3 734.7 (41.9) 606.0 (37.6) 747.3 0.0
+Space Invaders 600 332.9 1,118.8 (483.1) 961.3 (392.3) 1,032.5 370.2
+Table 3. Beam Rider policy evaluation bounds compared with
+ground-truth game scores. Policies A-D correspond to evalua-
+tion policies of varying quality obtained by checkpointing an RL
+agent during training. The No-Op policy seeks to hack the learned
+reward by always playing the no-op action, resulting in very long
+trajectories with high mean predicted performance but a very neg-
+ative 95%-conﬁdence (0.05-VaR) lower bound on expected return.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 17.1 7.9 480.6 1372.6
+B 22.7 11.9 703.4 1,412.8
+C 45.5 24.9 1828.5 2,389.9
+D 57.6 31.5 2586.7 2,965.0
+No-Op 102.5 -1557.1 0.0 99,994.0
+The results for Beam Rider are shown in Table 3. We show
+results for partially trained RL policies A–D. We found that
+the ground-truth returns for the checkpoints were highly
+correlated with the mean and 0.05-VaR (5th percentile policy
+return) returns under the posterior. However, we also noticed
+that the trajectory length was also highly correlated with the
+ground-truth reward. If the reward function learned via IRL
+gives a small positive reward at every time step, then long
+polices that do the wrong thing may look good under the
+posterior. To test this hypothesis we used a No-Op policy
+that seeks to exploit the learned reward function by not
+taking any actions. This allows the agent to live until the
+Atari emulator times out after 99,994 steps.
+Table 3 shows that while the No-Op policy has a high ex-
+pected return over the chain, looking at the 0.05-VaR shows
+that the No-Op policy has high risk under the distribution,
+much lower than evaluation policy A. Our results demon-
+strate that reasoning about probabilistic worst-case perfor-
+mance may be one potential way to detect policies that
+exhibit so-called reward hacking (Amodei et al., 2016) or
+that have overﬁt to certain features in the demonstrations
+that are correlated with the intent of the demonstrations,
+Table 4. Breakout policy evaluation bounds compared with ground-
+truth game scores. Top Half: No-Op never releases the ball, result-
+ing in high mean predicted performance but a low 95%-conﬁdence
+bound (0.05-VaR). The MAP policy has even higher risk but also
+high expected return. Bottom Half: After rerunning MCMC with
+a ranked trajectory from both the MAP and No-Op policies, the
+posterior distribution matches the true preferences.
+Risk proﬁles given initial preferences
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 1.5 0.5 1.9 202.7
+B 6.3 3.7 15.8 608.4
+C 10.6 5.8 27.7 849.3
+D 13.9 6.2 41.2 1020.8
+MAP 98.2 -370.2 401.0 8780.0
+No-Op 41.2 1.0 0.0 7000.0
+Risk proﬁles after rankings w.r.t. MAP and No-Op
+A 0.7 0.3 1.9 202.7
+B 8.7 5.5 15.8 608.4
+C 18.3 12.1 27.7 849.3
+D 26.3 17.1 41.2 1020.8
+MAP 606.8 289.1 401.0 8780.0
+No-Op -5.0 -13.5 0.0 7000.0
+but do not lead to desired behavior, a common problem in
+imitation learning (Ibarz et al., 2018; de Haan et al., 2019).
+Table 4 contains policy evaluation results for the game
+Breakout. The top half of the table shows the mean return
+and 95%-conﬁdence lower bound on the expected return un-
+der the reward function posterior for four evaluation policies
+as well as the MAP policy found via Bayesian IRL and a
+No-Op policy that never chooses to release the ball. Both the
+MAP and No-Op policies have high expected returns under
+the reward function posterior, but also have high risk (low
+0.05-VaR). The MAP policy has much higher risk than the
+
+--- PDF page 9 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+No-Op policy, despite good true performance. One likely
+reason is that, as shown in Table 2, the best demonstrations
+given to Bayesian REX only achieved a game score of 32.
+Thus, the MAP policy represents an out of distribution sam-
+ple and thus has potentially high risk, since Bayesian REX
+was not trained on policies that hit any of the top layers
+of bricks. The ranked demonstrations do not give enough
+evidence to eliminate the possibility that only lower layers
+of bricks should be hit.
+To test whether active learning can help, we incorporated
+two active queries: a single rollout from the MAP policy
+and a single rollout from the No-Op policy and ranked them
+as better and worse, respectively, than the original set of 12
+suboptimal demonstrations. As the bottom of Table 4 shows,
+adding two more ranked demonstrations and re-running
+Bayesian inference, results in a signiﬁcant change in the
+risk proﬁles of the MAP and No-Op policy—the No-Op
+policy is now correctly predicted to have high risk and low
+expected returns and the MAP policy now has a much higher
+95%-conﬁdence lower bound on performance.
+In the Appendix, we also compare the performance of
+Bayesian REX to alternative methods such as using MC
+dropout (Gal & Ghahramani, 2016) or using an ensemble
+(Lakshminarayanan et al., 2017) to estimate uncertainty and
+compute high-conﬁdence performance bounds.
+6.4. Human Demonstrations
+To investigate whether Bayesian REX is able to correctly
+rank human demonstrations, we used Bayesian REX to
+calculate high-conﬁdence performance bounds for a variety
+of human demonstrations (see the Appendix for full details
+and additional results).
+We generated four human demonstrations for Beam Rider:
+(1) good, a good demonstration that plays the game well,
+(2) bad, a bad demonstration that seeks to play the game but
+does a poor job, (3) pessimal, a demonstration that does not
+shoot enemies and seeks enemy bullets, and (4) adversarial
+a demonstration that pretends to play the game by moving
+and shooting but tries to avoid actually shooting enemies.
+The resulting high-conﬁdence policy evaluations are shown
+in Table 5. The high-conﬁdence bounds and average perfor-
+mance over the posterior correctly rank the behaviors. This
+provides evidence that the learned linear reward correctly
+rewards actually destroying aliens and avoiding getting shot,
+rather than just ﬂying around and shooting.
+Next we demonstrated four different behaviors when play-
+ing Enduro: (1) good a demonstration that seeks to play
+the game well, (2) periodic a demonstration that alternates
+between speeding up and passing cars and then slowing
+down and being passed, (3) neutral a demonstration that
+stays right next to the last car in the race and doesn’t try to
+Table 5. Beam Rider human demonstrations.
+Predicted Ground Truth
+Policy Mean 0.05-VaR Avg. Length
+good 12.4 5.8 1092 1000.0
+bad 10.7 4.5 396 1000.0
+pessimal 6.6 0.8 0 1000.0
+adversarial 8.4 2.4 176 1000.0
+Table 6. Enduro evaluation of a variety of human demonstrations.
+Predicted Ground Truth
+Policy Mean 0.05-VaR Avg. Length
+good 246.7 -113.2 177 3325.0
+periodic 230.0 -130.4 44 3325.0
+neutral 190.8 -160.6 0 3325.0
+ram 148.4 -214.3 0 3325.0
+pass or get passed, and (4) ram a demonstration that tries to
+ram into as many cars while going fast. Table 6 shows that
+Bayesian REX is able to accurately predict the performance
+and risk of each of these demonstrations and gives the high-
+est (lowest 0.05-VaR) risk to the ram demonstration and the
+least risk to the good demonstration.
+7. Conclusion
+Bayesian reasoning is a powerful tool when dealing with
+uncertainty and risk; however, existing Bayesian reward
+learning algorithms often require solving an MDP in the
+inner loop, rendering them intractable for complex prob-
+lems in which solving an MDP may take several hours or
+even days. In this paper we propose a novel deep learning
+algorithm, Bayesian Reward Extrapolation (Bayesian REX),
+that leverages preference labels over demonstrations to make
+Bayesian reward inference tractable for high-dimensional
+visual imitation learning tasks. Bayesian REX can sam-
+ple tens of thousands of reward functions from the poste-
+rior in a matter of minutes using a consumer laptop. We
+tested our approach on ﬁve Atari imitation learning tasks
+and showed that Bayesian REX achieves state-of-the-art
+performance in 3 out of 5 games. Furthermore, Bayesian
+REX enables efﬁcient high-conﬁdence performance bounds
+for arbitrary evaluation policies. We demonstrated that these
+high-conﬁdence bounds allow an agent to accurately rank
+different evaluation policies and provide a potential way to
+detect reward hacking and value misalignment.
+We note that our proposed safety bounds are only safe
+with respect to the assumptions that we make: good fea-
+ture pre-training, rapid MCMC mixing, and accurate pref-
+erences over demonstrations. Future work includes using
+
+--- PDF page 10 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+exploratory trajectories for better pre-training of the latent
+feature embeddings, developing methods to determine when
+a relevant feature is missing from the learned latent space,
+and using high-conﬁdence performance bounds to perform
+safe policy optimization in the imitation learning setting.
+Acknowledgements
+This work has taken place in the Personal Autonomous
+Robotics Lab (PeARL) at The University of Texas at
+Austin. PeARL research is supported in part by the NSF
+(IIS-1724157, IIS-1638107,IIS-1617639, IIS-1749204) and
+ONR(N00014-18-2243, N00014-17-1-2143). This research
+was also sponsored by the Army Research Ofﬁce and
+was accomplished under Cooperative Agreement Number
+W911NF-19-2-0333. The views and conclusions contained
+in this document are those of the authors and should not
+be interpreted as representing the ofﬁcial policies, either
+expressed or implied, of the Army Research Ofﬁce or the
+U.S. Government. The U.S. Government is authorized to
+reproduce and distribute reprints for Government purposes
+notwithstanding any copyright notation herein.
+References
+Abbeel, P. and Ng, A. Y . Apprenticeship learning via in-
+verse reinforcement learning. In Proceedings of the 21st
+International Conference on Machine Learning, 2004.
+Akrour, R., Schoenauer, M., and Sebag, M. Preference-
+based policy learning. In Joint European Conference
+on Machine Learning and Knowledge Discovery in
+Databases, pp. 12–27. Springer, 2011.
+Amodei, D., Olah, C., Steinhardt, J., Christiano, P., Schul-
+man, J., and Man ´e, D. Concrete problems in ai safety.
+arXiv preprint arXiv:1606.06565, 2016.
+Argall, B. D., Chernova, S., Veloso, M., and Browning, B.
+A survey of robot learning from demonstration. Robotics
+and autonomous systems, 57(5):469–483, 2009.
+Aytar, Y ., Pfaff, T., Budden, D., Paine, T. L., Wang, Z., and
+de Freitas, N. Playing hard exploration games by watch-
+ing youtube. arXiv preprint arXiv:1805.11592, 2018.
+Barreto, A., Dabney, W., Munos, R., Hunt, J. J., Schaul, T.,
+van Hasselt, H. P., and Silver, D. Successor features for
+transfer in reinforcement learning. In Advances in neural
+information processing systems, pp. 4055–4065, 2017.
+Bellemare, M. G., Naddaf, Y ., Veness, J., and Bowling, M.
+The arcade learning environment: An evaluation plat-
+form for general agents. Journal of Artiﬁcial Intelligence
+Research, 47:253–279, 2013.
+Bıyık, E., Palan, M., Landolﬁ, N. C., Losey, D. P., and
+Sadigh, D. Asking easy questions: A user-friendly ap-
+proach to active reward learning. In Conference on Robot
+Learning (CoRL), 2019.
+Bobu, A., Bajcsy, A., Fisac, J. F., and Dragan, A. D. Learn-
+ing under misspeciﬁed objective spaces.arXiv preprint
+arXiv:1810.05157, 2018.
+Bradley, R. A. and Terry, M. E. Rank analysis of incom-
+plete block designs: I. the method of paired comparisons.
+Biometrika, 39(3/4):324–345, 1952.
+Brown, D. S. and Niekum, S. Efﬁcient Probabilistic Perfor-
+mance Bounds for Inverse Reinforcement Learning. In
+AAAI Conference on Artiﬁcial Intelligence, 2018.
+Brown, D. S., Cui, Y ., and Niekum, S. Risk-aware active
+inverse reinforcement learning. In Conference on Robot
+Learning (CoRL), 2018.
+Brown, D. S., Goo, W., and Niekum, S. Better-than-
+demonstrator imitation learning via automaticaly-ranked
+demonstrations. In Conference on Robot Learning
+(CoRL), 2019a.
+Brown, D. S., Goo, W., Prabhat, N., and Niekum, S. Ex-
+trapolating beyond suboptimal demonstrations via inverse
+reinforcement learning from observations. In Proceed-
+ings of the 36th International Conference on Machine
+Learning, ICML 2019, 2019b.
+Chow, Y ., Tamar, A., Mannor, S., and Pavone, M. Risk-
+sensitive and robust decision-making: a cvar optimization
+approach. In Advances in Neural Information Processing
+Systems, 2015.
+Christiano, P. F., Leike, J., Brown, T., Martic, M., Legg,
+S., and Amodei, D. Deep reinforcement learning from
+human preferences. In Advances in Neural Information
+Processing Systems, pp. 4299–4307, 2017.
+Cui, Y . and Niekum, S. Active reward learning from cri-
+tiques. In IEEE International Conference on Robotics
+and Automation (ICRA), 2018.
+de Haan, P., Jayaraman, D., and Levine, S. Causal confusion
+in imitation learning. In Advances in Neural Information
+Processing Systems, pp. 11693–11704, 2019.
+Dhariwal, P., Hesse, C., Klimov, O., Nichol, A., Plappert,
+M., Radford, A., Schulman, J., Sidor, S., Wu, Y ., and
+Zhokhov, P. Openai baselines. https://github.
+com/openai/baselines, 2017.
+Doersch, C. Tutorial on variational autoencoders. arXiv
+preprint arXiv:1606.05908, 2016.
+
+--- PDF page 11 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Eckersley, P. Impossibility and uncertainty theorems in ai
+value alignment (or why your agi should not have a utility
+function). arXiv preprint arXiv:1901.00064, 2018.
+Finn, C., Christiano, P., Abbeel, P., and Levine, S. A con-
+nection between generative adversarial networks, inverse
+reinforcement learning, and energy-based models. arXiv
+preprint arXiv:1611.03852, 2016a.
+Finn, C., Levine, S., and Abbeel, P. Guided cost learning:
+Deep inverse optimal control via policy optimization. In
+International Conference on Machine Learning, 2016b.
+Fisac, J. F., Gates, M. A., Hamrick, J. B., Liu, C., Hadﬁeld-
+Menell, D., Palaniappan, M., Malik, D., Sastry, S. S., Grif-
+ﬁths, T. L., and Dragan, A. D. Pragmatic-pedagogic value
+alignment. In Robotics Research, pp. 49–57. Springer,
+2020.
+Fu, J., Luo, K., and Levine, S. Learning robust rewards
+with adversarial inverse reinforcement learning. arXiv
+preprint arXiv:1710.11248, 2017.
+Gal, Y . and Ghahramani, Z. Dropout as a bayesian approx-
+imation: Representing model uncertainty in deep learn-
+ing. In international conference on machine learning, pp.
+1050–1059, 2016.
+Garcıa, J. and Fern´andez, F. A comprehensive survey on safe
+reinforcement learning. Journal of Machine Learning
+Research, 16(1):1437–1480, 2015.
+Ghasemipour, S. K. S., Zemel, R., and Gu, S. A divergence
+minimization perspective on imitation learning methods.
+arXiv preprint arXiv:1911.02256, 2019.
+Ghavamzadeh, M., Petrik, M., and Chow, Y . Safe policy
+improvement by minimizing robust baseline regret. In
+Advances in Neural Information Processing Systems, pp.
+2298–2306, 2016.
+Hadﬁeld-Menell, D., Russell, S. J., Abbeel, P., and Dra-
+gan, A. Cooperative inverse reinforcement learning. In
+Advances in neural information processing systems, pp.
+3909–3917, 2016.
+Hadﬁeld-Menell, D., Milli, S., Abbeel, P., Russell, S. J., and
+Dragan, A. Inverse reward design. In Advances in neural
+information processing systems, pp. 6765–6774, 2017.
+Hanna, J., Niekum, S., and Stone, P. Importance sampling
+policy evaluation with an estimated behavior policy. In
+Proceedings of the 36th International Conference on Ma-
+chine Learning (ICML), June 2019.
+Hanna, J. P. and Stone, P. Grounded action transformation
+for robot learning in simulation. In Thirty-First AAAI
+Conference on Artiﬁcial Intelligence, 2017.
+Hessel, M., Modayil, J., Van Hasselt, H., Schaul, T., Ostro-
+vski, G., Dabney, W., Horgan, D., Piot, B., Azar, M., and
+Silver, D. Rainbow: Combining improvements in deep re-
+inforcement learning. In Thirty-Second AAAI Conference
+on Artiﬁcial Intelligence, 2018.
+Ho, J. and Ermon, S. Generative adversarial imitation learn-
+ing. In Advances in Neural Information Processing Sys-
+tems, pp. 4565–4573, 2016.
+Hron, J., Matthews, D. G., Ghahramani, Z., et al. Variational
+bayesian dropout: Pitfalls and ﬁxes. In35th International
+Conference on Machine Learning, ICML 2018, volume 5,
+pp. 3199–3219, 2018.
+Huang, J., Wu, F., Precup, D., and Cai, Y . Learning safe
+policies with expert guidance. In Advances in Neural
+Information Processing Systems, pp. 9105–9114, 2018.
+Ibarz, B., Leike, J., Pohlen, T., Irving, G., Legg, S., and
+Amodei, D. Reward learning from human preferences
+and demonstrations in atari. In Advances in Neural Infor-
+mation Processing Systems, 2018.
+Jacq, A., Geist, M., Paiva, A., and Pietquin, O. Learning
+from a learner. In International Conference on Machine
+Learning, pp. 2990–2999, 2019.
+Jorion, P. Value at risk. McGraw-Hill, New York, 1997.
+Kendall, A. and Gal, Y . What uncertainties do we need in
+bayesian deep learning for computer vision? In Advances
+in neural information processing systems, pp. 5574–5584,
+2017.
+Khan, M. E., Nielsen, D., Tangkaratt, V ., Lin, W., Gal,
+Y ., and Srivastava, A. Fast and scalable bayesian deep
+learning by weight-perturbation in adam. arXiv preprint
+arXiv:1806.04854, 2018.
+Kingma, D. P. and Ba, J. Adam: A method for stochastic
+optimization. arXiv preprint arXiv:1412.6980, 2014.
+Lacotte, J., Ghavamzadeh, M., Chow, Y ., and Pavone, M.
+Risk-sensitive generative adversarial imitation learning.
+In The 22nd International Conference on Artiﬁcial Intel-
+ligence and Statistics, pp. 2154–2163, 2019.
+Lakshminarayanan, B., Pritzel, A., and Blundell, C. Simple
+and scalable predictive uncertainty estimation using deep
+ensembles. In Advances in neural information processing
+systems, pp. 6402–6413, 2017.
+Laskey, M., Lee, J., Fox, R., Dragan, A., and Goldberg,
+K. Dart: Noise injection for robust imitation learning.
+Conference on Robot Learning (CoRL), 2017.
+
+--- PDF page 12 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Leike, J., Martic, M., Krakovna, V ., Ortega, P. A., Everitt,
+T., Lefrancq, A., Orseau, L., and Legg, S. Ai safety
+gridworlds. arXiv preprint arXiv:1711.09883, 2017.
+Littman, M. L., Dean, T. L., and Kaelbling, L. P. On the
+complexity of solving markov decision problems. Pro-
+ceedings of the Eleventh Conference on Uncertainty in
+Artiﬁcial Intelligence, 1995.
+Liu, Q. and Wang, D. Stein variational gradient descent: A
+general purpose bayesian inference algorithm. In Ad-
+vances in neural information processing systems , pp.
+2378–2386, 2016.
+MacKay, D. J. A practical bayesian framework for backprop-
+agation networks. Neural computation, 4(3):448–472,
+1992.
+Maddox, W. J., Izmailov, P., Garipov, T., Vetrov, D. P., and
+Wilson, A. G. A simple baseline for bayesian uncertainty
+in deep learning. In Advances in Neural Information
+Processing Systems, pp. 13132–13143, 2019.
+Majumdar, A., Singh, S., Mandlekar, A., and Pavone, M.
+Risk-sensitive inverse reinforcement learning via coher-
+ent risk models. In Robotics: Science and Systems, 2017.
+Makhzani, A. and Frey, B. J. Pixelgan autoencoders. In
+Advances in Neural Information Processing Systems, pp.
+1975–1985, 2017.
+Menda, K., Driggs-Campbell, K., and Kochenderfer, M. J.
+Ensembledagger: A bayesian approach to safe imitation
+learning. In 2019 IEEE/RSJ International Conference on
+Intelligent Robots and Systems (IROS), pp. 5041–5048.
+IEEE, 2019.
+Milli, S., Hadﬁeld-Menell, D., Dragan, A., and Russell, S.
+Should robots be obedient? In Proceedings of the 26th
+International Joint Conference on Artiﬁcial Intelligence,
+pp. 4754–4760, 2017.
+Mnih, V ., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness,
+J., Bellemare, M. G., Graves, A., Riedmiller, M., Fidje-
+land, A. K., Ostrovski, G., et al. Human-level control
+through deep reinforcement learning. Nature, 518(7540):
+529, 2015.
+Ng, A. Y . and Russell, S. J. Algorithms for inverse rein-
+forcement learning. In Proceedings of the International
+Conference on Machine Learning, pp. 663–670, 2000.
+Ng, A. Y ., Harada, D., and Russell, S. Policy invariance
+under reward transformations: Theory and application to
+reward shaping. In ICML, volume 99, pp. 278–287, 1999.
+Oh, J., Guo, X., Lee, H., Lewis, R. L., and Singh, S. Action-
+conditional video prediction using deep networks in atari
+games. In Advances in neural information processing
+systems, pp. 2863–2871, 2015.
+Osband, I. Risk versus uncertainty in deep learning: Bayes,
+bootstrap and the dangers of dropout. In NIPS Workshop
+on Bayesian Deep Learning, 2016.
+Palan, M., Landolﬁ, N. C., Shevchuk, G., and Sadigh, D.
+Learning reward functions by integrating human demon-
+strations and preferences. In Proceedings of Robotics:
+Science and Systems (RSS), June 2019.
+Petrik, M. and Russell, R. H. Beyond conﬁdence regions:
+Tight bayesian ambiguity sets for robust mdps. arXiv
+preprint arXiv:1902.07605, 2019.
+Pomerleau, D. A. Efﬁcient training of artiﬁcial neural net-
+works for autonomous navigation. Neural Computation,
+3(1):88–97, 1991.
+Pradier, M. F., Pan, W., Yao, J., Ghosh, S., and Doshi-Velez,
+F. Projected bnns: Avoiding weight-space pathologies by
+learning latent representations of neural network weights.
+arXiv preprint arXiv:1811.07006, 2018.
+Ramachandran, D. and Amir, E. Bayesian inverse reinforce-
+ment learning. In Proceedings of the 20th International
+Joint Conference on Artiﬁcal intelligence, pp. 2586–2591,
+2007.
+Ross, S., Gordon, G., and Bagnell, D. A reduction of imita-
+tion learning and structured prediction to no-regret online
+learning. In Proceedings of the fourteenth international
+conference on artiﬁcial intelligence and statistics , pp.
+627–635, 2011.
+Sadigh, D., Dragan, A. D., Sastry, S. S., and Seshia, S. A.
+Active preference-based learning of reward functions. In
+Proceedings of Robotics: Science and Systems (RSS) ,
+2017.
+Schulman, J., Wolski, F., Dhariwal, P., Radford, A., and
+Klimov, O. Proximal policy optimization algorithms.
+arXiv preprint arXiv:1707.06347, 2017.
+Sun, S., Zhang, G., Shi, J., and Grosse, R. Functional
+variational bayesian neural networks. arXiv preprint
+arXiv:1903.05779, 2019.
+Sutton, R. S., McAllester, D. A., Singh, S. P., and Mansour,
+Y . Policy gradient methods for reinforcement learning
+with function approximation. In Advances in neural in-
+formation processing systems, pp. 1057–1063, 2000.
+Tamar, A., Glassner, Y ., and Mannor, S. Optimizing the
+cvar via sampling. In Proceedings of the Twenty-Ninth
+AAAI Conference on Artiﬁcial Intelligence , pp. 2993–
+2999, 2015.
+
+--- PDF page 13 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Taylor, M. E. and Stone, P. Transfer learning for reinforce-
+ment learning domains: A survey. Journal of Machine
+Learning Research, 10(Jul):1633–1685, 2009.
+Thananjeyan, B., Balakrishna, A., Rosolia, U., Li, F.,
+McAllister, R., Gonzalez, J. E., Levine, S., Borrelli,
+F., and Goldberg, K. Safety augmented value estima-
+tion from demonstrations (saved): Safe deep model-
+based rl for sparse cost robotic tasks. arXiv preprint
+arXiv:1905.13402, 2019.
+Thomas, P. S., Theocharous, G., and Ghavamzadeh, M.
+High-conﬁdence off-policy evaluation. InProceedings of
+the AAAI Conference on Artiﬁcial Intelligence, pp. 3000–
+3006, 2015.
+Torabi, F., Warnell, G., and Stone, P. Behavioral cloning
+from observation. In Proceedings of the 27th Interna-
+tional Joint Conference on Artiﬁcial Intelligence (IJCAI),
+July 2018.
+V olkovs, M. N. and Zemel, R. S. New learning methods
+for supervised and unsupervised preference aggregation.
+The Journal of Machine Learning Research, 15(1):1135–
+1176, 2014.
+Wilson, A., Fern, A., and Tadepalli, P. A bayesian approach
+for policy learning from trajectory preference queries. In
+Advances in neural information processing systems, pp.
+1133–1141, 2012.
+Zhang, J. and Cho, K. Query-efﬁcient imitation learning
+for end-to-end simulated driving. In Thirty-First AAAI
+Conference on Artiﬁcial Intelligence, 2017.
+Ziebart, B. D., Maas, A. L., Bagnell, J. A., and Dey, A. K.
+Maximum entropy inverse reinforcement learning. In
+Proceedings of the 23rd AAAI Conference on Artiﬁcial
+Intelligence, pp. 1433–1438, 2008.
+A. Source Code and Videos
+See the project webpage https://sites.google.
+com/view/bayesianrex/. Code repo for the Atari
+experiments is available at https://github.com/
+dsbrown1331/bayesianrex. Code for the gridworld
+experiments can be found at https://github.com/
+dsbrown1331/brex_gridworld_cpp
+B. MCMC Details
+We represent Rθ as a linear combination of pre-trained
+features:
+Rθ(τ) =
+∑
+s∈τ
+wTφ(s) =wT ∑
+s∈τ
+φ(s) =wT Φτ. (8)
+We pre-compute and cache Φτi = ∑
+s∈τiφ(s) for i =
+1,...,m and the likelihood becomes
+P (P,D |Rθ) =
+∏
+(i,j)∈P
+eβwT Φτj
+eβwT Φτj +eβwT Φτi
+. (9)
+We useβ = 1 and enforce constraints on the weight vec-
+tors by normalizing the output of the weight vector pro-
+posal such that ∥w∥2 = 1 and use a Gaussian proposal
+function centered on w with standard deviation σ. Thus,
+given the current sample wt, the proposal is deﬁned as
+wt+1 = normalize(N (wt,σ )), in which normalize
+divides by the L2 norm of the sample to project back to the
+surface of the L2-unit ball.
+For all experiments, except Seaquest, we used a default step
+size of 0.005. For Seaquest increased the step size to 0.05.
+We run 200,000 steps of MCMC and use a burn-in of 5000
+and skip every 20th sample to reduce auto-correlation. We
+initialize the MCMC chain with a randomly chosen vec-
+tor on the L2-unit ball. Because the inverse reinforcement
+learning is ill-posed there are an inﬁnite number of reward
+functions that could match any set of demonstrations. Prior
+work by Finn et al. (2016b) demonstrates that strong regu-
+larization is needed when learning cost functions via deep
+neural networks. To ensure that the rewards learned allow
+good policy optimization when fed into an RL algorithm we
+used a non-negative return prior on the return of the lowest
+ranked demonstration. The prior takes the following form:
+logP (w) =
+{
+0 ifeβwT Φτ1 < 0
+−∞ otherwise (10)
+This forces MCMC to not only ﬁnd reward function weights
+that match the rankings, but to also ﬁnd weights such that
+the return of the worse demonstration is non-negative. If
+the return of the worse demonstration was negative during
+proposal generation, then we assigned it a prior probability
+of −∞. Because the ranking likelihood is invariant to afﬁne
+transformations of the rewards, this prior simply shifts the
+range of learned returns and does not affect the log likeli-
+hood ratios.
+C. Bayesian IRL vs. Bayesian REX
+Bayesian IRL does not scale to high-dimensional tasks due
+to the requirement of repeatedly solving for an MDP in the
+inner loop. In this section we focus on low-dimensional
+problems where it is tractable to repeatedly solve an
+MDP. We compare the performance of Bayesian IRL with
+Bayesian REX when performing reward inference. Because
+both algorithms make very different assumptions, we com-
+pare their performance across three different tasks. The ﬁrst
+task attempts to give both algorithms the demonstrations
+
+--- PDF page 14 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Algorithm 1 Bayesian REX: Bayesian Reward Extrapola-
+tion
+1: Input: demonstrations D, pairwise preferences P,
+MCMC proposal widthσ, number of proposals to gen-
+erateN, deep network architectureRθ, and priorP (w).
+2: pre-trainRθ using auxiliary tasks (see Section 5.2).
+3: Freeze all but last layer,w, ofRθ.
+4: φ(s) := activations of the penultimate layer ofRθ.
+5: Precompute and cache Φτ = ∑
+s∈τφ(s) for allτ ∈D.
+6: Initializew randomly.
+7: Chain[0] ←w
+8: ComputeP (P,D |w)P (w) using Equation (9)
+9: fori ← 1 toN do
+10: ˜w ← normalize(N (wt,σ ))
+11: ComputeP (P,D | ˜w)P ( ˜w) using Equation (9)
+12: u ← Uniform(0, 1)
+13: ifu< P (P,D | ˜w)P ( ˜w)
+P (P,D |w)P (w) then
+14: Chain[i] ← ˜w
+15: w ← ˜w
+16: else
+17: Chain[i] ←w
+18: end if
+19: end for
+20: return Chain
+they were designed for. The second evaluation focuses on
+the case where all demonstrations are optimal and is de-
+signed to put Bayesian IRL at a disadvantage. The third
+evaluation focuses on the case where all demonstrations are
+optimal and is designed to put Bayesian REX at a disadvan-
+tage. Note that we focus on sample efﬁciency rather than
+computational efﬁciency as Bayesian IRL is signiﬁcantly
+slower than Bayesian REX as it requires repeatedly solving
+an MDP, whereas Bayesian REX requires no access to an
+MDP during reward inference.
+All experiments were performed using 6x6 gridworlds with
+4 binary features placed randomly in the environment. The
+ground-truth reward functions are sampled uniformly from
+the L1-ball (Brown & Niekum, 2018). The agent can move
+in the four cardinal directions and stays in place if it attempts
+to move off the grid. Transitions are deterministic,γ = 0.9,
+and there are no terminal states. We perform evaluations
+over 100 random gridworlds for varying numbers of demon-
+strations. Each demonstration is truncated to a horizon of
+20. We use β = 50 for both Bayesian IRL and Bayesian
+REX and we remove duplicates from demonstrations. After
+performing MCMC we used a 10% burn-in period for both
+algorithms and only used every 5th sample after the burn-in
+when computing the mean reward under the posterior. We
+then optimized a policy under the mean reward from the
+Bayesian IRL posterior and under the mean reward from
+Table 7. Ranked Suboptimal vs. Optimal Demos: Average policy
+loss over 100 random 6x6 grid worlds with 4 binary features for
+varying numbers of demonstrations.
+Number of demonstrations
+2 5 10 20 30
+B-IRL 0.044 0.033 0.020 0.009 0.006
+B-REX 1.779 0.421 0.019 0.006 0.006
+the Bayesian REX posterior. We then compare the average
+policy loss for each algorithm when compared with optimal
+performance under the ground-truth reward function.
+Code for the gridworld experiments can be found at
+https://github.com/dsbrown1331/brex_
+gridworld_cpp.
+C.1. Ranked Suboptimal vs. Optimal Demonstrations
+We ﬁrst compare Bayesian IRL when it is given varying
+numbers of optimal demonstrations with Bayesian REX
+when it receives the same number of suboptimal demon-
+strations. We give each algorithm the demonstrations best
+suited for its assumptions while keeping the number of
+demonstrations equal and using the same starting states for
+each algorithm. To generate suboptimal demonstrations we
+simply use random rollouts and then rank them according
+to the ground-truth reward function.
+Table 7 shows that, given a sufﬁcient number of suboptimal
+ranked demonstrations (> 5), Bayesian REX performs on
+par or slightly better than Bayesian IRL when given the same
+number of optimal demonstrations starting from the same
+states as the suboptimal demonstrations. This result shows
+that not only is Bayesian REX much more computationally
+efﬁcient, but it also has sample efﬁciency comparable to
+Bayesian IRL as long as there are a sufﬁcient number of
+ranked demonstrations. Note that 2 ranked demonstrations
+induces only a single constraint on the reward function so it
+is not surprising that it performs much worse than running
+full Bayesian IRL with all the counterfactuals afforded by
+running an MDP solver in the inner-loop.
+C.2. Only Ranked Suboptimal Demonstrations
+For the next experiment we consider what happens when
+Bayesian IRL recieves suboptimal ranked demonstrations.
+Table 8 shows that B-REX always signiﬁcantly outperforms
+Bayesian IRL when both algorithms receive suboptimal
+ranked demonstrations. To achieve a fairer comparison, we
+also compared Bayesian REX with a Bayesian IRL algo-
+rithm designed to learn from both good and bad demon-
+strations (Cui & Niekum, 2018). We labeled the top x%
+ranked demonstrations as good and bottom x% ranked as
+
+--- PDF page 15 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Table 8. Ranked Suboptimal Demos: Average policy loss for
+Bayesian IRL versus Bayesian REX over 100 random 6x6 grid
+worlds with 4 binary features for varying numbers of demonstra-
+tions
+Number of demonstrations
+2 5 10 20 30
+B-IRL 3.512 3.319 2.791 3.078 3.158
+B-REX 1.796 0.393 0.026 0.006 0.006
+Table 9. Ranked Suboptimal Demos: Average policy loss for
+Bayesian REX and Bayesian IRL using the method proposed by
+(Cui & Niekum, 2018)* which makes use of good and bad demon-
+strations. We used the topx% of the ranked demos as good and
+bottomx% as bad. Results are averaged over 100 random 6x6 grid
+worlds with 4 binary features.
+Top/bottom percent of 20 ranked demos
+x=5% x=10% x=25% x=50%
+B-IRL(x)* 1.120 0.843 1.124 2.111
+B-REX 0.006
+bad. Table 9 shows that leveraging the ranking signiﬁcantly
+improves the performance of Bayesian IRL, but Bayesian
+REX still performed signiﬁcantly better across allx.
+C.3. Only Optimal Demonstrations
+Finally, we compared Bayesian REX with Bayesian IRL
+when both algorithms are given optimal demonstrations. As
+an attempt to use Bayesian REX with only optimal demon-
+strations, we followed prior work (Brown et al., 2019a) and
+auto-generated pairwise preferences using uniform random
+rollouts that are labeled as less preferred than the demon-
+strations. Table 10 shows that Bayesian IRL outperforms
+Bayesian REX. This demonstrates the value of giving a
+variety of ranked trajectories to Bayesian REX. For small
+numbers of optimal demonstrations ( ≤ 5) we found that
+Bayesian REX leveraged the self-supervised rankings to
+only perform slightly worse than full Bayesian IRL. This
+result is encouraging since it is possible that a more sophis-
+ticated method for auto-generating suboptimal demonstra-
+tions and rankings could be used to further improve the
+performance of Bayesian REX even when demonstrations
+are not ranked (Brown et al., 2019a).
+C.4. Summary
+The results above demonstrate that if a very small number of
+unlabeled near-optimal demonstrations are available, then
+classical Bayesian IRL is the natural choice for performing
+reward inference. However, if any of these assumptions are
+not true, then Bayesian REX is a competitive and often su-
+Table 10. Optimal Demos: Average policy loss for Bayesian IRL
+versus Bayesian REX over 100 random 6x6 grid worlds with 4
+binary features for varying numbers of demonstrations. Bayesian
+REX uses random rollouts to automatically create preferences
+(optimal demos are preferred to random rollouts).
+Number of demonstrations
+2 5 10 20 30
+B-IRL 0.045 0.034 0.018 0.009 0.006
+B-REX 0.051 0.045 0.040 0.034 0.034
+perior alternative for performing Bayesian reward inference.
+Also implicit in the above results is the assumption that
+a highly tractable MDP solver is available for performing
+Bayesian IRL. If this is not the case, then Bayesian IRL
+is infeasible and Bayesian REX is the natural choice for
+Bayesian reward inference.
+D. Pre-training Latent Reward Features
+We experimented with several pretraining methods. One
+method is to trainRθ using the pairwise ranking loss
+P (D, P | Rθ) =
+∏
+(i,j)∈P
+eβRθ(τj)
+eβRθ(τi) +eβRθ(τj), (11)
+and then freeze all but the last layer of weights; however,
+the learned embedding may overﬁt to the limited number of
+preferences over demonstrations and fail to capture features
+relevant to the ground-truth reward function. Thus, we
+supplement the pairwise ranking objective with auxiliary
+objectives that can be optimized in a self-supervised fashion
+using data from the demonstrations.
+We use the following self-supervised tasks to pre-trainRθ:
+(1) Learn an inverse dynamics model that uses embeddings
+φ(st) andφ(st+1) to predict the corresponding action at
+(Torabi et al., 2018; Hanna & Stone, 2017), (2) Learn a
+forward dynamics model that predictsst+1 fromφ(st) and
+at (Oh et al., 2015; Thananjeyan et al., 2019), (3) Learn an
+embeddingφ(s) that predicts the temporal distance between
+two randomly chosen states from the same demonstration
+(Aytar et al., 2018), and (4) Train a variational pixel-to-pixel
+autoencoder in which φ(s) is the learned latent encoding
+(Makhzani & Frey, 2017; Doersch, 2016). Table 11 summa-
+rizes the auxiliary tasks used to trainφ(s).
+There are many possibilities for pre-trainingφ(s); however,
+we found that each objective described above encourages
+the embedding to encode different features. For example,
+an accurate inverse dynamics model can be learned by only
+attending to the movement of the agent. Learning forward
+dynamics supplements this by requiring φ(s) to encode
+information about short-term changes to the environment.
+
+--- PDF page 16 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Table 11. Self-supervised learning objectives used to pre-train
+φ(s).
+Inverse Dynamics fID(φ(st),φ (st+1)) →at
+Forward Dynamics fFD(φ(st),at) →st+1
+Temporal Distance fTD(φ(st),φ (st+x) →x
+Variational Autoencoder fA(φ(st)) →st
+Learning to predict the temporal distance between states in a
+trajectory forcesφ(s) to encode long-term progress. Finally,
+the autoencoder loss acts as a regularizer to the other losses
+as it seeks to embed all aspects of the state.
+In the Atari domain, input to the network is given visually
+as grayscale frames resized to 84 × 84. To provide tem-
+poral information, four sequential frames are stacked one
+on top of another to create a framestack which provides a
+brief snapshot of activity. The network architecture takes
+a framestack, applies four convolutional layers following a
+similar architecture to Christiano et al. (2017) and Brown
+et al. (2019b), with leaky ReLU units as non-linearities fol-
+lowing each convolution layer. The convolutions follow the
+following structure:
+# Filter size Image size Stride
+Input - 84 × 84 × 4 -
+1 7x7 26 × 26 × 16 3
+2 5x5 11 × 11 × 32 2
+3 5x5 9 × 9 × 32 1
+4 3x3 7 × 7 × 16 1
+The convolved image is then ﬂattened. Two sequential
+fully connected layers, with leaky ReLU applied to the ﬁrst
+layer, transform the ﬂattened image into the encoding, φ(s)
+wheres is the initial framestack. The width of these layers
+depends on the size of the feature encoding chosen. In our
+experiments with a latent dimension of 64, the ﬁrst layer
+transforms from size 784 to 128 and the second from 128 to
+64.
+See Figure 2 for a complete diagram of this process.
+Architectural information for each auxiliary task is given
+below.
+1. The variational autoencoder (V AE) tries to reconstruct
+the original framestack from the feature encoding using
+transposed convolutions. Mirroring the structure of the
+initial convolutions, two fully connected layers precede
+four transposed convolution layers. These ﬁrst two
+layers transform the 64-dimensional feature encoding
+from 64 to 128, and from 128 to 1568. The following
+four layers’ structures are summarized below:
+# Filter size Image size Stride
+Input - 28 × 28 × 2 -
+1 3x3 30 × 30 × 4 1
+2 6x6 35 × 35 × 16 1
+3 7x7 75 × 75 × 16 2
+4 10x10 84 × 84 × 4 1
+A cross-entropy loss is applied between the recon-
+structed image and the original, as well as a term added
+to penalize the KL divergence of the distribution from
+the unit normal.
+2. A temporal difference estimator, which takes two ran-
+dom feature encodings from the same demonstration
+and predicts the number of timesteps in between. It is a
+single fully-connected layer, transforming the concate-
+nated feature encodings into a scalar time difference.
+A mean-squared error loss is applied between the real
+difference and predicted.
+3. An inverse dynamics model, which takes two sequen-
+tial feature encodings and predicts the action taken
+in between. It is again a single fully-connected layer,
+trained as a classiﬁcation problem with a binary cross-
+entropy loss over the discrete action set.
+4. A forward dynamics model, which takes a concate-
+nated feature encoding and action and predicts the next
+feature encoding with a single fully-connected layer.
+This is repeated 5 times, which increases the difference
+between the initial and ﬁnal encoding. It is trained
+using a mean-squared error between the predicted and
+real feature encoding.
+5. A T-REX loss, which samples feature encodings from
+two different demonstrations and tries to predict which
+one of them has preference over the other. This is done
+with a single fully-connected layer that transforms an
+encoding into scalar reward, and is then trained as
+a classiﬁcation problem with a binary cross-entropy
+loss. A 1 is assigned to the demonstration sample with
+higher preference and a 0 to the demonstration sample
+with lower preference.
+In order to encourage a feature encoding that has informa-
+tion easily interpretable via linear combinations, the tem-
+poral difference, T-REX, inverse dynamics, and forward
+dynamics tasks consist of only a single layer atop the fea-
+ture encoding space rather than multiple layers.
+To compute the ﬁnal loss on which to do the backwards pass,
+all of the losses described above are summed with weights
+determined empirically to balance out their values.
+
+--- PDF page 17 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Figure 2. Diagram of the network architecture used when training feature encodingφ(s) with self-supervised and T-REX losses. Yellow
+denotes actions, blue denotes feature encodings sampled from elsewhere in a demonstration trajectory, and green denotes random samples
+for the variational autoencoder.
+D.1. Training speciﬁcs
+We used an NVIDIA TITAN V GPU for training the embed-
+ding. We used the same 12 demonstrations used for MCMC
+to train the self-supervised and ranking losses described
+above. We sample 60,000 trajectory snippets pairs from the
+demonstration pool, where each snippet is between 50 and
+100 timesteps long. We use a learning rate of 0.001 and a
+weight decay of 0.001. We make a single pass through all
+of the training data using batch size of 1 resulting in 60,000
+updates using the Adam (Kingma & Ba, 2014) optimizer.
+For Enduro prior work (Brown et al., 2019b) showed that
+full trajectories resulted in better performance than subsam-
+pling trajectories. Thus, for Enduro we subsample 10,000
+pairs of entire trajectories by randomly selecting a starting
+time between 0 and 5 steps after the initial state and then
+skipping every t frames where t is chosen uniformly from
+the range [3, 7) and train with two passes through the train-
+ing data. When performing subsampling for either snippets
+or full trajectories, we subsample pairs of trajectories such
+that one is from a worse ranked demonstration and one is
+from a better ranked demonstration following the procedure
+outlined in (Brown et al., 2019b).
+E. Visualizations of Learned Features
+Viewable here2 is a video containing an Enduro demonstra-
+tion trajectory, its decoding with respect to the pre-trained
+autoencoder, and a plot of the dimensions in the latent encod-
+ing over time. Observe how changes in the demonstration,
+such as turning right or left or a shift, correspond to changes
+in the plots of the feature embedding. We noticed that cer-
+tain features increase when the agent passes other cars while
+other features decrease when the agent gets passed by other
+cars. This is evidence that the pretraining has learned fea-
+tures that are relevant to the ground truth reward which gives
++1 every time the agent passes a car and -1 every time the
+agent gets passed.
+Viewable here3 is a similar visualization of the latent space
+for Space Invaders. Notice how it tends to focus on the
+movement of enemy ships, useful for game progress in
+things such as the temporal difference loss, but seems to
+2https://www.youtube.com/watch?v=
+DMf8kNH9nVg
+3https://www.youtube.com/watch?v=
+2uN5uD17H6M
+
+--- PDF page 18 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+ignore the player’s ship despite its utility in inverse dynamics
+loss. Likely the information exists in the encoding but is not
+included in the output of the autoencoder.
+Viewable here4 is visualization of the latent space for Break-
+out. Observe that breaking a brick often results in a small
+spike in the latent encoding. Many dimensions, like the dark
+green curve which begins at the lowest value, seem to invert
+as game progress continues on, thus acting as a measure of
+how much time has passed.
+F. Imitation Learning Ablations for
+Pre-trainingφ(s)
+Table 12 shows the results of pre-training reward features
+only using different losses. We experimented with using
+only the T-REX Ranking loss (Brown et al., 2019b), only
+the self-supervised losses shown in Table 1 of the main
+paper, and using both the T-REX ranking loss plus the self-
+supervised loss function. We found that performance varried
+over the different pre-training schemes, but that using Rank-
+ing + Self-Supervised achieved high performance across
+all games, clearly outperforming only using self-supervised
+losses and achieving superior performance to only using the
+ranking loss on 3 out of 5 games.
+G. Suboptimal Demonstration Details
+We used the same suboptimal demonstrations used by
+Brown et al. (2019b) for comparison. These demonstrations
+were obtained by running PPO on the ground truth reward
+and checkpointing every 50 updates using OpenAI Base-
+lines (Dhariwal et al., 2017). Brown et al. (2019b) make the
+checkpoint ﬁles available, so to generate the demonstration
+data we used their saved checkpoints and followed the in-
+structions in their released code to generate the data for our
+algorithm5. We gave Bayesian REX these demonstrations
+as well as ground-truth rankings using the game score; how-
+ever, other than the rankings, Bayesian REX has no access
+to the true reward samples. Following the recommendations
+of Brown et al. (2019b), we mask the game score and other
+parts of the game that are directly indicative of the game
+score such as the number of enemy ships left, the number of
+lives left, the level number, etc. See (Brown et al., 2019b)
+for full details.
+H. Reinforcement Learning Details
+We used the OpenAI Baselines implementation of Proximal
+Policy Optimization (PPO) (Schulman et al., 2017; Dhari-
+4https://www.youtube.com/watch?v=
+8zgbD1fZOH8
+5Code from (Brown et al., 2019b) is available here https:
+//github.com/hiwonjoon/ICML2019-TREX
+wal et al., 2017). We used the default hyperparameters for
+all games and all experiments. We run RL for 50 million
+frames and then take the ﬁnal checkpoint to perform eval-
+uations. We adapted the OpenAI Baselines code so even
+though the RL agent receives a standard preprocessed ob-
+servation, it only receives samples of the reward learned via
+Bayesian REX, rather than the ground-truth reward. T-REX
+(Brown et al., 2019b) uses a sigmoid to normalize rewards
+before passing them to the RL algorithm; however, we ob-
+tained better performance for Bayesian REX by feeding
+the unnormalized predicted rewardRθ(s) into PPO for pol-
+icy optimization. We follow the OpenAI baselines default
+preprocessing for the framestacks that are fed into the RL
+algorithm as observations. We also apply the default Ope-
+nAI baselines wrappers the environments. We run PPO with
+9 workers on an NVIDIA TITAN V GPU.
+I. High-Conﬁdence Policy Performance
+Bounds
+In this section we describe the details of the policy perfor-
+mance bounds.
+I.1. Policy Evaluation Details
+We estimated Φπeval using C Monte Carlo rollouts for
+each evaluation policy. Thus, after generating C rollouts,
+τ1,...,τ C fromπeval the feature expectations are computed
+as
+Φπeval = 1
+C
+[ C∑
+i=1
+∑
+s∈τi
+φ(s)
+]
+. (12)
+We usedC = 100 for all experiments.
+I.2. Evaluation Policies
+We evaluated several different evaluation policies. To see
+if the learned reward function posterior can interpolate and
+extrapolate we created four different evaluation policies: A,
+B, C, and D. These policies were created by running RL via
+PPO on the ground truth reward for the different Atari games.
+We then checkpointed the policy and selected checkpoints
+that would result in different levels of performance. For all
+games except for Enduro these checkpoints correspond to
+25, 325, 800, and 1450 update steps using OpenAI baselines.
+For Enduro, PPO performance was stuck at 0 return until
+much later in learning. To ensure diversity in the evaluation
+policies, we chose to use evaluation policies corresponding
+to 3125, 3425, 3900, and 4875 steps. We also evaluated
+each game with a No-Op policy. These policies are often
+adversarial for some games, such as Seaquest, Breakout,
+and Beam Rider, since they allow the agent to live for a very
+long time without actually playing the game—a potential
+way to hack the learned reward since most learned rewards
+for Atari will incentivize longer gameplay.
+
+--- PDF page 19 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Table 12. Comparison of different reward feature pre-training schemes. Ground-truth average returns for several Atari games when
+optimizing the mean and MAP rewards found using Bayesian REX. Each algorithm is given the same 12 demonstrations with ground-truth
+pairwise preferences. The average performance for each IRL algorithm is the average over 30 rollouts.
+Ranking Loss Self-Supervised Ranking + Self-Supervised
+Game Mean MAP Mean MAP Mean MAP
+Beam Rider 3816.7 4275.7 180.4 143.7 5870.3 5504.7
+Breakout 389.9 409.5 360.1 367.4 393.1 390.7
+Enduro 472.7 479.3 0.0 0.0 135.0 487.7
+Seaquest 675.3 670.7 674.0 683.3 606.0 734.7
+Space Invaders 1482.0 1395.5 391.2 396.2 961.3 1118.8
+Table 13. Policy evaluation statistics for Enduro over the return
+distribution from the learned posteriorP (R|D, P) compared with
+the ground truth returns using game scores. Policies A-D cor-
+respond to checkpoints of an RL policy partially trained on the
+ground-truth reward function and correspond to 25, 325, 800, and
+1450 training updates to PPO. No-Op that always plays the no-
+op action, resulting in high mean predicted performance but low
+95%-conﬁdence return (0.05-VaR).
+Predicted Ground Truth
+Policy Mean 0.05-VaR Avg. Length
+A 324.7 48.2 7.3 3322.4
+B 328.9 52.0 26.0 3322.4
+C 424.5 135.8 145.0 3389.0
+D 526.2 192.9 199.8 3888.2
+Mean 1206.9 547.5 496.7 7249.4
+MAP 395.2 113.3 133.6 3355.7
+No-Op 245.9 -31.7 0.0 3322.0
+The results for Beam Rider and Breakout are shown in the
+main paper. For completeness, we have included the high-
+conﬁdence policy evaluation results for the other games here
+in the Appendix. Table 13 shows the high-conﬁdence policy
+evaluation results for Enduro. Both the average returns over
+the posterior as well as the the high-conﬁdence performance
+bounds (δ = 0.05) demonstrate accurate predictions relative
+to the ground-truth performance. The No-Op policy results
+in the racecar slowly moving along the track and losing
+the race. This policy is accurately predicted as being much
+worse than the other evaluation policies. We also evaluated
+the Mean and MAP policies found by optimizing the Mean
+reward and MAP reward from the posterior obtained using
+Bayesian REX. We found that the learned posterior is able
+to capture that the MAP policy is more than twice as good
+as the evaluation policy D and that the Mean policy has per-
+formance somewhere between the performance of policies
+B and C. These results show that Bayesian REX has the
+potential to predict better-than-demonstrator performance
+(Brown et al., 2019a).
+Table 14 shows the results for high-conﬁdence policy evalu-
+ation for Seaquest. The results show that high-conﬁdence
+performance bounds are able to accurately predict that eval-
+uation policies A and B are worse than C and D. The ground
+truth performance of policies C and D are too close and the
+mean performance over the posterior and 0.05-VaR bound
+on the posterior are not able to ﬁnd any statistical difference
+between them. Interestingly the no-op policy has very high
+mean and 95%-conﬁdence lower bound, despite not scoring
+any points. However, as shown in the bottom half of Ta-
+ble 14, adding one more ranked demonstration from a 3000
+length segment of a no-op policy solves this problem. These
+results motivate a natural human-in-the-loop approach for
+safe imitation learning.
+Finally, Table 15 shows the results for high-conﬁdence pol-
+icy evaluation for Space Invaders. The results show that us-
+ing both the mean performance and 95%-conﬁdence lower
+bound are good indicators of ground truth performance for
+the evaluation polices. The No-Op policy for Space Invaders
+results in the agent getting hit by alien lasers early in the
+game. The learned reward function posterior correctly as-
+signs low average performance and indicates high risk with
+a low 95%-conﬁdence lower bound on the expected return
+of the evaluation policy.
+J. Different Evaluation Policies
+To test Bayesian REX on different learned policies we took
+a policy trained with RL on the ground truth reward function
+for Beam Rider, the MAP policy learned via Bayesian REX
+for Beam Rider, and a policy trained with an earlier version
+of Bayesian REX (trained without all of the auxiliary losses)
+that learned a novel reward hack where the policy repeatedly
+presses left and then right, enabling the agent’s ship to stay
+in between two of the ﬁring lanes of the enemies. The
+imitation learning reward hack allows the agent to live for a
+very long time. We took a 2000 step preﬁx of each policy
+and evaluated the expected and 5th perentile worst-case
+predicted returns for each policy. We found that Bayesian
+REX is able to accurately predict that the reward hacking
+
+--- PDF page 20 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Table 14. Policy evaluation statistics for Seaquest over the return
+distribution from the learned posteriorP (R|D, P) compared with
+the ground truth returns using game scores. Policies A-D cor-
+respond to checkpoints of an RL policy partially trained on the
+ground-truth reward function and correspond to 25, 325, 800, and
+1450 training updates to PPO. No-Op always plays the no-op
+action, resulting in high mean predicted performance but low 0.05-
+quantile return (0.05-VaR). Results predict that No-Op is much
+better than it really is. However, simply adding a single ranked
+rollout from the No-Op policy and rerunning MCMC results in
+correct relative rankings with respect to the No-Op policy
+Predicted Ground Truth
+Policy Mean 0.05-VaR Avg. Length
+A 24.3 10.8 338.6 1077.8
+B 53.6 24.1 827.2 2214.1
+C 56.0 25.4 872.2 2248.5
+D 55.8 25.3 887.6 2264.5
+No-Op 2471.6 842.5 0.0 99994.0
+Results after adding one ranked demo from No-Op
+A 0.5 -0.5 338.6 1077.8
+B 3.7 2.0 827.2 2214.1
+C 3.8 2.1 872.2 2248.5
+D 3.2 1.5 887.6 2264.5
+No-Op -321.7 -578.2 0.0 99994.0
+policy is worse than both the RL policy and the policy
+optimizing the Bayesian REX reward. However, we found
+that the Bayesian REX policy, while not performing as well
+as the RL policy, was given higher expected return and a
+higher lower bound on performance than the RL policy.
+Results are shown in Table 16.
+K. Human Demonstrations
+To investigate whether Bayesian REX is able to correctly
+rank human demonstrations, one of the authors provided
+demonstrations of a variety of different behaviors and then
+we took the latent embeddings of the demonstrations and
+used the posterior distribution to ﬁnd high-conﬁdence per-
+formance bounds for these different rollouts.
+K.1. Beamrider
+We generated four human demonstrations: (1) good, a good
+demonstration that plays the game well, (2) bad, a bad
+demonstration that seeks to play the game but does a poor
+job, (3) pessimal, a demonstration that does not shoot ene-
+mies and seeks enemy bullets, and (4) adversarial a demon-
+stration that pretends to play the game by moving and shoot-
+ing as much as possibly but tries to avoid actually shooting
+enemies. The results of high-conﬁdence policy evaluation
+are shown in Table 17. The high-conﬁdence bounds and
+Table 15. Policy evaluation statistics for Space Invaders over the
+return distribution from the learned posterior P (R|D, P) com-
+pared with the ground truth returns using game scores. Policies
+A-D correspond to checkpoints of an RL policy partially trained on
+the ground-truth reward function and correspond to 25, 325, 800,
+and 1450 training updates to PPO. The mean and MAP policies are
+the results of PPO using the mean and MAP rewards, respectively.
+No-Op that always plays the no-op action, resulting in high mean
+predicted performance but low 0.05-quantile return (0.05-VaR).
+Predicted Ground Truth
+Policy Mean 0.05-VaR Avg. Length
+A 45.1 20.6 195.3 550.1
+B 108.9 48.7 436.0 725.7
+C 148.7 63.6 575.2 870.6
+D 150.5 63.8 598.2 848.2
+Mean 417.4 171.7 1143.7 1885.7
+MAP 360.2 145.0 928.0 1629.5
+NoOp 18.8 3.8 0.0 504.0
+Table 16. Beamrider policy evaluation for an RL policy trained on
+ground truth reward, an imitation learning policy, and a reward
+hacking policy that exploits a game hack to live for a long time by
+moving quickly back and forth.
+Predicted Ground Truth
+Policy Mean 0.05-VaR Avg. Length
+RL 36.7 19.5 2135.2 2000
+B-REX 68.1 38.1 649.4 2000
+Hacking 28.8 10.2 2.2 2000
+average performance over the posterior correctly rank the
+behaviors. This provides evidence that the learned linear re-
+ward correctly rewards actually destroying aliens and avoid-
+ing getting shot, rather than just ﬂying around and shooting.
+K.2. Space Invaders
+For Space Invaders we demonstrated an even wider variety
+of behaviors to see how Bayesian REX would rank their rel-
+ative performance. We evaluated the following policies: (1)
+good, a demonstration that attempts to play the game as well
+as possible, (2) every other, a demonstration that only shoots
+aliens in the 2nd and 4th columns, (3) ﬂee, a demonstration
+that did not shoot aliens, but tried to always be moving while
+avoiding enemy lasers, (4) hide, a demonstration that does
+not shoot and hides behind on of the barriers to avoid enemy
+bullets, (5) pessimal, a policy that seeks enemy bullets while
+not shooting, (6) shoot shelters, a demonstration that tries to
+destroy its own shelters by shooting at them, (7) hold ’n ﬁre,
+a demonstration where the player rapidly ﬁres but does not
+move to avoid enemy lasers, and (8) miss, a demonstration
+where the demonstrator tries to ﬁre but not hit any aliens
+
+--- PDF page 21 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Table 17. Beam Rider evaluation of a variety of human demonstra-
+tions.
+Predicted Ground Truth
+Policy Mean 0.05-VaR Avg. Length
+good 12.4 5.8 1092 1000.0
+bad 10.7 4.5 396 1000.0
+pessimal 6.6 0.8 0 1000.0
+adversarial 8.4 2.4 176 1000.0
+Table 18. Space Invaders evaluation of a variety of human demon-
+strations.
+Predicted Ground Truth
+Policy Mean 0.05-VaR Avg. Length
+good 198.3 89.2 515 1225.0
+every other 56.2 25.9 315 728.0
+hold ’n ﬁre 44.3 18.6 210 638.0
+shoot shelters 47.0 20.6 80 712.0
+ﬂee 45.1 19.8 0 722.0
+hide 83.0 39.0 0 938.0
+miss 66.0 29.9 0 867.0
+pessimal 0.5 -13.2 0 266.0
+while avoiding enemy lasers.
+Table 18 shows the results of evaluating the different demon-
+strations. The good demonstration is clearly the best per-
+forming demonstration in terms of mean performance and
+95%-conﬁdence lower bound on performance and the pessi-
+mal policy is correctly given the lowest performance lower
+bound. However, we found that the length of the demon-
+stration appears to have a strong effect on the predicted
+performance for Space Invaders. Demonstrations such as
+hide and miss are able to live for a longer time than policies
+that actually hit aliens. This results in them having higher
+0.05-quantile worst-case predicted performance and higher
+mean performance.
+To study this further we looked at only the ﬁrst 600 timesteps
+of each policy, to remove any confounding by the length
+of the trajectory. The results are shown in Table 19. With
+a ﬁxed length demonstration, Bayesian REX is able to cor-
+rectly rank good, every other, and hold ’n ﬁre as the best
+demonstrations, despite evaluation policies that are decep-
+tive.
+K.3. Enduro
+For Enduro we tested four different human demonstrations:
+(1) good a demonstration that seeks to play the game well,
+(2) periodic a demonstration that alternates between speed-
+ing up and passing cars and then slowing down and being
+passed, (3) neutral a demonstration that stays right next to
+Table 19. Space Invaders evaluation of a variety of human demon-
+strations when considering only the ﬁrst 6000 steps.
+Predicted Ground Truth
+Policy Mean 0.05-VaR Avg. Length
+good 47.8 22.8 515 600.0
+every other 34.6 15.0 315 600.0
+hold ’n ﬁre 40.9 17.1 210 600.0
+shoot shelters 33.0 13.3 80 600.0
+ﬂee 31.3 11.9 0 600.0
+hide 32.4 13.8 0 600.0
+miss 30.0 11.3 0 600.0
+Table 20. Enduro evaluation of a variety of human demonstrations.
+Predicted Ground Truth
+Policy Mean 0.05-VaR Avg. Length
+good 246.7 -113.2 177 3325.0
+periodic 230.0 -130.4 44 3325.0
+neutral 190.8 -160.6 0 3325.0
+ram 148.4 -214.3 0 3325.0
+the last car in the race and doesn’t try to pass or get passed,
+and (4) ram a demonstration that tries to ram into as many
+cars while going fast. Table 20 shows that Bayesian REX
+is able to accurately predict the performance and risk of
+each of these demonstrations and gives the highest (lowest
+0.05-VaR) risk to theram demonstration and the least risk
+to the good demonstration.
+L. Comparison with Other Methods for
+Uncertainty Quantiﬁcation
+Bayesian REX is only one possible method for measure un-
+certainty. Other popular methods for measuring epistemic
+uncertainty include using bootstrapping to create an ensem-
+ble of neural networks (Lakshminarayanan et al., 2017) and
+using dropout as an approximation of MCMC sampling (Gal
+& Ghahramani, 2016). In this section we compare our fully
+Bayesian approach with these two approximations.
+L.1. T-REX Ensemble
+We used the same implementation used by Brown et al.
+(2019b)6, but trained an ensemble of ﬁve T-REX networks
+using the same training demonstrations but with randomized
+seeds so each network is intitialized differently and has a
+different training set of subsampled snippets from the full
+length ranked trajectories. To estimate the uncertainty over
+the return of a trajectory or policy we run the trajectory
+6https://github.com/hiwonjoon/icml2019-trex
+
+--- PDF page 22 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+through each network to get a return estimate or run multiple
+rollouts of the policy through each member of the ensemble
+to get a distribution over returns. We used 100 rollouts for
+the evaluation policies.
+L.2. MC Dropout
+For the MC Dropout baseline we used the same base archi-
+tecture as T-REX and Bayesian REX, except that we did not
+add additional auxiliary losses, but simply trained the base
+network to predict returns using dropout during training.
+For each training pair of trajectories we randomly sample
+a dropout mask on the last layer of weights. Because MC
+dropout is supposed to approximate a large ensemble, we
+kept the dropout mask consistent across each sampled pref-
+erence pair such that the same portions of the network are
+dropped out for each frame of each trajectory and for both
+the more preferred and less preferred trajectories. Thus, for
+each training sample, consisting of a more and less preferred
+trajectory, we sample a random dropout mask and then ap-
+ply this same mask across all states in both trajectories. To
+keep things as similar to Bayesian REX as possible, we used
+full trajectories with the same pairwise preferences used by
+Bayesian REX.
+To estimate the posterior distribution over returns for a trajec-
+tory or policy we simply sampled 50 random masks on the
+last layer of weights. Thus, this method corresponds to the
+MC dropout equivalent of Bayesian REX where the latent
+state encoding is trained end-to-end via dropout rather than
+pre-trained and where the posterior distribution is estimated
+via randomly dropping out weights on the corresponding lin-
+ear reward function. We applied these 50 random dropouts
+to each of 100 rollouts for each evaluation policy. We used
+a dropout probability of 0.5.
+Table 21 shows the results for running RL on the learned
+reward functions. The results show that Bayesian REX
+is superior or competitive with T-REX Ensemble and MC
+Dropout across all games except Beam Rider, where MC
+Dropout performs much better.
+L.3. T-REX Ensemble High-Conﬁdence Bounds
+Tables 22–26 show the results for evaluating different eval-
+uation policies via high-conﬁdence performance bounds.
+Table 22 shows that the ensemble has accurate expected
+returns, but that the 95% conﬁdence lower bounds are not in-
+formative and do not represent risk as accurately as Bayesian
+REX since policy D is viewed as much worse than policy A.
+Note that we normalized the predicted scores by calculating
+the average predicted return of each ensemble member for
+rollouts from policy A and then using this as a baseline for
+all other predictions of each ensemble member by subtract-
+ing off the average predicted return for policy A from return
+predictions of other policies. Tables 23 and 25 show that
+the T-REX Ensemble can sometimes fail to produce mean-
+ingful predictions for the expectation or the 95% worst-case
+bounds. Table 24 and 26 show good predictions.
+L.4. MC Dropout Results
+Tables 27–31 show the results for high-conﬁdence bounds
+for MC Dropout. Tables 27 and 31 show that MC Dropout
+is able to accurately predict high risk for the Beam Rider
+and Space Invaders No-Op policies. However, table 28 29,
+and 30 show that MC Dropout often fails to predict that the
+No-Op policy has high risk. Recent work has shown that
+MC Dropout is not a principled Bayesian approximation
+since the distribution obtained from MC Dropout does not
+concentrate in the limit as the number of data samples goes
+to inﬁnity and thus does not necessarily measure the kind
+of epistemic risk we are interested in (Osband, 2016). Thus,
+while MC Dropout does not perform full Bayesian infer-
+ence like Bayesian REX, it appears to work sometimes in
+practice. Future work should examine more sophisticated
+applications of dropout to uncertainty estimation that seek
+to solve the theoretical and practical problems with vanilla
+MC Dropout (Hron et al., 2018).
+
+--- PDF page 23 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Table 21. Comparison of policy performance when using a reward function learned by Bayesian REX, a T-REX ensemble, and a dropout
+version of Bayesian REX. The results show averages (standard deviations over 30 rollouts. Bayesian REX results in comparable or better
+performance across all games except Beam Rider.
+Bayesian REX
+Game Mean MAP T-REX Ensemble MC Dropout
+Beam Rider 5870.3 (1905.1) 5504.7 (2121.2) 5925.0 (2097.9) 7243.1 (2543.6)
+Breakout 393.1 (63.7) 390.7 (48.8) 253.7 (136.2) 52.6 (10.1)
+Enduro 135.0 (24.8) 487.7 (89.4) 281.5 (95.2) 111.8 (17.9)
+Seaquest 606.0 (37.6) 734.7 (41.9) 0.0 (0.0) 0.0 (0.0)
+Space Invaders 961.3 (392.3) 1118.8 (483.1) 1164.8 (546.3) 387.5 (166.3)
+Table 22. Beam Rider T-REX ensemble.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 0.0 -119.5 454.4 1372.6
+B 76.1 -63.7 774.8 1412.8
+C 201.3 -173.8 1791.8 2389.9
+D 282.0 -304.0 2664.5 2965.0
+Mean 956.9 -2294.8 5736.8 9495.6
+MAP 1095.7 -2743.4 5283.0 11033.4
+No-Op -1000.0 -5643.7 0.0 99,994.0
+Table 23. Breakout T-REX ensemble.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 0.0 -506.3 1.8 202.7
+B -305.8 -1509.1 16.1 608.4
+C -241.1 -1780.7 24.8 849.3
+D -57.9 -2140.0 42.7 1020.8
+Mean -5389.5 -867.4 388.9 13762.1
+MAP -3168.5 -1066.5 401.0 8780.0
+No-Op -39338.4 -95987.2 0.0 99,994.0
+Table 24. Enduro T-REX ensemble.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A -0.0 -137.7 9.4 3322.4
+B 23.6 -157.4 23.2 3322.4
+C 485.4 232.2 145.6 2289.0
+D 1081.1 270.3 214.2 3888.2
+Mean 3408.9 908.0 496.7 7249.4
+MAP 23.2 -1854.1 133.6 3355.7
+No-Op -1618.1 -3875.9 0.0 3322.0
+Table 25. Seaquest T-REX ensemble.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 0.0 -320.9 321.0 1077.8
+B -425.2 -889.3 826.6 2214.1
+C -336.7 -784.3 863.4 2248.5
+D -386.3 -837.3 884.4 2264.5
+Mean -1013.1 -2621.8 721.8 2221.7
+MAP -636.8 -1820.1 607.4 2247.2
+No-Op -19817.9 -28209.7 0.0 99,994.0
+Table 26. Space Invaders T-REX ensemble.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 0.0 -136.8 159.4 550.1
+B 257.3 -47.9 425.0 725.7
+C 446.5 -6.0 553.1 870.6
+D 443.3 9.0 591.5 848.2
+Mean 1105.6 -392.4 1143.7 1885.7
+MAP 989.0 -387.2 928.0 1629.5
+No-Op -211.9 -311.9 0.0 504.0
+Table 27. Beam Rider MC Dropout.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 20.9 -1.5 454.4 1372.6
+B 27.9 2.3 774.8 1412.8
+C 48.7 8.3 1791.8 2389.9
+D 63.5 11.0 2664.5 2965.0
+Mean 218.2 -89.2 5736.8 1380
+MAP 211.2 -148.7 5283.0 708
+No-Op 171.2 -3385.7 0.0 99,994.0
+
+--- PDF page 24 ---
+Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences
+Table 28. Breakout MC Dropout.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 10.8 5.2 1.8 202.7
+B 33.1 17.7 16.1 608.4
+C 43.5 24.1 24.8 849.3
+D 56.0 28.5 42.7 1020.8
+Mean 822.9 77.3 388.9 13762.1
+MAP 519.7 73.8 401.0 8780.0
+No-Op 6050.7 3912.4 0.0 99,994.0
+Table 29. Enduro MC Dropout.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 541.7 398.0 7.3 3322.4
+B 543.6 401.0 26.4 3322.4
+C 556.7 409.3 142.5 3389.0
+D 663.3 422.3 200.3 3888.2
+Mean 2473.0 1701.7 496.7 7249.4
+MAP 1097.3 799.5 133.6 3355.7
+No-Op 1084.1 849.8 0.0 3322.0
+Table 30. Seaquest MC Dropout.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 98.9 49.5 321.0 1077.8
+B 258.8 194.8 826.6 2214.1
+C 277.7 213.2 863.4 2248.5
+D 279.6 214.2 884.4 2264.5
+Mean 375.6 272.8 721.8 2221.7
+MAP 426.3 319.8 607.4 2247.2
+No-Op 16211.1 10478.5 0.0 99,994.0
+Table 31. Space Invaders MC Dropout.
+Predicted Ground Truth Avg.
+Policy Mean 0.05-VaR Score Length
+A 10.6 0.8 195.3 550.1
+B 22.3 8.8 434.9 725.7
+C 26.7 9.8 535.3 870.6
+D 28.9 15.6 620.9 848.2
+Mean 125.9 54.4 1143.7 848.2
+MAP 110.6 52.5 928.0 1885.7
+No-Op 8.4 -8.6 0.0 504.0

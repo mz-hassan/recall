@@ -1,0 +1,858 @@
+TheThirty-SeventhAAAIConferenceonArtificialIntelligence(AAAI-23)
+The Perils of Trial-and-Error Reward Design:
+Misdesign through Overfitting and Invalid Task Specifications
+SerenaBooth1,2,3,W.BradleyKnox1,2,5,JulieShah3,
+ScottNiekum2,4,PeterStone2,6,AlessandroAllievi1,2
+1Bosch
+2TheUniversityofTexasatAustin
+3MITCSAIL
+4TheUniversityofMassachusettsAmherst
+5GoogleResearch
+6SonyAI
+{serenabooth,julie a shah}@csail.mit.edu,{bradknox,pstone}@cs.utexas.edu
+sniekum@cs.umass.edu,alessandro.allievi@us.bosch.com
+Abstract hardtolearnfromsparsesignals(forexamples,seeYuetal.
+(2020); Andrychowicz et al. (2020); Knox et al. (2023)).
+Inreinforcementlearning(RL),arewardfunctionthataligns
+As such, the practice of reward design seldom adheres to
+exactlywithatask’strueperformancemetricisoftensparse.
+thisadage.1Instead,rewardfunctionsaretypicallydesigned
+Forexample,atruetaskmetricmightencodearewardof1
+through an ad hoc process of trial and error. In a survey of
+uponsuccessand0otherwise.Thesesparsetaskmetricscan
+24expertRLpractitioners,wefoundthat92%reportedus-
+behardtolearnfrom,soinpracticetheyareoftenreplaced
+withalternativedenserewardfunctions.Thesedensereward ing trial and error to design their most recent reward func-
+functionsaretypicallydesignedbyexpertsthroughanadhoc tion(Apdx.A).Thisfindingechostheliterature:Knoxetal.
+process of trial and error. In this process, experts manually (2023)foundthat,inasurveyofRLforautonomousdriving,
+searchforarewardfunctionthatimprovesperformancewith all of the surveyed publications reported designing reward
+respecttothetaskmetricwhilealsoenablinganRLalgorithm functionsbytrialanderror.Despitetheprevalenceoftrial-
+tolearnfaster.Onequestionthisprocessraisesiswhetherthe and-error reward design, the consequences of this process
+samerewardfunctionisoptimalforallalgorithms,or,putdif-
+remain almost completely unexamined by the RL commu-
+ferently,whethertherewardfunctioncanbeoverfittoapar-
+nity.Itisurgentandcrucialforourcommunitytounderstand
+ticular algorithm. In this paper, we study the consequences
+theeffectsofthiswidespreadpracticeandultimatelytocraft
+of this wide yet unexamined practice of trial-and-error re-
+specificguidanceforpracticalrewarddesign.
+warddesign.Wefirstconductcomputationalexperimentsthat
+confirmthatrewardfunctionscanbeoverfittolearningalgo- When employing trial-and-error, experts often optimize
+rithmsandtheirhyperparameters.Tobroadlyexamineadhoc the reward function by manually searching for a reward
+rewarddesign,wealsoconductacontrolledobservationstudy function that meets the goals of both maximizing the task
+which emulates expert practitioners’ typical reward design performance metric and enabling an RL algorithm to learn
+experiences.Here,wesimilarlyfindevidenceofrewardfunc- quickly. This practice raises the question of whether a re-
+tion overfitting. We also find that experts’ typical approach
+wardfunctionthatiseffectivewithonealgorithmcanbein-
+torewarddesign—ofadoptingamyopicstrategyandweigh-
+effectivewithothers:canarewardfunctionbeoverfittoan
+ingtherelativegoodnessofeachstate-actionpair—leadsto
+algorithm?Thisconcernofoverfittingraisestroublingques-
+misdesignthroughinvalidtaskspecifications,sinceRLalgo-
+tions about evaluation in RL. Overfitting a reward function
+rithmsusecumulativerewardratherthanrewardsforindivid-
+ualstate-actionpairsasanoptimizationtarget. tooneRLalgorithmunderminesfaircomparisonstoanother
+algorithm using the same reward function, especially since
+Code,data:github.com/serenabooth/reward-design-perils.
+therewardfunctionisoftenalsousedtomeasuresuccess.
+Consider an ablation study which assesses whether an
+1 Introduction
+algorithmic component improves learning. If the reward
+In their authoritative introductory text on reinforcement function is overfit to the algorithm when the component is
+learning, Sutton and Barto (2018) assert: “The reward sig- unablated, observing that learning performance decreases
+nal is your way of communicating to the agent what you in the absence of the component may merely reflect that
+want achieved, not how you want it achieved.” This state- the reward function is overfit, giving no clear signal about
+ment implies that a reward function should exclusively en- whetherthecomponentisanimprovement.Concernsabout
+codethetruetaskperformancemetric.Suchmetricsareof- fairevaluationarealreadypervasiveinRL,andarethought
+ten sparse: did the agent succeed at the task or not? Sparse
+rewardfunctionsarerarelyusedinpractice,sinceitcanbe 1SuttonandBartodisregardtheirownadvicewhendesigninga
+Dyna-Q+agent.Toencourageexploration,theyreplacethereward
+√
+Copyright©2023,AssociationfortheAdvancementofArtificial functionrwithr+κ τ,whereκisahyperparameterandτ isthe
+Intelligence(www.aaai.org).Allrightsreserved. numberoftimesteps(SuttonandBarto2018,p.168).
+5920
+
+to limit RL’s applicability outside of the laboratory (Ibarz etal.2016;Knoxetal.2023).Ourworkaffirmsthatadhoc
+etal.2021).Mostsuchconcernsfocusonhyperparameters, rewarddesignamplifiesthistypeofmisdesign:theresulting
+networkarchitectures,andobservedhighvariance,coupled optimalpoliciesareoftenunrecognizablefromtheexpert’s
+with the high costs of experimentation (Henderson et al. known intent. Our work also contributes a new perspective
+2018). This paper adds an additional perspective: that the onhowtrial-and-errorrewarddesignresultsinrewardfunc-
+oft-overlooked design process behind the reward function tion overfitting, in which reward functions are unintention-
+mustalsobeconsideredforfaircomparisons. allyover-engineeredforusewithaspecificalgorithm.
+To assess reward function overfitting, we first conduct
+Designing Rewards for Fast Learning Singh, Lewis,
+computational experiments to test whether certain reward
+and Barto (2009) asked the philosophical question: where
+functions enable different RL algorithms and hyperparam-
+do rewards come from? They established a computational
+eters to perform better with respect to the true task perfor-
+frameworkforquantifyingtheperformanceofrewardfunc-
+mance metric. From these experiments, we find evidence
+tions,inwhichtheyassesswhether‘intrinsic’motivationis
+that reward functions can indeed be overfit to a partic-
+helpful—i.e.,whetherrewardfunctionsbenefitfromreward-
+ular discount factor, learning rate, or algorithm: in such
+ingsubgoals.Webuildoffofthiswork,especiallythecom-
+cases, changing the discount factor, learning rate, or algo-
+putationalframeworkforassessingrewardfunctions.
+rithmsignificantlydiminishesthetaskmetricperformance.
+Similarly, Sowerby, Zhou, and Littman (2022) observe
+Across numerous experiments, we find that when we rank
+that certain reward functions result in faster learning, and
+rewardfunctionsbythelearnedpolicies’resultanttaskmet-
+theyputforthprinciplesofrewarddesigninaccordancewith
+ric scores, these rankings are largely uncorrelated across
+thisobservation.Tofindfast-learningrewardfunctions,they
+experiment variations. Though the idea of reward function
+uselinearprogrammingtoconstructrewardfunctionswhich
+overfittingmaybeunsurprisingtoseasonedRLexperts,the
+meet a correctness criteria of encoding the optimal policy.
+extentofthisoverfittingproblemisnonethelessremarkable.
+Totestthefastnessoflearningfromtheserewardfunctions,
+To learn about the implications of trial-and-error reward
+they assess how many training steps are needed for a Q-
+design,wealsoconductedauserstudy.Onegoalofthisuser
+learningagenttoconvergetotheoptimalpolicy.Theauthors
+study was to confirm that our computational experiments’
+note this work is preliminary and has mostly been tested
+findings correspond to practical effects in realistic RL set-
+withasingleQ-learningalgorithmwithfixedhyperparame-
+tings. Specifically, we challenged 30 expert RL practition-
+ters.Ourworkcontributesarelatedperspective:fastlearning
+ers to choose an RL algorithm, hyperparameters, and a re-
+maynotbeanintrinsicpropertyofagoodrewardfunction,
+wardfunctiontotrainthebestagenttheycould,asmeasured
+butalsoaconsequenceofthepairedchoiceofalgorithmand
+bythecumulativetaskperformancemetric.Themajorityof
+hyperparametersthatwereusedtotestthatrewardfunction.
+experts overfit their reward functions to their choice of al-
+AutoRLisanotherapproach,whichisgainingincreasing
+gorithms or hyperparameters (68%). More alarmingly, the
+traction (Niekum, Barto, and Spector 2010; Faust, Francis,
+majorityofexpertsalsoconstructedrewardfunctionswhich
+andMehta2019;Chiangetal.2019;Zhengetal.2020;Wu
+failed to encode the task (53%)—meaning these reward
+et al. 2021; Parker-Holder et al. 2022). AutoRL frames RL
+functions encoded optimal policies which significantly de-
+as a meta-learning problem, in which the reward function
+viatefromtheexperts’intent,despitethesetestsbeingcon-
+should be learned, perhaps using an evolutionary method.
+ductedinasimplegridworldenvironment.Wethenapplied
+Our work has interesting implications for AutoRL. Cur-
+thematic analysis to qualitatively analyze experts’ reward-
+rently, these methods usually first optimize a reward func-
+design process, and we discovered that some types of re-
+tion and then fix this function to optimize other RL design
+wardmisdesignstemfrommismatchedperspectivesofwhat
+choices, such as the neural network architecture. Our work
+the reward function communicates. For the RL algorithm,
+suggeststhismethod—offirstfixingtherewardfunctionand
+reward is an additive component that is used to calculate
+then optimizing other design choices—may be suboptimal
+discounted return—the evaluation metric. We find that ex-
+relativetoemployingajointoptimizationstrategy.
+pertsinsteadtypicallyviewrewardasadirectevaluationof
+therelativegoodnessofeachstate-actionpair.Thisdisparity Inferring Reward Functions Since specifying reward
+contributes to reward function misdesign as a consequence functions is both known to be hard and requires expertise,
+ofadhoctrial-and-errorrewarddesign. many research threads explore how to learn reward func-
+tions from intuitive signals like demonstrations (Ng, Rus-
+2 RelatedWork
+selletal.2000;Ziebartetal.2008),preferences(Christiano
+Reward Shaping One of the known, common conse- etal.2017;Knoxetal.2022),andfeedback(KnoxandStone
+quences of ad hoc reward design is reward shaping. In re- 2009;MacGlashanetal.2017).Inverserewarddesignisan
+ward shaping, the reward function is overloaded to both approach that requires experts to specify reward functions
+communicatetheunderlyingperformancemetricandguide butrecognizesthatthesedesignedrewardfunctionsareonly
+anagent’slearningtowardadesiredpolicy.Rewardshaping observationsaboutthetruegoal.Assuch,inverserewardde-
+canbedesignedinsuchawaythattheoptimalpolicyisun- signworkstrytoinferatruerewardfunctionbasedonthese
+changed (Ng, Harada, and Russell 1999). However, ad hoc observations(Hadfield-Menelletal.2017;Ratner,Hadfield-
+reward shaping is known to be typically unsafe—meaning Menell, and Dragan 2018). Our work provides empirical
+that a shaped reward function is likely to change the opti- support for this approach, as we find evidence that this
+malsolutiontoagivenreinforcementlearningtask(Amodei assumed human behavior—of designing reward functions
+5921
+
+as observations and not as true problem specifications—is
+common in practice. He and Dragan (2021) similarly view
+rewarddesignisaniterativeprocess.Theirworkcontributes
+a mechanism for surfacing environments where the reward
+incentivizesthewrongbehaviortothehumanexperttosup-
+porttheminrevisingtheirrewardfunction.Ourworkrein-
+forcestheimportanceofthesetypesofdebuggingtools.
+3 Preliminaries
+ReinforcementLearning InRL,anagentlearnsabehav-
+ioralpolicybasedonexperienceinteractingwithitsenviron-
+ment.AnRLtaskcanbemodeledbyaMarkovdecisionpro-
+cess(MDP),whichisdefinedbyatuple⟨S,A,T,γ,D ,r⟩.
+0
+S andAarethesetsofstatesandactions,respectively.T is Figure 1: Hungry Thirsty (4×4 grid). Food and water are
+atransitionfunction,T : S ×A×S → [0,1].γ isthedis- eachlocatedinacorner.Redwallsareimpassable.Thecur-
+countfactorandD 0 isthedistributionofstartstates.Lastly, rentstateisabbreviatedasH∧¬T,whichcorrespondstothe
+risarewardfunction,r :S×A×S →R.AnMDP\⟨γ,r⟩ agent being hungry and not thirsty. The 6×6 grid Hungry
+isanMDPwithneitheradiscountfactornorarewardfunc- ThirstyisdepictedinSingh,Lewis,andBarto(2009).
+tion; we use this formulation for studying humans’ reward
+designprocesses,whereinweaskhumanstoselectthedis-
+count factor and reward function. Actions in an MDP can
+Hungry Thirsty Domain We use a modified Hungry
+be prescribed by a policy π : S ×A → [0,1], and τ =
+π Thirstydomain(Singh,Lewis,andBarto2009)asatestbed.
+(s ,a ,s ,...) is a trajectory of states s ∈ S and actions
+0 0 1 i Thisgridworlddomainhasafixedtimehorizonof200steps.
+a ∈ A experienced over time by executing π. Discounted
+i Food is located in one randomly-selected corner; water in
+return is the discounted sum of reward over a trajectory,
+another. Some transitions are blocked by walls (Fig. 1). At
+G(τ)= Pn γtr(s ,a ,s ).Inthiswork,welearnπby
+t=0 t t t+1 eachtimestep,theagentcanchooseoneofsixactions:move
+applying one of four algorithms: Q-learning (Watkins and
+in a cardinal direction, eat, or drink. The agent’s goal is
+Dayan 1992), PPO (Schulman et al. 2017), DDQN (Mnih
+to have sated hunger for as many timesteps as possible.
+et al. 2015), or A2C (Mnih et al. 2016). Unless otherwise
+The agent is hungry if and only if it did not eat in the last
+noted, we use the hyperparameters in Apdx. D. The short-
+timestep. However,the agent can onlysuccessfully eat if it
+handπ denotesthepolicylearnedwithrewardfunctionr
+r,D isco-locatedwiththefoodandhasquenchedthirst.Oneach
+andsomesolverD(i.e.,analgorithmandhyperparameters).
+timestep, the agent stochastically becomes thirsty with 0.1
+RewardFunctionOverfitting LetM :τ →Rbethetrue probability, and only becomes not thirsty if it drinks while
+taskperformancemetric.Forexample,thismetricmighten- co-locatedwiththewater.Theagent’sstateisdescribedby
+code whether the agent reached a goal state or not. Let a itslocation,aswellastwobooleanpredicates:HandT,cor-
+learning context be a tuple of an RL algorithm, hyperpa- respondingtohungerandthirst.Timeremainingisomitted.
+rameter values, and an MDP\r; given a reward function, a Forthistask,theperformancemetricissimplythenum-
+learning context can be used to train a policy. We claim a ber of timesteps the agent has sated hunger: M(τ) =
+reward function r
+1
+is overfit with respect to one or more P2
+t=
+00
+1
+1(¬H∈s
+t
+).Thisspecificmetriccanbeformulatedas
+learningcontexts,D 1 ∼ D,ifthereexistsanalternativere- a sparse Markovian reward function, r(s,a,s′) = 1(¬H ∈
+ward function r 2 such that the task performance metric is s).2 Under the optimal policy for this reward function, the
+optimizedoverD 1 butnotoverthelargerdistribution,D: agent alternates between navigating to the water or drink-
+E [M(τ)]> E [M(τ)] ingwhenthirsty,andnavigatingtothefoodoreatingwhen
+τ∼πr1,D1 τ∼πr2,D1
+(1)
+not thirsty. While it is often possible for RL algorithms to
+E [M(τ)]< E [M(τ)] learnwiththissparserewardfunction,shapedrewardfunc-
+τ∼πr1,D τ∼πr2,D tionsthatrewardthenotthirsty(¬T)subgoalorpunishtime
+where D is a set of one or more learning contexts, D = spenthungry(H)letmanyRLalgorithmssolvethisdomain
+1 1
+{d ,d ,...,d }.Thisdefinitionisadaptedfromsupervised faster and more easily. These properties make this domain
+1 2 n
+learningoverfitting:thehypothesisspacecorrespondstothe aninterestingtestbedforstudyingrewarddesign.
+spaceofpossiblerewardfunctionsandthetrainingandtest Forourexperiments,allrewardfunctionstaketheform:
+sets correspond to potential RL algorithms, hyperparame-
+r(H∧T)=a r(H∧¬T)=b
+ters,andenvironments(MitchellandMitchell1997).
+r(¬H∧T)=c r(¬H∧¬T)=d
+Optimal Reward Functions Optimal reward functions
+arerelatedtooverfitting:theserewardfunctionsarethebest where a,b,c,d ∈ R. Since there are no reward compo-
+performinginagivenalearningcontext.Arewardfunction nentsforlocation,opportunitiesforshaping—and,thereby,
+r∗ is optimal under some distribution D of learning con-
+D
+textsifitmaximizestheexpectedvalueoflearnedpolicies, 2SuchreformulationasaMarkovianrewardfunctionisnotuni-
+i.e.,r
+D
+∗ =argmax
+r
+Eτ∼πr,D [M(τ)]. versallypossibleacrossalltaskperformancemetrics.
+5922
+
+overfitting—arelimitedbutstillpossible.Forshorthand,we H1 tests whether some reward functions enable success-
+write reward functions as [a,b,c,d]. We say reward func- ful learning in some learning contexts but not in others. In
+tions encode the task when the optimal policy matches other words, this hypothesis assesses whether reward func-
+the optimal policy derived from the sparse reward func- tionoverfittingcanoccur.Althoughthelearningcontextsin
+tion. Singh, Lewis, and Barto (2009) found the highest- D couldbechosenadversarially—i.e.,toincludeanRLal-
+2
+performing reward function to be [−0.05,−0.01,1.0,0.5] gorithmincapableoflearning—weassumealllearningcon-
+foracontinuingversionofthisdomain;thisrewardfunction textsinD aimtomaximizeexpectedreturnandaregener-
+2
+isdenseandnotablyrewardsdrinkingwaterasasubgoal. allycapableofdoingso.
+When conducting large experiments, we as-
+H2: Reward functions that are optimal in one learn-
+sign each of a,b,c, and d to a value from the set:
+ingcontextcanbesuboptimalinanother.Givenareward
+{±1,±0.5,±0.1,±0.05,0}. We chose these values based
+function r∗ that is optimal with respect to D , a different
+on the reward function from Singh, Lewis, and Barto rewardfun D c 1 tionr∗ maybeoptimalwithresp 1 ecttoD .In
+(2009). Reward functions that meet the following criteria D2 2
+formal terms, there exist two learning context samples D
+trivially do not encode the task and are thus excluded: 1
+andD suchthatr∗ ̸=r∗ .
+r(H∧¬T) ≥ r(¬H∧T) and r(H∧¬T) ≥ r(¬H∧¬T). 2 D1 D2
+H2 tests tests whether the reward functions which
+Such reward functions encode an incorrect optimal policy
+are found to be best-performing are consistently best-
+of navigating to the water and consistently drinking. This
+performingacrossmultiplelearningcontexts.AsinH1,we
+filteringleaves5,196rewardfunctions.
+assume that all considered learning contexts aim to maxi-
+mizeexpectedreturnandaregenerallycapableofdoingso.
+4 ComputationalExperiments
+We first assess overfitting in reward functions by conduct- H3: The performances of different reward functions
+inglarge-scaleperformancecomparisons,inwhichwemea- areuncorrelatedacrosslearningcontexts.Ifrewardfunc-
+surealearningcontext’sabilitytooptimizethetaskperfor- tions are ranked by their average cumulative performance
+mancemetricgivenarewardfunction.Asanintuitiveexam- metric scores (e.g., r a > r b > r c > ... for a learning con-
+ple, we speculate that when using an RL algorithm with a textsampleD 1 ),therankedrewardfunctionsfromD 1 will
+highlearningrate,ahighmagnituderewardfunctionmight beuncorrelatedwiththerankedrewardfunctionsfromadif-
+belesslikelytoleadtoconvergencewithinafixedtraining ferent sample, D 2 . In formal terms, for some set of reward
+durationthanalowermagnituderewardfunction. functionsr 1 ,r 2 ,...,r n ,Eτ∼πri,D1 [M(τ)] willbeuncorre-
+To study this relationship between reward function de- latedwithEτ∼πri,D2 [M(τ)]for1≤i≤n.
+sign and hyperparameters empirically, we assess the mean H3examinesthecommonalityofrewardfunctionoverfit-
+taskperformancemetricaccumulatedoverall200-timestep ting.Ifthisphenomenonisrare,correlationacrosslearning
+episodes of training achieved by learning with different re- contextsshouldbehigh.Ifitiscommon,correlationshould
+wardfunctionsacrossvariedQ-learninghyperparameters:γ below.Ofthesehypotheses,confirmationofH3ismostcon-
+(theenvironmentdiscountfactor)andα(thelearningrate). cerningasitindicatesextensiverewardfunctionoverfitting.
+While γ is formally defined as a parameter of the envi-
+ronment, and not the learning algorithm, it is typically se- 4.1 OverfittingtoHyperparameters
+lected to construct a viable horizon for applying an RL al-
+Wefirstassesswhetherrewardfunctionscanbeoverfittoei-
+gorithm(Jiangetal.2015)andcanthusbeequallyconsid-
+ther the discount factor, γ, or the learning rate, α. For this
+ered a hyperparameter of the learning algorithm. We addi-
+experiment, we use a Q-learning agent trained over 2000
+tionally study whether the reward functions are overfit to
+episodes. For evaluating overfitting to the discount factor,
+thelearningalgorithmitselfbycomparingperformancemet-
+wevaryγforeachlearningcontext:γ =0.99,γ =0.8,and
+ricswithseveraldeepRLmethods:A2C(Mnihetal.2016),
+γ = 0.5. For evaluating overfitting to the learning rate, we
+DDQN(Mnihetal.2015),andPPO(Schulmanetal.2017)
+considerα=0.05andα=0.25.Thestandardhyperparam-
+inthe6×6HungryThirstydomain.Unlessotherwisespec-
+etersaredescribedinApdx.D.Weaverageperformance,as
+ified,wetrain10agentsperexperimentalsetting.
+measured by the cumulative true reward, over 10 trials to
+H1: Reward functions that are effective in one learn- accountforstochasticitystemmingfromtheenvironmentor
+ingcontextcanbeineffectiveinanother.Thereexisttwo fromthelearningprocess(i.e.,randomizedweights).
+differentlearningcontextsamples(D andD )andareward
+1 2 H1: Reward functions that are effective in one learning
+function r such that r achieves high cumulative perfor-
+1 1 contextcanbeineffectiveinanother.Forallexperiments,
+mance (as measured by the true performance metric) when
+we find some reward functions which result in policies
+testedwithD butlowcumulativeperformancewithD .In
+1 2 which achieve high task performance scores when trained
+formalterms,thereexistsarewardfunctionr suchthat
+1 with one learning context but low task performance scores
+E [M(τ)]>β 1 and E [M(τ)]<β 2 , when trained with a different learning context. Some such
+τ∼πr1,D1 τ∼πr1,D2 rewardfunctionsarehighlightedinFig.2andApdx.Fig.3.
+whereβ issomehighthreshold(e.g.,performingamongthe To assess whether these differences are not just a conse-
+1
+top 25% of reward functions when tested with D ) and β quenceofstochasticpolicylearning,were-rantheseexper-
+1 2
+is some low threshold (e.g., performing among the bottom iments with the reward functions which resulted in maxi-
+25%ofrewardfunctionswhentestedwithD ). mally different true performance for 1000 additional trials.
+1
+5923
+
+120000
+100000
+80000
+60000
+40000
+20000
+0
+=0.99 =0.8
+draweR
+eurT
+evitalumuC
+Relative Reward Function Performance RewardFunction Experiment HoeffdingBound p-value
+for =0.99 and =0.8 γ=0.99 [4,965;20,234]
+[-1.0,-1.0,-1.0,0.1] <0.01
+γ=0.8 [86,653;101,922]
+DDQN [94,790;182,944]
+[-0.1,0.2,0.5,1.0] <0.01
+A2C [-29,040;59,114]
+Table 1: A comparison of reward function performance
+assessed over 1000 trials (Q-learning) or 30 trials (deep
+RL methods). Performance is assessed with the Hoeffding
+Bound, which is akin to a confidence interval, and a Mann
+Whitney U-test. This data confirms that the same reward
+functioncanleadtoverydifferentperformancewithdiffer-
+enthyperparametersoralgorithms.
+#ofRewardFns D D τ p-value 1 2 b
+γ =0.99 γ =0.8 0.07 <0.01
+γ =0.99 γ =0.5 0.04 0.07
+5196
+γ =0.8 γ =0.5 0.12 <0.01
+α=0.25 α=0.05 0.11 <0.01
+PPO A2C 0.25 0.01
+H T: -1.00; H ¬T: -0.50; ¬H T: 1.00, ¬H ¬T: 0.00 PPO DDQN −0.04 0.62
+H T: -1.00; H ¬T: -1.00; ¬H T: -1.00, ¬H ¬T: 0.10
+PPO QLearn 0.13 0.08
+107
+A2C QLearn −0.08 0.29
+Figure2:Aparallelcoordinateplotshowingthepairedrank-
+A2C DDQN −0.01 0.87
+ingsofrewardfunctions.Eachlinecorrespondstoareward
+DDQN QLearn −0.06 0.41
+function, with cumulative performance averaged over 10
+independently-trained agents. The many intersections por- Table2:Kendall’sτ correlationoverthe5196testedreward
+b
+tray the uncorrelated nature of these rankings. The two re- functions for hyperparameter experiments and 107 tested
+wardfunctionswiththelargestcumulativedifferenceinper- reward functions for algorithm experiments. τ ∈ [−1,1].
+b
+formance are highlighted. These reward functions result in |τ | < 0.1 indicates the variables are uncorrelated; |τ | <
+b b
+lowcumulativeperformancewhenγ = 0.99,buthighper-
+0.2 indicates a weak correlation. In our experiments, H3
+formancewhenγ =0.8.SeeApdx.Cformoreexamples.
+is supported with low τ values (even with high p-values).
+b
+Almost all comparisons are either uncorrelated or weakly
+correlated;H3issupportedforallexperimentsexceptPPO
+We then computed the 90% Hoeffding Bound (Hoeffding vs.A2C.Thisdataconfirmsthatthechoiceofrewardfunc-
+1994), which bounds the average cumulative task perfor- tionishighlysensitiveforRLalgorithmperformance.
+mance metric across trials with 90% probability, and we
+separatelyperformedaMannWhitneyU-test(Nacharetal.
+2008)toassesswhetherthemeancumulativetruetaskper-
+formancevaluesweredrawnfromthesameunderlyingdis- [−1.0,−1.0,0.0,1.0].Wethencomputethe90%Hoeffding
+tribution. We find, in all cases, we can reject the null hy- Bound for the mean cumulative task performance metric,
+pothesis that these underlying distributions are the same as and we separately conduct a Mann Whitney U-test to as-
+theobserveddifferencesareallstatisticallysignificant(p < sesswhetherthedistributionofthebest-performingreward
+0.05).Weconcludethat,acrossvariedhyperparameters,re- function’s performance is greater than that of the alterna-
+wardfunctionsthatareeffectiveinonelearningcontextcan tive tested reward function (which is best-performing for a
+beineffectiveinanother.SeeTab.1andApdx.Tab.3. different experimental condition). We find that we can re-
+ject the null hypothesis that these reward functions result
+H2: Reward functions that are optimal in one learn-
+in equal performance distributions in 16 of 18 experiments
+ing context can be suboptimal in another. Across each
+(p < 0.05).Ingeneral,thebest-performingrewardfunction
+pair of tested learning contexts, we find that the best-
+foronelearningcontextoutperformsthetop-3rewardfunc-
+performing reward function differs (Apdx, Fig. 4). We fur-
+tionsforanotherlearningcontext.SeeApdx.Tab.4.
+ther confirm this finding by fixing an experimental learn-
+ing context and assessing whether the best-performing re- H3: The performances of different reward functions
+ward function for that learning context outperforms the are uncorrelated across learning contexts. We compute
+top-3rewardfunctionsfromadifferentexperimentallearn- Kendall’s tau rank correlation to assess H3. This measures
+ing context, testing the cumulative task performance met- the strength and direction of the monotonic association be-
+ric for each reward function over 1000 trials. For ex- tweenrankings,withoutconsideringthedifferenceinmag-
+ample, the best-performing reward function function for nitude of the performance metric since some learning con-
+γ = 0.99 was [−0.05,−0.05,0.5,0.5], which outper- textsmaybeconsistently‘better’or‘worse’intermsofraw
+formed the best-performing reward function for γ = 0.5, performance. We used a nonparametric test, since the cu-
+5924
+
+mulative scores were not found to be normally distributed 0.1,seeTable2).Specifically,wefindthePPOvs.DDQN,
+over many trials. In this setting, the null hypothesis is that A2C vs. Q-learning, A2C vs. DDQN, and DDQN vs. Q-
+two random variables are independent (i.e., τ = 0). H3 is learning agents to be mutually uncorrelated. We find ev-
+b
+supportedwithlowτ values,evenwithhighpvalues.Gen- idence of weak correlation between PPO and Q-learning
+b
+erally,thecloserτ isto0,themoresamplesareneededto (|τ | < 0.2). Lastly, we find evidence of some correlation
+b b
+showsignificance.Wefindthatrewardfunctionperformance (τ = 0.25) for the PPO vs. A2C comparison. Statistical
+b
+is uncorrelated (|τ | < 0.1) or weakly correlated (|τ | < significance—which allows us to reject the null hypothesis
+b b
+0.2,seeTable2)inalldiscountfactorandlearningrateex- thatthetworandomvariablesareindependent—isgenerally
+periments.Weconcludethatperformanceacrossvaryinghy- notestablishedduetothereducedsamplesize.
+perparametersissensitivetorewardfunctionchoice.
+Fromtheseexperiments,wefindconsistentevidencethatre-
+Fromtheseexperiments,wefindconsistentevidencethatre- wardfunctionscanbeoverfittoRLalgorithms.
+wardfunctionscanbeoverfittoRLhyperparameters.
+5 ExpertHumanSubjectExperiments
+4.2 OverfittingtoRLAlgorithms
+Toassesshowexpertsdesignrewardfunctionsandwhether
+FortheSection4.1Q-learningexperimentswithvariedhy- thisproblemofrewardfunctionoverfittingcariesovertore-
+perparameters, we trained 5196 agents, 10 times each. The alisticsettings,weconductacontrolledobservationstudy.
+protocol for generating these reward functions is described
+StudyPopulation Weconducted2pilotstudies,followed
+in Section 3. In the deep RL setting, this scale of training
+by 30 studies with expert participants drawn from four US
+is infeasible because training each agent takes between 3
+research universities (R1). To qualify as an expert, partic-
+and 11 minutes (Apdx. F). To test overfitting in this set-
+ipants were required to meet one or more of the follow-
+ting,weinsteadconsiderarestrictedsetofrewardfunctions
+ingcriteria:(1)haveexperienceconductingresearchonRL
+to reduce the computational burden. We source these re-
+methods; (2) have used RL methods in research; or (3)
+wardfunctionsfromtheuserstudy;specifically,weconsider
+havepassedaclasswhichcoveredreinforcementlearningin
+the set of unique reward functions that experts handcrafted
+depth.Ofthe30participants,1wasapost-doctoralscholar,
+at any point during their sessions and that also encode the
+17 were PhD students, 5 were research-based master’s stu-
+desired optimal policy in easy environment configurations
+dents,and7wereadvancedundergraduates.Participantsare
+(Section5).Intotal,weanalyze107rewardfunctionsinthis
+eachassignedastudyID,rangingfromP0toP29.
+deep RL setting. For each reward function, we train A2C,
+DDQN, PPO, and Q-learning agents. We train each agent StudyProtocol Thestudysessiontookonehourandwas
+over5000episodes,andaverageperformanceover10trials. primarily conducted in-person (19 of 30 sessions). Partici-
+pantswerecompensated$40USD.ThestudyusedaJupyter
+H1: Reward functions that are effective in one learn-
+notebook,inwhichparticipantswererequiredtoselectare-
+ing context can be ineffective in another. We again find
+ward function, algorithm, and hyperparameters to train an
+that every experiment variation uncovers reward functions
+agent to solve the Hungry Thirsty task (Apdx. B). Partic-
+whichenablesuccessfullearninginoneexperimentallearn-
+ipants were asked to speak aloud as they worked, and the
+ingcontext,butnottheother.Forexample,therewardfunc-
+experimenter took detailed notes. The experimenter occa-
+tion[−0.1,0.2,0.5,1]achievedahighmeancumulativeper-
+sionallyaskedopen-endedquestions(suchas“whatareyou
+formance metric score of 232055 for DDQN, but a low
+trying to do now?”) to prompt the participant to continue
+mean cumulative score of 107—indicative of never learn-
+speaking. Five minutes before the end of the session, par-
+ing the optimal policy—for A2C. We then ran this specific
+ticipantswereaskedtosubmittheirbestconfigurationcon-
+testanadditional30times,andfoundevidencethatwecan
+sistingofsomerewardfunctionr andsomealgorithmand
+again reject the null hypothesis that these true task perfor- i
+hyperparameterselection,D .Afterwards,participantswere
+mances were drawn from the same underlying distribution i
+askedtoanswerfivestructuredquestions(Apdx.B.3).
+(p < 0.05). See Table 1 and Appendix Fig. 5, in which
+The participants were informed that the research team
+the reward functions that achieve maximally different per-
+wouldindependentlytrainanagentusingtheirsubmittedre-
+formancemetricmeasuresarehighlighted.
+ward function, algorithm, and hyperparameters, and that if
+H2: Reward functions that are optimal in one learning this trained agent performed in the top ten across all par-
+context can be suboptimal in another. In 5 of 6 experi- ticipants’ agents in terms of cumulative performance, they
+ments varying the RL algorithm, the optimal reward func- wouldreceivea$10USDbonus.Participantswererequired
+tions differ. The only case in which this is not true is in to train at least three different agents—though the experi-
+the PPO and A2C comparisons. In this case, the true per- menter explicitly noted that they could simply re-train the
+formance metric function itself ([0,0,1,1]) is the optimal sameagentthreetimestomeetthisrequirement.
+rewardfunctionforbothalgorithms.SeeAppendixFig.5. Thefirst12participantsuseda6×6gridfortheHungry
+Thirsty domain. After observing participants struggling to
+H3: The performances of different reward functions
+solvethistask,wereducedthesizeofthegridto4×4for
+are uncorrelated across learning contexts. Again using
+theremaining18participants.ThestudywasIRBapproved.
+Kendall’sτ forassessment,wemostlyfindevidencethatre-
+b
+ward functions’ cumulative true performance metric scores Experts Often Design Invalid Reward Functions The
+are uncorrelated when varying the RL algorithm (|τ | < Hungry Thirsty domain has harder and easier environment
+b
+5925
+
+configurations.Intotal,thereare12differentconfigurations, ting,wetestalloftheuser’srewardfunctionswithstandard
+which correspond to different placements of the food and implementations for DDQN, PPO, and A2C and fixed hy-
+water. In a 6×6 grid, the food and water can either be lo- perparameters (Apdx. D). We discard the user’s algorithms
+cated 5 steps apart in the best case or 16 steps apart in the (i.e.,D )andexclusivelytesttheuser’srewardfunctions.
+i
+worstcase.Ina4×4grid,thesedistancesare3and9steps In this setting, we define overfitting to have occurred if
+in the best and worst cases, respectively. As in the original oneormoreoftheuser’stestedrewardfunctions(r ,where
+j
+versionofHungryThirsty(Singh,Lewis,andBarto2009), j ∈ [1,n]andr ̸= r )significantlyoutperformstheirfinal
+j i
+thelocationsofthefoodandwaterarerandomlyresampled selectionwithrespecttooneormoreofthethreetestedRL
+eachtimetheusertrainsanewagent,butremainconsistent algorithms.Wedefinethisperformancedifferencethreshold
+throughoutthelifetimeoftheagent.Inthisstudy,theuseris to be 20000, accumulated over 5000 training episodes and
+tasked with designing a reward function which is invariant averagedover10trials.Thisoverfittingassessmentisdiffer-
+toanychoiceofenvironmentconfiguration. entfromthecomputationalsetting,whichrequirescompar-
+To determine whether a reward function is valid for a ingtherankingsandnotabsoluteperformancebetweendif-
+giventaskconfiguration(i.e.,forfixedfoodandwaterposi- ferent reward functions. Since each user tried only a small
+tions),weempiricallyassesswhetherapolicy—learnedwith handfulofrewardfunctions(onaverage,4.1uniquereward
+valueiteration—isthesameastheoptimalpolicyunderthe functions),theserankingsarelessmeaningful.
+sparse reward function. Specifically, we use value iteration Of the users who tried multiple reward functions and
+(withθ = 0.01 astheendcriteria)tosolveforanapproxi- submitted a best-case-valid reward function, 68% (15 of
+matelyoptimalpolicyusingthesparserewardfunctionand 22) overfit their reward functions. For example, participant
+γ = 0.99.Wethenusevalueiterationtosolveforapolicy P20 tried the reward function [−0.1,0.1,−0.1,1], which
+usingtheuser’ssubmittedrewardfunctionandchoiceofγ. achievedamean cumulativeperformanceof138,092 using
+Werun100testepisodesforeachagentwithafixedrandom DDQN. In their final selection, this user instead chose the
+seed,andusetheaveragecumulativeundiscountedtaskper- rewardfunction[−5,15,5,100],whichachievedameancu-
+formance metric for comparison. If the policy learned with mulativeperformanceof1,031usingDDQN.Weincludean
+the user’s reward function has the same cumulative undis- alternativemetricforoverfittingintheuserstudyinApdx.E.
+counted task performance as the policy learned with the
+Assessing the Design Process with Thematic Analysis
+sparse reward function, we consider it valid. If the user’s
+To analyze not just experts’ reward design outcomes, but
+rewardfunctionisvalidforallenvironmentconfigurations,
+alsotheirdesignprocess,weappliedqualitativeanalysisin
+wesayitencodesthetask.
+theformofthematicanalysis(BraunandClarke2006;Hop-
+The majority of participants (83%) successfully selected
+kinsandBooth2021).Thematicanalysisisasystemforex-
+reward functions which were valid with the easier place-
+tractingpatternsfromqualitativedatabysystematicallycod-
+ments of the food and water on adjacent corners (10 of 12
+ingandanalyzingtranscripts.Toperformthematicanalysis,
+inthe6×6setting;15of18inthe4×4setting).However,
+every statement of each transcript is first assigned a sum-
+only 47% of participants selected reward functions which
+mary (also known as a code). Each of these summaries is
+were valid when the food and water are maximally distant,
+thenfurtherdistilledintoadetailed,low-leveltheme.These
+at opposite corners (4 of 12 in the 6×6 setting; 10 of 18
+low-levelthemesarefinallydistilledintohigh-levelthemes.
+in the 4 × 4 setting). For example, P23’s reward function
+Thematic analysis is generally considered successful if the
+[−0.05,0.5,0.5,1.0]isvalidintheeasieradjacentcasebut
+resulting themes are consistent and coherent, and describe
+not the opposite-corners case, because when the food and
+the data they incorporate well. In such cases, the extracted
+water are maximally distant the optimal policy causes the
+themesprovideinsightintotheunstructureddata.Inourap-
+agenttoremaininthestateH∧¬T.Findingthisformofmis-
+plicationofthematicanalysis,thefirstsummarystepofthis
+design,whererewardfunctionsareonlyvalidinsomeenvi-
+processgenerated990codes.Thesecondstepgenerated212
+ronmentconfigurations,addssupporttotheresearchpursuit
+low-levelthemes.And,finally,thethirdstepresultedinthe
+of inverse reward design methods (Hadfield-Menell et al.
+extractionof10high-levelthemes.Weincludethefullanal-
+2017),whichisbuiltupontheperspectivethatrewardfunc-
+ysis in the supplementary material. Here, we discuss these
+tionsshouldbeconsideredanobservationabouttheexpert’s
+themesandtheirimplicationsforrewarddesign.
+intendedrewardfunctionandnotasaperfectspecification.
+Experts’ Approaches to RL and Reward Design The-
+ExpertsOverfitRewardFunctionstoAlgorithms Even matic analysis showed that experts use one or more of the
+whenexpertswroterewardfunctionswhichencodethetask, following strategies when tasked with crafting and solving
+theytypicallycontinuedtoedittheirrewardfunctions.Each an RL task: folklore-based, intuition-based, trial-and-error-
+expert tried a sequence of reward functions r ,r ,...,r based, hypothesis-based, random-based, or reason-based.
+1 2 n
+and finally settled on some reward function r where i ∈ Forexample, P25 declared,“I’ve heardthatreward scaling
+i
+[1,n]. The user evaluated each of these reward functions is pretty important”, and this quote is an example of using
+alongsidepotentially-changingalgorithmsandhyperparam- a folklore-based process. Concerning this same parameter
+eters, D ,D ,...,D and settled on some choice D . Be- choice, P27 declared, “The reward scaling factor must be
+1 2 n i
+cause every aspect of the user’s solution may be changing verylarge,Ithink,sinceyoumightonlyseelittlefood,”and
+simultaneously,thissettingismessierandhardertoevaluate this quote is an example of using a reason-based process.
+than the purely-computational setting. To evaluate overfit- Expertsoftenswitchedbetweentwoormorestrategies.
+5926
+
+Trial-and-Error Reward Design is Typical This user This observation—that humans assume a myopic inter-
+study was designed to be naturalistic; participants could pretation of reward functions, in which reward accumula-
+choose to focus primarily on any combination of the three tionislargelyignored—haspreviouslybeenobservedinan-
+axesofchoice,betweenspecifyingtherewardfunction,al- other setting of reinforcement learning from human feed-
+gorithm,andhyperparameters.Conventionalrewarddesign back.KnoxandStone(2015)discoveredthatwhenlearning
+wisdom suggests that experts should try to align a reward arewardfunctionfromnon-experthumanfeedback,humans
+functionascloselyaspossiblewiththetaskcompletioncri- adoptasimilarlymyopicteachingstrategy.Findingthatthis
+teria,andshouldonlyadjusttherewardfunctionifitisfound myopicinterpretationisechoedacrossbothnon-expertand
+tonotencodecorrectmeasurementsoftaskoutcomes. expertuserscaninformfutureeffortstosupporthumansin
+93% of experts tried at least two reward functions (only designingrewardfunctions,andcanhelpreinterprethowhu-
+P2andP4stucktoasinglerewardfunction).Expertstried mans’rewardfunctionsshouldbeusedforoptimization.
+4.1uniquerewardfunctionsonaverage.Inthisstudysetting,
+shaping was unnecessary: any of the available algorithms 6 Limitations
+could learn from the sparse reward function. Despite this,
+WhilewestudiedtheHungryThirstydomainindepthinthis
+and almost all users (97%) shaped their reward functions.
+work, we only evaluated reward design practice in this one
+Thisfindingiscompelling:evenintheabsenceofaneedto
+domain. Hungry Thirsty is a rich testbed for assessing re-
+shape,expertsgravitatetowardsdoingso.
+warddesignpractice,butunderstandingthispracticeacross
+Analyzing study transcripts, we find that half of experts
+multiple domains with diverse properties equally deserves
+(P5-13, P15-17, P20, P23, P27-28) explicitly noted a per-
+attention.Thisdomaininparticularallowsustoassumethe
+ceived error at least once before modifying their reward
+existenceandspecificationofatruetaskperformancemet-
+function (thus employing a reason-based process). For ex-
+ric, but in many circumstances, specifying such a metric is
+ample,P5stated:“IrealizedI’mpenalizingtheH∧Tstate
+itselfachallengingproblem.Insuchcases,themethodology
+too much, because the agent knows it will be penalized on
+weusetostudyrewarddesignwouldnotreadilyreapply.
+thewayback[tothewater].”Incontrast,someexpertsindi-
+Anotherlimitationofthisworkconcernsthedefinitionof
+catedtheywererelyingontrialanderror:P28stated,“The
+reward function overfitting. Our definition omits a tempo-
+worstpossiblestatetobeinisH∧T,soI’mgoingtoassign
+ral aspect to the distribution (D, consisting of algorithms,
+-1. The best possible state to be in is ¬H∧¬T, so I’m as-
+hyperparameters,andtasks)thatmakessamplesfromDde-
+signingthatto1.H∧¬TisnotparticularlyasbadasH∧T...
+pendent(i.e.,noti.i.d.).Forexample,ifanexperthastested
+Settingthatto-0.25.Rewardfor¬H∧T:nottoocloseto-1;
+a reward function r with one RL algorithm and a set of
+I’lljustassignsomearbitrarysmallvalue.”
+hyperparameter values, we suspect such an expert is more
+likelytonexttesttherewardfunctionrwiththesamealgo-
+ACommonMisdesignCause:WeighingStateGoodness
+rithmanddifferenthyperparametervaluesthanwithadiffer-
+Weighingstategoodnesstodesignarewardfunctionwasa
+entRLalgorithm.Thistemporalcomponentisomittedfrom
+recurringlow-leveltheme.Mostexperts(83%)statedsome-
+our overfitting definition—as it similarly tends to be in the
+thingtotheeffectof:“It’sbesttobe¬H∧¬T,soI’llsetthat
+supervisedlearningsetting—andfutureworkcouldexplore
+tothemax,1.Being¬Tisbetterthanbeing¬H.Worstisat
+theconsequencesofthisomission.
+H∧T;settingthatto-1”(P25;thisstatementcorrespondedto
+theirinvalidrewardfunction[-1.0,0.3,-0.35,1.0],forwhich
+7 Discussion
+theoptimalpolicyistoremaindrinkingwaterindefinitely).
+This reward design practice—of using the reward function Despitetheprevalenceoftrial-and-errorrewarddesign,the
+torankthegoodnessofimmediatestatesand/oractions,ap- implications of this widespread practice remain underex-
+plying a myopic design strategy without assessing how the plored. In this first analysis of the consequences of this
+reward function will be used as an optimization target for practice, we identify two problems: reward function over-
+computingexpecteddiscountedreturn—oftenledtoreward fittingandthefrequentdesignofinvalidtaskspecifications.
+misdesign,asitdidforP25. Inoverfitting,rewardfunctionsaredesignedwithrespectto
+Though less often, some experts did recognize the im- a fixed algorithm or hyperparameter set, and the resulting
+portance of reward accumulation and state visitation fre- rewardfunctionsbiastowardbetterlearninggiventhesede-
+quency (another recurring low-level theme). For example, signchoices.Thisfindingcontributestoconcernsaroundre-
+P23 stated “A positive reward for H ∧ ¬T is not the way producibilityinRL:wefindtheperformanceofthereward
+to go. A combination with a negative reward for H ∧ T functionisoftendependentonthechoiceofalgorithm.For
+makes it worse, since it would rather accumulate positive RLpractitioners,onetakeawayfromthisworkisthatthere-
+rewardsatthewaterinsteadofsearchingforfood.”Thisde- wardfunction—likethediscountfactor(Jiangetal.2015)—
+signprocess—ofconsideringsummedreward,whichaligns shouldbedefinedtwice:oncetospecifythetrueproblemas
+withtheRLoptimizationobjective—wasrelativelyrare(i.e., partoftheMDP,andonceasaformofhyperparameterfor
+30% of experts noted something to this effect). From this the RL algorithm to facilitate learning. This separation ac-
+qualitative analysis, we found this lack of emphasis on re- commodates the need to design a reward function for suc-
+wardaccumulationandexpecteddiscountedreturntobethe cessfullearningwhilealsosupportingfairevaluations.
+main cause of explicit reward misdesign, wherein reward In addition to overfitting, we find that ad hoc trial-and-
+functionswereinvalidanddidnotcorrectlyencodethetask. errorrewarddesignleadstomisdesignintheformofinvalid
+5927
+
+taskspecifications,whereinexpertsdesignrewardfunctions ell,G.;Ray,A.;etal.2020. Learningdexterousin-handma-
+whichfailtoencodethedesiredtaskeveninasimplegrid- nipulation. TheInternationalJournalofRoboticsResearch,
+world domain. One candidate cause for this misdesign is 39(1):3–20.
+that experts typically adopt a myopic interpretation of re-
+Braun,V.;andClarke,V.2006. Usingthematicanalysisin
+ward,andthisinterpretationisatoddswiththeRLobjective
+psychology. Qualitative research in psychology, 3(2): 77–
+of optimizing cumulative and perhaps discounted rewards.
+101.
+Given this finding, one direction for future work would as-
+sess the systemic errors humans make when designing re- Chiang,H.-T.L.;Faust,A.;Fiser,M.;andFrancis,A.2019.
+ward functions, and try to construct better mechanisms for
+Learningnavigationbehaviorsend-to-endwithautorl.IEEE
+inferring the humans’ true intent given these systemic er-
+RoboticsandAutomationLetters,4(2):2007–2014.
+rors. Such a mechanism could build off of inverse reward Christiano,P.F.;Leike,J.;Brown,T.;Martic,M.;Legg,S.;
+design(Hadfield-Menelletal.2017). and Amodei, D. 2017. Deep reinforcement learning from
+Whilethereisgreatoptimismaroundtheflexibilityofre- human preferences. Advances in neural information pro-
+ward as the optimization target for learning (Silver et al. cessingsystems,30.
+2021), this paper contributes to mounting evidence that
+Engstrom, L.; Ilyas, A.; Santurkar, S.; Tsipras, D.; Janoos,
+most people are ineffective reward designers in current
+F.;Rudolph,L.;andMadry,A.2019. Implementationmat-
+practice (Amodei et al. 2016; Krakovna et al. 2020; Knox
+tersindeeprl:Acasestudyonppoandtrpo.InInternational
+et al. 2023). As future work, we assert that the commu-
+conferenceonlearningrepresentations.
+nity should also explore mechanisms to support humans—
+includingexperts!—inthisrewarddesignendeavor.Specifi- Faust, A.; Francis, A.; and Mehta, D. 2019. Evolving re-
+cally,onecoulddevelopguidanceforthehumanrewardde- wards to automate reinforcement learning. arXiv preprint
+signer’s process such that it more directly reflects the RL arXiv:1905.07628.
+optimizationtargetofexpecteddiscountedreturn.Addition- Hadfield-Menell,D.;Milli,S.;Abbeel,P.;Russell,S.J.;and
+ally,itisworthexploringwhetherincorporatingexplanation Dragan,A.2017.Inverserewarddesign.Advancesinneural
+mechanisms can improve reward design outcomes (for ex- informationprocessingsystems,30.
+ample,byassistingexpertsinassessingthecontributionsof
+He,J.Z.-Y.;andDragan,A.D.2021.Assistedrobustreward
+decomposedrewardcomponents(Juozapaitisetal.2019)).
+design. arXivpreprintarXiv:2111.09884.
+Alternative models of reward should also be considered
+and evaluated both for their propensity for overfitting and Henderson, P.; Islam, R.; Bachman, P.; Pineau, J.; Precup,
+for their propensity for other forms of misdesign. Reward D.; and Meger, D. 2018. Deep reinforcement learning that
+machines (Icarte et al. 2018) and hybrid reward architec- matters. InProceedingsoftheAAAIconferenceonartificial
+tures (Van Seijen et al. 2017) are two such candidates. In intelligence,volume32.
+rewardmachines,rewardfunctionsaredescribedasatypeof
+Hoeffding, W. 1994. Probability inequalities for sums of
+finitestatemachineinsteadofdirectlyasafunction.While
+boundedrandomvariables. InThecollectedworksofWass-
+rewardmachinesmayelicitfeatureengineeringandarethus
+ilyHoeffding,409–426.Springer.
+taboo in RL, humans may be better able to design reward
+Hopkins, A.; and Booth, S. 2021. Machine learning prac-
+functionswhichcorrectlyencodeataskiftheyusesufficient
+tices outside big tech: How resource constraints challenge
+structure for guiding the design process. In hybrid reward
+responsible development. In Proceedings of the 2021
+architectures,therewardfunctionisdecomposedintondif-
+AAAI/ACMConferenceonAI,Ethics,andSociety,134–145.
+ferent reward functions, each of which is then used to op-
+timizeapolicy.Thesepoliciesaresubsequentlyaggregated Ibarz,J.;Tan,J.;Finn,C.;Kalakrishnan,M.;Pastor,P.;and
+intoasinglepolicy.Thesemethodsbothinducesupporting Levine, S. 2021. How to train your robot with deep rein-
+structures for designing reward functions, and this support forcement learning: lessons we have learned. The Interna-
+may help humans write better reward functions with low- tionalJournalofRoboticsResearch,40(4-5):698–721.
+eredpropensityforoverfittingorotherformsofmisdesign.
+Icarte, R. T.; Klassen, T.; Valenzano, R.; and McIlraith, S.
+2018. Using reward machines for high-level task specifi-
+Acknowledgments
+cationanddecompositioninreinforcementlearning. InIn-
+We thank Dylan Hadfield-Menell and many RLDM ternational Conference on Machine Learning, 2107–2116.
+conference-goers for their input on this work. In addition, PMLR.
+the authors would like to thank the user study participants
+Jiang,N.;Kulesza,A.;Singh,S.;andLewis,R.2015. The
+andanonymousreviewersatbothAAAIandRLDM.
+dependence of effective planning horizon on model accu-
+racy. In Proceedings of the 2015 International Conference
+References
+onAutonomousAgentsandMultiagentSystems,1181–1189.
+Amodei, D.; Olah, C.; Steinhardt, J.; Christiano, P.; Schul- Citeseer.
+man,J.;andMane´,D.2016.ConcreteproblemsinAIsafety. Juozapaitis, Z.; Koul, A.; Fern, A.; Erwig, M.; and Doshi-
+arXivpreprintarXiv:1606.06565.
+Velez, F. 2019. Explainable reinforcement learning via re-
+Andrychowicz, O. M.; Baker, B.; Chociej, M.; Jozefowicz, warddecomposition. InIJCAI/ECAIWorkshoponexplain-
+R.;McGrew,B.;Pachocki,J.;Petron,A.;Plappert,M.;Pow- ableartificialintelligence.
+5928
+
+Knox, W. B.; Allievi, A.; Banzhaf, H.; Schmitt, F.; and Ratner, E.; Hadfield-Menell, D.; and Dragan, A. D. 2018.
+Stone, P. 2023. Reward (mis) design for autonomous driv- Simplifying reward design through divide-and-conquer.
+ing. ArtificialIntelligence,316:103829. arXivpreprintarXiv:1806.02501.
+Knox, W. B.; Hatgis-Kessell, S.; Booth, S.; Niekum, S.; Schulman, J.; Wolski, F.; Dhariwal, P.; Radford, A.; and
+Stone, P.; and Allievi, A. 2022. Models of human pref- Klimov,O.2017. Proximalpolicyoptimizationalgorithms.
+erence for learning reward functions. arXiv preprint arXivpreprintarXiv:1707.06347.
+arXiv:2206.02231. Silver, D.; Singh, S.; Precup, D.; and Sutton, R. S. 2021.
+Knox, W. B.; and Stone, P. 2009. Interactively shap- Rewardisenough. ArtificialIntelligence,299:103535.
+ing agents via human reinforcement: The TAMER frame- Singh, S.; Lewis, R. L.; and Barto, A. G. 2009. Where do
+work. In Proceedings of the fifth international conference rewards come from. In Proceedings of the annual confer-
+onKnowledgecapture,9–16. enceofthecognitivesciencesociety,2601–2606.Cognitive
+ScienceSociety.
+Knox, W. B.; and Stone, P. 2015. Framing reinforcement
+learning from human reward: Reward positivity, temporal Sowerby, H.; Zhou, Z.; and Littman, M. L. 2022. De-
+discounting, episodicity, and performance. Artificial Intel- signing Rewards for Fast Learning. arXiv preprint
+ligence,225:24–50. arXiv:2205.15400.
+Krakovna,V.;Uesato,J.;Mikulik,V.;Rahtz,M.;Everitt,T.; Sutton,R.S.;andBarto,A.G.2018. Reinforcementlearn-
+Kumar,R.;Kenton,Z.;Leike,J.;andLegg,S.2020. Spec- ing:Anintroduction. MITpress.
+ification gaming: the flip side of AI ingenuity. DeepMind VanSeijen,H.;Fatemi,M.;Romoff,J.;Laroche,R.;Barnes,
+Blog. T.;andTsang,J.2017. Hybridrewardarchitectureforrein-
+MacGlashan,J.;Ho,M.K.;Loftin,R.;Peng,B.;Wang,G.; forcement learning. Advances in Neural Information Pro-
+Roberts,D.L.;Taylor,M.E.;andLittman,M.L.2017. In-
+cessingSystems,30.
+teractive learning from policy-dependent human feedback. Watkins, C. J.; and Dayan, P. 1992. Q-learning. Machine
+In International Conference on Machine Learning, 2285– learning,8(3):279–292.
+2294.PMLR. Wu,Z.;Lian,W.;Unhelkar,V.;Tomizuka,M.;andSchaal,
+Mitchell,T.M.;andMitchell,T.M.1997. Machinelearn- S. 2021. Learning dense rewards for contact-rich manip-
+ing,volume1. McGraw-hillNewYork. ulation tasks. In 2021 IEEE International Conference on
+RoboticsandAutomation(ICRA),6214–6221.IEEE.
+Mnih,V.;Badia,A.P.;Mirza,M.;Graves,A.;Lillicrap,T.;
+Harley, T.; Silver, D.; and Kavukcuoglu, K. 2016. Asyn- Yu, T.; Quillen, D.; He, Z.; Julian, R.; Hausman, K.; Finn,
+chronous methods for deep reinforcement learning. In In- C.; and Levine, S. 2020. Meta-world: A benchmark and
+ternational conference on machine learning, 1928–1937. evaluation for multi-task and meta reinforcement learning.
+PMLR. InConferenceonrobotlearning,1094–1100.PMLR.
+Zheng,Z.;Oh,J.;Hessel,M.;Xu,Z.;Kroiss,M.;VanHas-
+Mnih, V.; Kavukcuoglu, K.; Silver, D.; Rusu, A. A.; Ve-
+selt, H.; Silver, D.; and Singh, S. 2020. What can learned
+ness,J.;Bellemare,M.G.;Graves,A.;Riedmiller,M.;Fidje-
+intrinsic rewards capture? In International Conference on
+land,A.K.;Ostrovski,G.;etal.2015. Human-levelcontrol
+MachineLearning,11436–11446.PMLR.
+through deep reinforcement learning. Nature, 518(7540):
+529–533. Ziebart,B.D.;Maas,A.L.;Bagnell,J.A.;Dey,A.K.;etal.
+2008. Maximumentropyinversereinforcementlearning. In
+Nachar, N.; et al. 2008. The Mann-Whitney U: A test for
+AAAI,volume8,1433–1438.Chicago,IL,USA.
+assessingwhethertwoindependentsamplescomefromthe
+samedistribution.TutorialsinquantitativeMethodsforPsy-
+chology,4(1):13–20.
+Ng,A.Y.;Harada,D.;andRussell,S.1999. Policyinvari-
+anceunderrewardtransformations:Theoryandapplication
+torewardshaping. InInternationalConferenceonMachine
+Learning,volume99,278–287.
+Ng, A. Y.; Russell, S.; et al. 2000. Algorithms for inverse
+reinforcementlearning. InInternationalConferenceonMa-
+chineLearning,volume1,2.
+Niekum,S.;Barto,A.G.;andSpector,L.2010.Geneticpro-
+grammingforrewardfunctionsearch.IEEETransactionson
+AutonomousMentalDevelopment,2(2):83–90.
+Parker-Holder, J.; Rajan, R.; Song, X.; Biedenkapp, A.;
+Miao, Y.; Eimer, T.; Zhang, B.; Nguyen, V.; Calandra, R.;
+Faust, A.; et al. 2022. Automated reinforcement learning
+(autorl):Asurveyandopenproblems. JournalofArtificial
+IntelligenceResearch,74:517–568.
+5929

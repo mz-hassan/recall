@@ -1,0 +1,1284 @@
+Soft Actor-Critic:
+Off-Policy Maximum Entropy Deep Reinforcement
+Learning with a Stochastic Actor
+TuomasHaarnoja1 AurickZhou1 PieterAbbeel1 SergeyLevine1
+Abstract ofthesemethodsinreal-worlddomainshasbeenhampered
+bytwomajorchallenges. First,model-freedeepRLmeth-
+Model-freedeepreinforcementlearning(RL)al-
+odsarenotoriouslyexpensiveintermsoftheirsamplecom-
+gorithmshavebeendemonstratedonarangeof
+plexity. Evenrelativelysimpletaskscanrequiremillionsof
+challenging decision making and control tasks.
+stepsofdatacollection,andcomplexbehaviorswithhigh-
+However,thesemethodstypicallysufferfromtwo
+dimensional observations might need substantially more.
+majorchallenges: veryhighsamplecomplexity
+Second,thesemethodsareoftenbrittlewithrespecttotheir
+andbrittleconvergenceproperties,whichnecessi-
+hyperparameters: learningrates,explorationconstants,and
+tatemeticuloushyperparametertuning. Bothof
+other settings must be set carefully for different problem
+thesechallengesseverelylimittheapplicability
+settingstoachievegoodresults. Bothofthesechallenges
+ofsuchmethodstocomplex,real-worlddomains.
+severely limit the applicability of model-free deep RL to
+Inthispaper,weproposesoftactor-critic,anoff-
+real-worldtasks.
+policyactor-criticdeepRLalgorithmbasedonthe
+maximumentropyreinforcementlearningframe- OnecauseforthepoorsampleefficiencyofdeepRLmeth-
+work. Inthisframework,theactoraimstomaxi- odsison-policylearning: someofthemostcommonlyused
+mizeexpectedrewardwhilealsomaximizingen- deepRLalgorithms,suchasTRPO(Schulmanetal.,2015),
+tropy. Thatis,tosucceedatthetaskwhileacting PPO(Schulmanetal.,2017b)orA3C(Mnihetal.,2016),
+asrandomlyaspossible. PriordeepRLmethods requirenewsamplestobecollectedforeachgradientstep.
+based on this framework have been formulated Thisquicklybecomesextravagantlyexpensive,asthenum-
+asQ-learningmethods. Bycombiningoff-policy berofgradientstepsandsamplesperstepneededtolearn
+updateswithastablestochasticactor-criticformu- an effective policy increases with task complexity. Off-
+lation, ourmethodachievesstate-of-the-artper- policyalgorithmsaimtoreusepastexperience. Thisisnot
+formanceonarangeofcontinuouscontrolbench- directlyfeasiblewithconventionalpolicygradientformula-
+mark tasks, outperforming prior on-policy and tions,butisrelativelystraightforwardforQ-learningbased
+off-policymethods.Furthermore,wedemonstrate methods(Mnihetal.,2015). Unfortunately,thecombina-
+that,incontrasttootheroff-policyalgorithms,our tionofoff-policylearningandhigh-dimensional,nonlinear
+approach is very stable, achieving very similar functionapproximationwithneuralnetworkspresentsama-
+performanceacrossdifferentrandomseeds. jorchallengeforstabilityandconvergence(Bhatnagaretal.,
+2009). Thischallengeisfurtherexacerbatedincontinuous
+stateandactionspaces,whereaseparateactornetworkis
+1.Introduction oftenusedtoperformthemaximizationinQ-learning. A
+commonlyusedalgorithminsuchsettings,deepdeterminis-
+Model-free deep reinforcement learning (RL) algorithms
+ticpolicygradient(DDPG)(Lillicrapetal.,2015),provides
+havebeenappliedinarangeofchallengingdomains,from
+forsample-efficientlearningbutisnotoriouslychallenging
+games (Mnih et al., 2013; Silver et al., 2016) to robotic
+to use due to its extreme brittleness and hyperparameter
+control (Schulman et al., 2015). The combination of RL
+sensitivity(Duanetal.,2016;Hendersonetal.,2017).
+and high-capacity function approximators such as neural
+networksholdsthepromiseofautomatingawiderangeof We explore how to design an efficient and stable model-
+decisionmakingandcontroltasks,butwidespreadadoption free deep RL algorithm for continuous state and action
+spaces. To that end, we draw on the maximum entropy
+1BerkeleyArtificialIntelligenceResearch,UniversityofCal- framework,whichaugmentsthestandardmaximumreward
+ifornia, Berkeley, USA. Correspondence to: Tuomas Haarnoja
+reinforcementlearningobjectivewithanentropymaximiza-
+<haarnoja@berkeley.edu>.
+tionterm(Ziebartetal.,2008;Toussaint,2009;Rawliketal.,
+8102
+guA
+8
+]GL.sc[
+2v09210.1081:viXra
+
+SoftActor-Critic
+2012;Foxetal.,2016;Haarnojaetal.,2017). Maximumen- andpolicyimprovement—usingthevaluefunctiontoobtain
+tropyreinforcementlearningalterstheRLobjective,though abetterpolicy(Bartoetal.,1983;Sutton&Barto,1998). In
+the original objective can be recovered using a tempera- large-scalereinforcementlearningproblems,itistypically
+tureparameter(Haarnojaetal.,2017). Moreimportantly, impracticaltoruneitherofthesestepstoconvergence,and
+the maximum entropy formulation provides a substantial insteadthevaluefunctionandpolicyareoptimizedjointly.
+improvementinexplorationandrobustness: asdiscussed Inthiscase, thepolicyisreferredtoastheactor, andthe
+by Ziebart (2010), maximum entropy policies are robust value function as the critic. Many actor-critic algorithms
+inthefaceofmodelandestimationerrors,andasdemon- buildonthestandard,on-policypolicygradientformulation
+stratedby(Haarnojaetal.,2017),theyimproveexploration toupdatetheactor(Peters&Schaal,2008),andmanyof
+by acquiring diverse behaviors. Prior work has proposed themalsoconsidertheentropyofthepolicy,butinsteadof
+model-freedeepRLalgorithmsthatperformon-policylearn- maximizingtheentropy,theyuseitasanregularizer(Schul-
+ingwithentropymaximization(O’Donoghueetal.,2016), manetal.,2017b;2015;Mnihetal.,2016;Gruslysetal.,
+aswellasoff-policymethodsbasedonsoftQ-learningand 2017). On-policy training tends to improve stability but
+itsvariants(Schulmanetal.,2017a;Nachumetal.,2017a; resultsinpoorsamplecomplexity.
+Haarnojaetal.,2017). However,theon-policyvariantssuf-
+There have been efforts to increase the sample efficiency
+ferfrompoorsamplecomplexityforthereasonsdiscussed
+whileretainingrobustnessbyincorporatingoff-policysam-
+above,whiletheoff-policyvariantsrequirecomplexapprox-
+ples and by using higher order variance reduction tech-
+imateinferenceproceduresincontinuousactionspaces.
+niques(O’Donoghueetal.,2016;Guetal.,2016). How-
+In this paper, we demonstrate that we can devise an off- ever, fully off-policy algorithms still attain better effi-
+policymaximumentropyactor-criticalgorithm,whichwe ciency.Aparticularlypopularoff-policyactor-criticmethod,
+callsoftactor-critic(SAC),whichprovidesforbothsample- DDPG(Lillicrapetal.,2015),whichisadeepvariantofthe
+efficientlearningandstability. Thisalgorithmextendsread- deterministicpolicygradient(Silveretal.,2014)algorithm,
+ily to very complex, high-dimensional tasks, such as the usesaQ-functionestimatortoenableoff-policylearning,
+Humanoid benchmark(Duan etal., 2016)with 21action and a deterministic actor that maximizes this Q-function.
+dimensions,whereoff-policymethodssuchasDDPGtypi- Assuch,thismethodcanbeviewedbothasadeterminis-
+callystruggletoobtaingoodresults(Guetal.,2016). SAC tic actor-critic algorithm and an approximate Q-learning
+alsoavoidsthecomplexityandpotentialinstabilityassoci- algorithm. Unfortunately,theinterplaybetweenthedeter-
+atedwithapproximateinferenceinprioroff-policymaxi- ministicactornetworkandtheQ-functiontypicallymakes
+mumentropyalgorithmsbasedonsoftQ-learning(Haarnoja DDPGextremelydifficulttostabilizeandbrittletohyperpa-
+et al., 2017). We present a convergence proof for policy rametersettings(Duanetal.,2016;Hendersonetal.,2017).
+iterationinthemaximumentropyframework,andthenin- Asaconsequence,itisdifficulttoextendDDPGtocomplex,
+troduceanewalgorithmbasedonanapproximationtothis high-dimensionaltasks,andon-policypolicygradientmeth-
+procedure that can be practically implemented with deep odsstilltendtoproducethebestresultsinsuchsettings(Gu
+neuralnetworks,whichwecallsoftactor-critic. Wepresent etal.,2016). Ourmethodinsteadcombinesoff-policyactor-
+empirical results that show that soft actor-critic attains a critictrainingwithastochasticactor, andfurtheraimsto
+substantialimprovementinbothperformanceandsample maximizetheentropyofthisactorwithanentropymaxi-
+efficiencyoverbothoff-policyandon-policypriormethods. mization objective. We find that this actually results in a
+Wealsocomparetotwindelayeddeepdeterministic(TD3) considerably more stable and scalable algorithm that, in
+policygradientalgorithm(Fujimotoetal.,2018),whichis practice,exceedsboththeefficiencyandfinalperformance
+aconcurrentworkthatproposesadeterministicalgorithm ofDDPG.Asimilarmethodcanbederivedasazero-step
+thatsubstantiallyimprovesonDDPG. specialcaseofstochasticvaluegradients(SVG(0))(Heess
+etal.,2015). However,SVG(0)differsfromourmethodin
+thatitoptimizesthestandardmaximumexpectedreturnob-
+2.RelatedWork
+jective,anditdoesnotmakeuseofaseparatevaluenetwork,
+Our soft actor-critic algorithm incorporates three key in- whichwefoundtomaketrainingmorestable.
+gredients: anactor-criticarchitecturewithseparatepolicy
+Maximumentropyreinforcementlearningoptimizespoli-
+andvaluefunctionnetworks,anoff-policyformulationthat
+cies to maximize both the expected return and the ex-
+enablesreuseofpreviouslycollecteddataforefficiency,and
+pected entropy of the policy. This framework has been
+entropy maximization to enable stability and exploration.
+used in many contexts, from inverse reinforcement learn-
+Wereviewpriorworksthatdrawonsomeoftheseideasin
+ing(Ziebartetal.,2008)tooptimalcontrol(Todorov,2008;
+thissection. Actor-criticalgorithmsaretypicallyderived
+Toussaint, 2009; Rawlik et al., 2012). In guided policy
+startingfrompolicyiteration,whichalternatesbetweenpol-
+search (Levine & Koltun, 2013; Levine et al., 2016), the
+icyevaluation—computingthevaluefunctionforapolicy—
+maximumentropydistributionisusedtoguidepolicylearn-
+
+SoftActor-Critic
+ing towards high-reward regions. More recently, several withtheexpectedentropyofthepolicyoverρ (s ):
+π t
+papershavenotedtheconnectionbetweenQ-learningand
+policygradientmethodsintheframeworkofmaximumen-
+T
+(cid:88)
+tropy learning (O’Donoghue et al., 2016; Haarnoja et al., J(π)= E [r(s ,a )+α (π( s ))]. (1)
+2017;Nachumetal.,2017a;Schulmanetal.,2017a). While
+(st,at)∼ρπ t t
+H ·|
+t
+t=0
+mostofthepriormodel-freeworksassumeadiscreteaction
+space,Nachumetal.(2017b)approximatethemaximumen- The temperature parameter α determines the relative im-
+tropydistributionwithaGaussianandHaarnojaetal.(2017) portanceoftheentropytermagainstthereward,andthus
+withasamplingnetworktrainedtodrawsamplesfromthe controlsthestochasticityoftheoptimalpolicy. Themaxi-
+optimalpolicy. AlthoughthesoftQ-learningalgorithmpro- mumentropyobjectivediffersfromthestandardmaximum
+posed by Haarnoja et al. (2017) has a value function and expectedrewardobjectiveusedinconventionalreinforce-
+actor network, it is not a true actor-critic algorithm: the ment learning, though the conventional objective can be
+Q-function is estimating the optimal Q-function, and the recoveredinthelimitasα 0. Fortherestofthispaper,
+actordoesnotdirectlyaffecttheQ-functionexceptthrough we will omit writing the te → mperature explicitly, as it can
+thedatadistribution. Hence, Haarnojaetal.(2017)moti- alwaysbesubsumedintotherewardbyscalingitbyα−1.
+vatestheactornetworkasanapproximatesampler,rather
+This objective has a number of conceptual and practical
+than the actor in an actor-critic algorithm. Crucially, the
+advantages. First,thepolicyisincentivizedtoexploremore
+convergenceofthismethodhingesonhowwellthissampler
+widely, while giving up on clearly unpromising avenues.
+approximatesthetrueposterior. Incontrast,weprovethat
+Second, the policy can capture multiple modes of near-
+ourmethodconvergestotheoptimalpolicyfromagiven
+optimal behavior. In problem settings where multiple ac-
+policyclass,regardlessofthepolicyparameterization. Fur-
+tionsseemequallyattractive,thepolicywillcommitequal
+thermore,thesepriormaximumentropymethodsgenerally
+probabilitymasstothoseactions. Lastly,priorworkhasob-
+donotexceedtheperformanceofstate-of-the-artoff-policy
+servedimprovedexplorationwiththisobjective(Haarnoja
+algorithms, such as DDPG, when learning from scratch,
+et al., 2017; Schulman et al., 2017a), and in our experi-
+thoughtheymayhaveotherbenefits,suchasimprovedex-
+ments,weobservethatitconsiderablyimproveslearning
+plorationandeaseoffine-tuning. Inourexperiments,we
+speedoverstate-of-artmethodsthatoptimizetheconven-
+demonstratethatoursoftactor-criticalgorithmdoesinfact
+tionalRLobjectivefunction. Wecanextendtheobjectiveto
+exceedtheperformanceofpriorstate-of-the-artoff-policy
+infinitehorizonproblemsbyintroducingadiscountfactorγ
+deepRLmethodsbyawidemargin.
+toensurethatthesumofexpectedrewardsandentropiesis
+finite. Writingdownthemaximumentropyobjectiveforthe
+3.Preliminaries
+infinitehorizondiscountedcaseismoreinvolved(Thomas,
+Wefirstintroducenotationandsummarizethestandardand 2014)andisdeferredtoAppendixA.
+maximumentropyreinforcementlearningframeworks.
+Prior methods have proposed directly solving for the op-
+timal Q-function, from which the optimal policy can be
+3.1.Notation
+recovered(Ziebartetal.,2008;Foxetal.,2016;Haarnoja
+We address policy learning in continuous action spaces. et al., 2017). We will discuss how we can devise a soft
+Weconsideraninfinite-horizonMarkovdecisionprocess actor-criticalgorithmthroughapolicyiterationformulation,
+(MDP), defined by the tuple ( , ,p,r), where the state where we instead evaluate the Q-function of the current
+S A
+space and the action space are continuous, and the policyandupdatethepolicythroughanoff-policygradient
+S A
+unknown state transition probability p : update. Thoughsuchalgorithmshavepreviouslybeenpro-
+S ×S ×A →
+[0, )representstheprobabilitydensityofthenextstate posedforconventionalreinforcementlearning,ourmethod
+∞
+s giventhecurrentstates andactiona . is,toourknowledge,thefirstoff-policyactor-criticmethod
+t+1 t t
+∈S ∈S ∈A
+The environment emits a bounded reward r : inthemaximumentropyreinforcementlearningframework.
+S ×A →
+[r ,r ] on each transition. We will use ρ (s ) and
+min max π t
+ρ π (s t ,a t )todenotethestateandstate-actionmarginalsof 4.FromSoftPolicyIterationtoSoft
+thetrajectorydistributioninducedbyapolicyπ(a s ).
+t | t Actor-Critic
+3.2.MaximumEntropyReinforcementLearning Our off-policy soft actor-critic algorithm can be derived
+startingfromamaximumentropyvariantofthepolicyit-
+Standard RL maximizes the expected sum of rewards
+(cid:80) E [r(s ,a )]. We will consider a more gen- erationmethod. Wewillfirstpresentthisderivation,verify
+t (st,at)∼ρπ t t thatthecorrespondingalgorithmconvergestotheoptimal
+eralmaximumentropyobjective(seee.g.Ziebart(2010)),
+policyfromitsdensityclass, andthenpresentapractical
+whichfavorsstochasticpoliciesbyaugmentingtheobjective
+deepreinforcementlearningalgorithmbasedonthistheory.
+
+SoftActor-Critic
+4.1.DerivationofSoftPolicyIteration ThepartitionfunctionZπold(s
+t
+)normalizesthedistribution,
+andwhileitisintractableingeneral,itdoesnotcontributeto
+Wewillbeginbyderivingsoftpolicyiteration,ageneralal-
+thegradientwithrespecttothenewpolicyandcanthusbe
+gorithmforlearningoptimalmaximumentropypoliciesthat
+ignored,asnotedinthenextsection. Forthisprojection,we
+alternates between policy evaluation and policy improve-
+canshowthatthenew,projectedpolicyhasahighervalue
+mentinthemaximumentropyframework. Ourderivation
+than the old policy with respect to the objective in Equa-
+isbasedonatabularsetting,toenabletheoreticalanalysis
+tion1. WeformalizethisresultinLemma2.
+and convergence guarantees, and we extend this method
+intothegeneralcontinuoussettinginthenextsection. We Lemma2(SoftPolicyImprovement). Letπ old Πandlet
+∈
+willshowthatsoftpolicyiterationconvergestotheoptimal π new betheoptimizeroftheminimizationproblemdefined
+policywithinasetofpolicieswhichmightcorrespond,for inEquation4. ThenQπnew(s t ,a t ) Qπold(s t ,a t )forall
+≥
+instance,toasetofparameterizeddensities. (s t ,a t ) with < .
+∈S×A |A| ∞
+In the policy evaluation step of soft policy iteration, we
+Proof. SeeAppendixB.2.
+wish to compute the value of a policy π according to the
+maximum entropy objective in Equation 1. For a fixed
+Thefullsoftpolicyiterationalgorithmalternatesbetween
+policy,thesoftQ-valuecanbecomputediteratively,starting
+fromanyfunctionQ: Randrepeatedlyapplying thesoftpolicyevaluationandthesoftpolicyimprovement
+S×A→ steps, and it will provably converge to the optimal maxi-
+amodifiedBellmanbackupoperator π givenby
+T mumentropypolicyamongthepoliciesinΠ(Theorem1).
+πQ(s ,a )(cid:44)r(s ,a )+γE [V(s )], (2) Althoughthisalgorithmwillprovablyfindtheoptimalsolu-
+T
+t t t t st+1∼p t+1
+tion,wecanperformitinitsexactformonlyinthetabular
+where case. Therefore,wewillnextapproximatethealgorithmfor
+continuousdomains,whereweneedtorelyonafunction
+V(s )=E [Q(s ,a ) logπ(a s )] (3) approximator to represent the Q-values, and running the
+t at∼π t t
+−
+t
+|
+t
+twostepsuntilconvergencewouldbecomputationallytoo
+isthesoftstatevaluefunction. Wecanobtainthesoftvalue expensive. Theapproximationgivesrisetoanewpractical
+function for any policy π by repeatedly applying π as algorithm,calledsoftactor-critic.
+T
+formalizedbelow.
+Theorem1(SoftPolicyIteration). Repeatedapplicationof
+Lemma1(SoftPolicyEvaluation). ConsiderthesoftBell- softpolicyevaluationandsoftpolicyimprovementfromany
+man backup operator π in Equation 2 and a mapping π Π converges to a policy π∗ such that Qπ∗ (s ,a )
+Q0 : Rwith T < ,anddefineQk+1 = πQk. Qπ ∈ (s ,a )forallπ Πand(s ,a ) ,as t sum t in ≥ g
+Then S th × e A seq → uenceQk |A w | illco ∞ nvergetothesoftQ-va T lueof < t t . ∈ t t ∈ S ×A
+πask . |A| ∞
+→∞
+Proof. SeeAppendixB.3.
+Proof. SeeAppendixB.1.
+4.2.SoftActor-Critic
+In the policy improvement step, we update the policy to-
+Asdiscussedabove,largecontinuousdomainsrequireusto
+wardstheexponentialofthenewQ-function.Thisparticular
+deriveapracticalapproximationtosoftpolicyiteration. To
+choiceofupdatecanbeguaranteedtoresultinanimproved
+thatend,wewillusefunctionapproximatorsforboththe
+policyintermsofitssoftvalue. Sinceinpracticeweprefer
+Q-functionandthepolicy,andinsteadofrunningevaluation
+policiesthataretractable,wewilladditionallyrestrictthe
+andimprovementtoconvergence, alternatebetweenopti-
+policytosomesetofpoliciesΠ,whichcancorrespond,for
+mizingbothnetworkswithstochasticgradientdescent. We
+example,toaparameterizedfamilyofdistributionssuchas
+willconsideraparameterizedstatevaluefunctionV (s ),
+Gaussians. To account for the constraint that π Π, we ψ t
+∈ softQ-functionQ (s ,a ),andatractablepolicyπ (a s ).
+projecttheimprovedpolicyintothedesiredsetofpolicies. θ t t φ t t
+|
+The parameters of these networks are ψ, θ, and φ. For
+Whileinprinciplewecouldchooseanyprojection,itwill
+example,thevaluefunctionscanbemodeledasexpressive
+turnouttobeconvenienttousetheinformationprojection
+neuralnetworks, andthepolicyasaGaussianwithmean
+definedintermsoftheKullback-Leiblerdivergence. Inthe
+and covariance given by neural networks. We will next
+otherwords,inthepolicyimprovementstep,foreachstate,
+deriveupdaterulesfortheseparametervectors.
+weupdatethepolicyaccordingto
+π new =arg π m (cid:48)∈ in Π D KL (cid:18) π(cid:48)( ·| s t ) (cid:13) (cid:13) (cid:13) (cid:13) exp( Z Q π π o o ld ld ( ( s s t t ) , · )) (cid:19) . T i i s m h n a e o to s n t r a e f t e o e d r v t i a h n l e u p e s r t i a f n u t c e n ip c v t l a i e l o u t n o e, a i s n p i c p n l r c u o e d x i e i t m a is a s r t e e e p s la a t t r h e a e d te s to f o u f t n t h c v e t a i Q o lu n - e fu a . n p T c p h t r i e o o r x n e -
+(4)
+andpolicyaccordingtoEquation3. Thisquantitycanbe
+
+SoftActor-Critic
+estimatedfromasingleactionsamplefromthecurrentpol- Algorithm1SoftActor-Critic
+icywithoutintroducingabias,butinpractice,includinga Initializeparametervectorsψ,ψ¯,θ,φ.
+separatefunctionapproximatorforthesoftvaluecanstabi- foreachiterationdo
+lizetrainingandisconvenienttotrainsimultaneouslywith foreachenvironmentstepdo
+the other networks. The soft value function is trained to a π (a s )
+t φ t t
+minimizethesquaredresidualerror s ∼ p(s | s ,a )
+t+1 t+1 t t
+∼ |
+JV(ψ)=E st∼D (cid:104) 1 2 (cid:0) Vψ(s t) − E at∼πφ [Qθ(s t,a t) − logπφ(a t | s t)] (cid:1)2(cid:105) en D df ← or D∪{ (s t ,a t ,r(s t ,a t ),s t+1 ) }
+(5)
+foreachgradientstepdo
+where isthedistributionofpreviouslysampledstatesand ψ ψ λ V ˆ ψ J V (ψ)
+actions D ,orareplaybuffer. ThegradientofEquation5can θ i ←
+←
+θ i −
+−
+λ Q ∇
+∇
+ˆ θi J Q (θ i )fori
+∈{
+1,2
+}
+beestimatedwithanunbiasedestimator φ φ λ ˆ J (φ)
+π φ π
+ψ¯← τψ − +(1 ∇ τ)ψ¯
+ˆ J (ψ)= V (s )(V (s ) Q (s ,a )+logπ (a s )), ← −
+∇ ψ V ∇ ψ ψ t ψ t − θ t t φ t | t endfor
+(6)
+endfor
+wheretheactionsaresampledaccordingtothecurrentpol-
+icy,insteadofthereplaybuffer. ThesoftQ-functionparam-
+where(cid:15) isaninputnoisevector,sampledfromsomefixed
+eterscanbetrainedtominimizethesoftBellmanresidual t
+distribution, such as a spherical Gaussian. We can now
+(cid:20) 1(cid:16) (cid:17)2 (cid:21)
+J (θ)=E Q (s ,a ) Qˆ(s ,a ) , rewritetheobjectiveinEquation10as
+Q (st,at)∼D
+2
+θ t t
+−
+t t
+(7) Jπ(φ)=E st∼D,(cid:15)t∼N[logπφ(fφ((cid:15)t;s t)
+|
+s t)
+−
+Qθ(s t,fφ((cid:15)t;s t))],
+(12)
+with
+Qˆ(s
+t
+,a
+t
+)=r(s
+t
+,a
+t
+)+γE
+st+1∼p
+(cid:2) V ψ¯(s
+t+1
+) (cid:3) , (8) w
+no
+h
+t
+e
+e
+r
+d
+e
+t
+π
+ha
+φ
+t
+i
+t
+s
+he
+de
+p
+fi
+a
+n
+rt
+e
+it
+d
+io
+i
+n
+m
+f
+p
+u
+l
+n
+ic
+c
+i
+t
+t
+i
+l
+o
+y
+n
+in
+is
+t
+i
+e
+n
+r
+d
+m
+ep
+s
+e
+o
+n
+f
+d
+f
+e
+φ
+n
+,
+t
+a
+o
+n
+f
+d
+φ
+w
+an
+e
+d
+ha
+c
+v
+an
+e
+whichagaincanbeoptimizedwithstochasticgradients thusbeomitted. WecanapproximatethegradientofEqua-
+tion12with
+∇
+ˆ
+θ
+J
+Q
+(θ)=
+∇
+θ
+Q
+θ
+(a
+t
+,s
+t
+) (cid:0) Q
+θ
+(s
+t
+,a
+t
+)
+−
+r(s
+t
+,a
+t
+)
+−
+γV ψ¯(s
+t+1
+) (cid:1) .
+(9) ˆ J (φ)= logπ (a s )
+φ π φ φ t t
+∇ ∇ |
+TheupdatemakesuseofatargetvaluenetworkV ψ¯,where +(
+∇
+at logπ φ (a t
+|
+s t )
+−∇
+at Q(s t ,a t ))
+∇
+φ f φ ((cid:15) t ;s t ),
+ψ¯ can be an exponentially moving average of the value (13)
+networkweights,whichhasbeenshowntostabilizetrain-
+wherea isevaluatedatf ((cid:15) ;s ). Thisunbiasedgradient
+ing (Mnih et al., 2015). Alternatively, we can update the t φ t t
+estimatorextendstheDDPGstylepolicygradients(Lillicrap
+targetweightstomatchthecurrentvaluefunctionweights
+etal.,2015)toanytractablestochasticpolicy.
+periodically(seeAppendixE). Finally,thepolicyparam-
+eters can be learned by directly minimizing the expected OuralgorithmalsomakesuseoftwoQ-functionstomitigate
+KL-divergenceinEquation4: positivebiasinthepolicyimprovementstepthatisknown
+(cid:20) (cid:18) (cid:13) (cid:19)(cid:21) todegradeperformanceofvaluebasedmethods(Hasselt,
+J π (φ)=E st∼D D KL π φ ( ·| s t ) (cid:13) (cid:13) (cid:13) exp( Z Q θ ( ( s s ) t , · )) . 2010;Fujimotoetal.,2018). Inparticular,weparameterize
+θ t twoQ-functions,withparametersθ ,andtraintheminde-
+(10) i
+pendentlytooptimizeJ (θ ). Wethenusetheminimumof
+Q i
+There are several options for minimizing J . A typical theQ-functionsforthevaluegradientinEquation6andpol-
+π
+solutionforpolicygradientmethodsistousethelikelihood icygradientinEquation13,asproposedbyFujimotoetal.
+ratiogradientestimator(Williams,1992),whichdoesnot (2018). Althoughouralgorithmcanlearnchallengingtasks,
+requirebackpropagatingthegradientthroughthepolicyand includinga21-dimensionalHumanoid,usingjustasingle
+thetargetdensitynetworks. However,inourcase,thetarget Q-function,wefoundtwoQ-functionssignificantlyspeed
+densityistheQ-function,whichisrepresentedbyaneural uptraining,especiallyonhardertasks. Thecompletealgo-
+networkancanbedifferentiated,anditisthusconvenient rithmisdescribedinAlgorithm1. Themethodalternates
+toapplythereparameterizationtrickinstead,resultingina betweencollectingexperiencefromtheenvironmentwith
+lowervarianceestimator. Tothatend, wereparameterize thecurrentpolicyandupdatingthefunctionapproximators
+thepolicyusinganeuralnetworktransformation usingthestochasticgradientsfrombatchessampledfroma
+replaybuffer. Inpractice,wetakeasingleenvironmentstep
+a =f ((cid:15) ;s ), (11)
+t φ t t followedbyoneorseveralgradientsteps(seeAppendixD
+
+SoftActor-Critic
+4000
+3000
+2000
+1000
+0
+0.0 0.2 0.4 0.6 0.8 1.0
+millionsteps
+nruteregareva
+Hopper-v1
+6000
+5000
+4000
+3000
+2000
+1000
+0
+0.0 0.2 0.4 0.6 0.8 1.0
+millionsteps
+(a) Hopper-v1
+nruteregareva
+Walker2d-v1
+15000
+10000
+5000
+0
+0.0 0.5 1.0 1.5 2.0 2.5 3.0
+millionsteps
+(b) Walker2d-v1
+nruteregareva
+HalfCheetah-v1
+(c) HalfCheetah-v1
+6000
+4000
+2000
+0
+0.0 0.5 1.0 1.5 2.0 2.5 3.0
+millionsteps
+nruteregareva
+Ant-v1
+8000
+6000
+4000
+2000
+0
+0 2 4 6 8 10
+millionsteps
+(d) Ant-v1
+nruteregareva
+Humanoid-v1
+6000
+4000
+2000
+0
+0 2 4 6 8 10
+millionsteps
+(e) Humanoid-v1
+nruteregareva
+Humanoid(rllab)
+SAC
+DDPG
+PPO
+SQL
+TD3(concurrent)
+(f) Humanoid(rllab)
+Figure1.Training curves on continuous control benchmarks. Soft actor-critic (yellow) performs consistently across all tasks and
+outperformingbothon-policyandoff-policymethodsinthemostchallengingtasks.
+forallhyperparameter). Usingoff-policydatafromareplay Wecompareourmethodtodeepdeterministicpolicygra-
+bufferisfeasiblebecausebothvalueestimatorsandthepol- dient (DDPG) (Lillicrap et al., 2015), an algorithm that
+icycanbetrainedentirelyonoff-policydata. Thealgorithm is regarded as one of the more efficient off-policy deep
+isagnostictotheparameterizationofthepolicy,aslongas RLmethods(Duanetal.,2016);proximalpolicyoptimiza-
+itcanbeevaluatedforanyarbitrarystate-actiontuple. tion(PPO)(Schulmanetal.,2017b),astableandeffective
+on-policy policy gradient algorithm; and soft Q-learning
+(SQL)(Haarnojaetal.,2017),arecentoff-policyalgorithm
+5.Experiments
+for learningmaximum entropy policies. OurSQL imple-
+The goal of our experimental evaluation is to understand mentationalsoincludestwoQ-functions,whichwefound
+how the sample complexity and stability of our method toimproveitsperformanceinmostenvironments. Weaddi-
+compares with prior off-policy and on-policy deep rein- tionallycomparetotwindelayeddeepdeterministicpolicy
+forcement learning algorithms. We compare our method gradient algorithm (TD3) (Fujimoto et al., 2018), using
+to prior techniques on a range of challenging continuous theauthor-providedimplementation. Thisisanextension
+controltasksfromtheOpenAIgymbenchmarksuite(Brock- toDDPG,proposedconcurrentlytoourmethod,thatfirst
+manetal.,2016)andalsoontherllabimplementationof appliedthedoubleQ-learningtricktocontinuouscontrol
+theHumanoidtask(Duanetal.,2016). Althoughtheeasier alongwithotherimprovements. Wehaveincludedtrustre-
+taskscanbesolvedbyawiderangeofdifferentalgorithms, gionpathconsistencylearning(Trust-PCL)(Nachumetal.,
+themorecomplexbenchmarks,suchasthe21-dimensional 2017b)andtwoothervariantsofSACinAppendixE. We
+Humanoid(rllab),areexceptionallydifficulttosolvewith turnedofftheexplorationnoiseforevaluationforDDPG
+off-policyalgorithms(Duanetal.,2016). Thestabilityof andPPO.Formaximumentropyalgorithms,whichdonot
+thealgorithmalsoplaysalargeroleinperformance: eas- explicitlyinjectexplorationnoise,weeitherevaluatedwith
+ier tasks make it more practical to tune hyperparameters theexplorationnoise(SQL)orusethemeanaction(SAC).
+toachievegoodresults,whilethealreadynarrowbasinsof ThesourcecodeofourSACimplementation1andvideos2
+effectivehyperparametersbecomeprohibitivelysmallfor areavailableonline.
+themoresensitivealgorithmsonthehardestbenchmarks,
+1github.com/haarnoja/sac
+leadingtopoorperformance(Guetal.,2016).
+2sites.google.com/view/soft-actor-critic
+
+SoftActor-Critic
+5.1.ComparativeEvaluation
+Figure1showsthetotalaveragereturnofevaluationrollouts
+6000
+during training for DDPG, PPO, and TD3. We train five
+differentinstancesofeachalgorithmwithdifferentrandom
+seeds, with each performing one evaluation rollout every 4000
+1000environmentsteps.Thesolidcurvescorrespondstothe
+meanandtheshadedregiontotheminimumandmaximum
+2000
+returnsoverthefivetrials.
+Theresultsshowthat,overall,SACperformscomparably 0
+tothebaselinemethodsontheeasiertasksandoutperforms 0 2 4 6 8 10
+millionsteps
+themonthehardertaskswithalargemargin,bothinterms
+oflearningspeedandthefinalperformance. Forexample,
+DDPGfailstomakeanyprogressonAnt-v1, Humanoid-
+v1,andHumanoid(rllab),aresultthatiscorroboratedby
+priorwork(Guetal.,2016;Duanetal.,2016). SACalso
+learns considerably faster than PPO as a consequence of
+the large batch sizes PPO needs to learn stably on more
+high-dimensionalandcomplextasks. Anothermaximum
+entropyRLalgorithm,SQL,canalsolearnalltasks,butit
+isslowerthanSACandhasworseasymptoticperformance.
+ThequantitativeresultsattainedbySACinourexperiments
+also compare very favorably to results reported by other
+methodsinpriorwork(Duanetal.,2016;Guetal.,2016;
+Henderson et al., 2017), indicating that both the sample
+efficiencyandfinalperformanceofSAConthesebenchmark
+tasksexceedsthestateoftheart. Allhyperparametersused
+inthisexperimentforSACarelistedinAppendixD.
+5.2.AblationStudy
+Theresultsintheprevioussectionsuggestthatalgorithms
+basedonthemaximumentropyprinciplecanoutperform
+conventionalRLmethodsonchallengingtaskssuchasthe
+humanoidtasks. Inthissection,wefurtherexaminewhich
+particularcomponentsofSACareimportantforgoodperfor-
+mance. WealsoexaminehowsensitiveSACistosomeof
+themostimportanthyperparameters,namelyrewardscaling
+andtargetvalueupdatesmoothingconstant.
+Stochastic vs. deterministic policy. Soft actor-critic
+learns stochastic policies via a maximum entropy objec-
+tive. The entropy appears in both the policy and value
+function.Inthepolicy,itpreventsprematureconvergenceof
+thepolicyvariance(Equation10). Inthevaluefunction,it
+encouragesexplorationbyincreasingthevalueofregionsof
+statespacethatleadtohigh-entropybehavior(Equation5).
+Tocomparehowthestochasticityofthepolicyandentropy
+maximization affects the performance, we compare to a
+deterministicvariantofSACthatdoesnotmaximizetheen-
+tropyandthatcloselyresemblesDDPG,withtheexception
+ofhavingtwoQ-functions,usinghardtargetupdates,not
+havingaseparatetargetactor,andusingfixedratherthan
+learnedexplorationnoise. Figure2comparesfiveindividual
+runs with both variants, initialized with different random
+nruteregareva
+Humanoid(rllab)
+stochasticpolicy
+deterministicpolicy
+Figure2.ComparisonofSAC(blue)andadeterministicvariantof
+SAC(red)intermsofthestabilityofindividualrandomseedson
+theHumanoid(rllab)benchmark.Thecomparisonindicatesthat
+stochasticitycanstabilizetrainingasthevariabilitybetweenthe
+seedsbecomesmuchhigherwithadeterministicpolicy.
+seeds. Softactor-criticperformsmuchmoreconsistently,
+whilethedeterministicvariantexhibitsveryhighvariability
+across seeds, indicating substantially worse stability. As
+evident from the figure, learning a stochastic policy with
+entropymaximizationcandrasticallystabilizetraining.This
+becomesespeciallyimportantwithhardertasks,wheretun-
+inghyperparametersischallenging. Inthiscomparison,we
+updatedthetargetvaluenetworkweightswithhardupdates,
+byperiodicallyoverwritingthetargetnetworkparameters
+to match the current value network (see Appendix E for
+a comparison of average performance on all benchmark
+tasks).
+Policy evaluation. Since SAC converges to stochastic
+policies,itisoftenbeneficialtomakethefinalpolicydeter-
+ministicattheendforbestperformance. Forevaluation,we
+approximatethemaximumaposterioriactionbychoosing
+themeanofthepolicydistribution. Figure3(a)compares
+trainingreturnstoevaluationreturnsobtainedwiththisstrat-
+egyindicatingthatdeterministicevaluationcanyieldbetter
+performance. It should be noted that all of the training
+curvesdepictthesumofrewards,whichisdifferentfrom
+the objective optimized by SAC and other maximum en-
+tropyRLalgorithms,includingSQLandTrust-PCL,which
+maximizealsotheentropyofthepolicy.
+Rewardscale. Softactor-criticisparticularlysensitiveto
+thescalingoftherewardsignal,becauseitservestherole
+ofthetemperatureoftheenergy-basedoptimalpolicyand
+thus controls its stochasticity. Larger reward magnitudes
+correspondtolowerentries. Figure3(b)showshowlearn-
+ingperformancechangeswhentherewardscaleisvaried:
+For small reward magnitudes, the policy becomes nearly
+uniform,andconsequentlyfailstoexploittherewardsignal,
+resulting in substantial degradation of performance. For
+largerewardmagnitudes,themodellearnsquicklyatfirst,
+
+SoftActor-Critic
+6000
+4000
+2000
+0
+0.0 0.5 1.0 1.5 2.0 2.5 3.0
+millionsteps
+nruteregareva
+Ant-v1
+6000
+4000
+2000
+deterministicevaluation
+stochasticevaluation 0
+0.0 0.5 1.0 1.5 2.0 2.5 3.0
+millionsteps
+(a) Evaluation
+nruteregareva
+Ant-v1
+1 6000
+3
+10 4000
+30
+100 2000
+0
+2000 −
+0.0 0.5 1.0 1.5 2.0 2.5 3.0
+millionsteps
+(b) RewardScale
+nruteregareva
+Ant-v1
+0.0001
+0.001
+0.01
+0.1
+(c) TargetSmoothingCoefficient(τ)
+Figure3.Sensitivityofsoftactor-critictoselectedhyperparametersonAnt-v1task. (a)Evaluatingthepolicyusingthemeanaction
+generallyresultsinahigherreturn.Notethatthepolicyistrainedtomaximizealsotheentropy,andthemeanactiondoesnot,ingeneral,
+correspondtheoptimalactionforthemaximumreturnobjective.(b)Softactor-criticissensitivetorewardscalingsinceitisrelatedtothe
+temperatureoftheoptimalpolicy.Theoptimalrewardscalevariesbetweenenvironments,andshouldbetunedforeachtaskseparately.
+(c)Targetvaluesmoothingcoefficientτ isusedtostabilizetraining.Fastmovingtarget(largeτ)canresultininstabilities(red),whereas
+slowmovingtarget(smallτ)makestrainingslower(blue).
+butthepolicythenbecomesnearlydeterministic,leading 6.Conclusion
+topoorlocalminimaduetolackofadequateexploration.
+Wepresentsoftactor-critic(SAC),anoff-policymaximum
+With the right reward scaling, the model balances explo-
+entropydeepreinforcementlearningalgorithmthatprovides
+rationandexploitation,leadingtofasterlearningandbetter
+sample-efficientlearningwhileretainingthebenefitsofen-
+asymptoticperformance. Inpractice,wefoundrewardscale
+tropy maximization and stability. Our theoretical results
+tobetheonlyhyperparameterthatrequirestuning,andits
+derivesoftpolicyiteration,whichweshowtoconvergeto
+natural interpretation as theinverse ofthe temperaturein
+the optimal policy. From this result, we can formulate a
+themaximumentropyframeworkprovidesgoodintuition
+softactor-criticalgorithm,andweempiricallyshowthatit
+forhowtoadjustthisparameter.
+outperformsstate-of-the-artmodel-freedeepRLmethods,
+Targetnetworkupdate. Itiscommontouseaseparate includingtheoff-policyDDPGalgorithmandtheon-policy
+targetvaluenetworkthatslowlytrackstheactualvaluefunc- PPO algorithm. In fact, the sample efficiency of this ap-
+tiontoimprovestability. Weuseanexponentiallymoving proachactuallyexceedsthatofDDPGbyasubstantialmar-
+average,withasmoothingconstantτ,toupdatethetarget gin. Ourresultssuggestthatstochastic,entropymaximizing
+valuenetworkweightsascommoninthepriorwork(Lill- reinforcementlearningalgorithmscanprovideapromising
+icrapetal.,2015;Mnihetal.,2015). Avalueofonecor- avenueforimprovedrobustnessandstability, andfurther
+responds to a hard update where the weights are copied explorationofmaximumentropymethods,includingmeth-
+directlyateveryiterationandzerotonotupdatingthetarget ods that incorporate second order information (e.g., trust
+atall. InFigure3(c),wecomparetheperformanceofSAC regions(Schulmanetal.,2015))ormoreexpressivepolicy
+whenτ varies. Largeτ canleadtoinstabilitieswhilesmall classesisanexcitingavenueforfuturework.
+τ canmaketrainingslower. However,wefoundtherange
+of suitable values of τ to be relatively wide and we used
+Acknowledgments
+thesamevalue(0.005)acrossallofthetasks. InFigure4
+(AppendixE)wealsocomparetoanothervariantofSAC, WewouldliketothankVitchyrPongforinsightfuldiscus-
+whereinsteadofusingexponentiallymovingaverage,we sions and help in implementing our algorithm as well as
+copyoverthecurrentnetworkweightsdirectlyintothetar- providingtheDDPGbaselinecode;OfirNachumforoffer-
+getnetworkevery1000gradientsteps.Wefoundthisvariant ingsupportinrunningTrust-PCLexperiments;andGeorge
+tobenefitfromtakingmorethanonegradientstepbetween Tuckerforhisvaluablefeedbackonanearlyversionofthis
+theenvironmentsteps,whichcanimproveperformancebut paper. ThisworkwassupportedbySiemensandBerkeley
+alsoincreasesthecomputationalcost. DeepDrive.
+
+SoftActor-Critic
+References Levine,S.andKoltun,V. Guidedpolicysearch. InInterna-
+tionalConferenceonMachineLearning(ICML),pp.1–9,
+Barto,A.G.,Sutton,R.S.,andAnderson,C.W.Neuronlike
+2013.
+adaptive elements that can solve difficult learning con-
+trolproblems. IEEEtransactionsonsystems,man,and
+Levine,S.,Finn,C.,Darrell,T.,andAbbeel,P. End-to-end
+cybernetics,pp.834–846,1983.
+trainingofdeepvisuomotorpolicies. JournalofMachine
+Bhatnagar,S.,Precup,D.,Silver,D.,Sutton,R.S.,Maei, LearningResearch,17(39):1–40,2016.
+H.R.,andSzepesva´ri,C.Convergenttemporal-difference
+Lillicrap, T. P., Hunt, J. J., Pritzel, A., Heess, N., Erez,
+learningwitharbitrarysmoothfunctionapproximation.
+T., Tassa, Y., Silver, D., and Wierstra, D. Continuous
+InAdvancesinNeuralInformationProcessingSystems
+controlwithdeepreinforcementlearning. arXivpreprint
+(NIPS),pp.1204–1212,2009.
+arXiv:1509.02971,2015.
+Brockman, G., Cheung, V., Pettersson, L., Schneider, J.,
+Schulman,J.,Tang,J.,andZaremba,W. OpenAIgym. Mnih, V., Kavukcuoglu, K., Silver, D., Graves, A.,
+arXivpreprintarXiv:1606.01540,2016. Antonoglou,I.,Wierstra,D.,andRiedmiller,M. Playing
+atari with deep reinforcement learning. arXiv preprint
+Duan,Y.,Chen,X.Houthooft,R.,Schulman,J.,andAbbeel,
+arXiv:1312.5602,2013.
+P. Benchmarkingdeepreinforcementlearningforcontin-
+uouscontrol. InInternationalConferenceonMachine Mnih,V.,Kavukcuoglu,K.,Silver,D.,Rusu,A.A.,Veness,
+Learning(ICML),2016. J.,Bellemare,M.G.,Graves,A.,Riedmiller,M.,Fidje-
+land, A. K., Ostrovski, G., et al. Human-level control
+Fox,R.,Pakman,A.,andTishby,N. Tamingthenoisein
+throughdeepreinforcementlearning. Nature,518(7540):
+reinforcementlearningviasoftupdates. InConference
+529–533,2015.
+onUncertaintyinArtificialIntelligence(UAI),2016.
+Fujimoto,S.,vanHoof,H.,andMeger,D. Addressingfunc- Mnih, V., Badia, A. P., Mirza, M., Graves, A., Lillicrap,
+tionapproximationerrorinactor-criticmethods. arXiv T.P.,Harley,T.,Silver,D.,andKavukcuoglu,K. Asyn-
+preprintarXiv:1802.09477,2018. chronousmethodsfordeepreinforcementlearning. In
+InternationalConferenceonMachineLearning(ICML),
+Gruslys,A.,Azar,M.G.,Bellemare,M.G.,andMunos,R.
+2016.
+Thereactor: Asample-efficientactor-criticarchitecture.
+arXivpreprintarXiv:1704.04651,2017. Nachum, O., Norouzi, M., Xu, K., and Schuurmans, D.
+Bridging the gap between value and policy based rein-
+Gu, S., Lillicrap, T., Ghahramani, Z., Turner, R. E., and
+forcementlearning. InAdvancesinNeuralInformation
+Levine,S. Q-prop: Sample-efficientpolicygradientwith
+ProcessingSystems(NIPS),pp.2772–2782,2017a.
+an off-policy critic. arXiv preprint arXiv:1611.02247,
+2016.
+Nachum, O., Norouzi, M., Xu, K., and Schuurmans, D.
+Haarnoja, T., Tang, H., Abbeel, P., and Levine, S. Rein- Trust-PCL:Anoff-policytrustregionmethodforcontin-
+forcementlearningwithdeepenergy-basedpolicies. In uouscontrol. arXivpreprintarXiv:1707.01891,2017b.
+InternationalConferenceonMachineLearning(ICML),
+O’Donoghue,B.,Munos,R.,Kavukcuoglu,K.,andMnih,V.
+pp.1352–1361,2017.
+PGQ:CombiningpolicygradientandQ-learning. arXiv
+Hasselt,H.V. DoubleQ-learning. InAdvancesinNeural preprintarXiv:1611.01626,2016.
+InformationProcessingSystems(NIPS),pp.2613–2621,
+2010. Peters,J.andSchaal,S. Reinforcementlearningofmotor
+skillswithpolicygradients. Neuralnetworks,21(4):682–
+Heess,N.,Wayne,G.,Silver,D.,Lillicrap,T.,Erez,T.,and
+697,2008.
+Tassa,Y.Learningcontinuouscontrolpoliciesbystochas-
+ticvaluegradients. InAdvancesinNeuralInformation
+Rawlik,K.,Toussaint,M.,andVijayakumar,S. Onstochas-
+ProcessingSystems(NIPS),pp.2944–2952,2015.
+ticoptimalcontrolandreinforcementlearningbyapprox-
+imateinference. Robotics: ScienceandSystems(RSS),
+Henderson,P.,Islam,R.,Bachman,P.,Pineau,J.,Precup,
+2012.
+D., and Meger, D. Deep reinforcement learning that
+matters. arXivpreprintarXiv:1709.06560,2017.
+Schulman, J., Levine, S., Abbeel, P., Jordan, M. I., and
+Kingma, D. and Ba, J. Adam: A method for stochastic Moritz, P. Trust region policy optimization. In Inter-
+optimization. InInternationalConferenceforLearning nationalConferenceonMachineLearning(ICML),pp.
+Presentations(ICLR),2015. 1889–1897,2015.
+
+SoftActor-Critic
+Schulman, J., Abbeel, P., and Chen, X. Equivalence be-
+tweenpolicygradientsandsoftQ-learning.arXivpreprint
+arXiv:1704.06440,2017a.
+Schulman, J., Wolski, F., Dhariwal, P., Radford, A., and
+Klimov, O. Proximal policy optimization algorithms.
+arXivpreprintarXiv:1707.06347,2017b.
+Silver, D., Lever, G., Heess, N., Degris, T., Wierstra, D.,
+andRiedmiller,M. Deterministicpolicygradientalgo-
+rithms.InInternationalConferenceonMachineLearning
+(ICML),2014.
+Silver,D.,Huang,A.,Maddison,C.J.,Guez,A.,Sifre,L.,
+vandenDriessche,G.,Schrittwieser,J.,Antonoglou,I.,
+Panneershelvam,V.,Lanctot,M.,Dieleman,S.,Grewe,
+D.,Nham,J.,Kalchbrenner,N.,Sutskever,I.,Lillicrap,T.,
+Leach,M.,Kavukcuoglu,K.,Graepel,T.,andHassabis,
+D. Masteringthegameofgowithdeepneuralnetworks
+andtreesearch. Nature,529(7587):484–489,Jan2016.
+ISSN0028-0836. Article.
+Sutton,R.S.andBarto,A.G. Reinforcementlearning: An
+introduction,volume1. MITpressCambridge,1998.
+Thomas,P. Biasinnaturalactor-criticalgorithms. InInter-
+nationalConferenceonMachineLearning(ICML),pp.
+441–448,2014.
+Todorov,E. Generaldualitybetweenoptimalcontroland
+estimation. InIEEEConferenceonDecisionandControl
+(CDC),pp.4286–4292.IEEE,2008.
+Toussaint,M. Robottrajectoryoptimizationusingapproxi-
+mateinference. InInternationalConferenceonMachine
+Learning(ICML),pp.1049–1056.ACM,2009.
+Williams,R.J. Simplestatisticalgradient-followingalgo-
+rithmsforconnectionistreinforcementlearning. Machine
+learning,8(3-4):229–256,1992.
+Ziebart,B.D. Modelingpurposefuladaptivebehaviorwith
+theprincipleofmaximumcausalentropy. CarnegieMel-
+lonUniversity,2010.
+Ziebart,B.D.,Maas,A.L.,Bagnell,J.A.,andDey,A.K.
+Maximum entropy inverse reinforcement learning. In
+AAAI Conference on Artificial Intelligence (AAAI), pp.
+1433–1438,2008.
+
+SoftActor-Critic
+A.MaximumEntropyObjective
+Theexactdefinitionofthediscountedmaximumentropyobjectiveiscomplicatedbythefactthat,whenusingadiscount
+factor for policy gradient methods, we typically do not discount the state distribution, only the rewards. In that sense,
+discountedpolicygradientstypicallydonotoptimizethetruediscountedobjective. Instead,theyoptimizeaveragereward,
+withthediscountservingtoreducevariance,asdiscussedbyThomas(2014). However,wecandefinetheobjectivethatis
+optimizedunderadiscountfactoras
+∞ (cid:34) ∞ (cid:35)
+(cid:88) (cid:88)
+J(π)= E γl−tE [r(s ,a )+α (π( s ))s ,a ] . (14)
+(st,at)∼ρπ sl∼p,al∼π t t
+H ·|
+t
+|
+t t
+t=0 l=t
+Thisobjectivecorrespondstomaximizingthediscountedexpectedrewardandentropyforfuturestatesoriginatingfrom
+everystate-actiontuple(s ,a )weightedbyitsprobabilityρ underthecurrentpolicy.
+t t π
+B.Proofs
+B.1.Lemma1
+Lemma 1 (Soft Policy Evaluation). Consider the soft Bellman backup operator π in Equation 2 and a mapping
+Q0 : Rwith < ,anddefineQk+1 = πQk. ThenthesequenceQk w T illconvergetothesoftQ-valueofπ
+S×A→ |A| ∞ T
+ask .
+→∞
+Proof. Definetheentropyaugmentedrewardasr (s ,a )(cid:44)r(s ,a )+E [ (π( s ))]andrewritetheupdate
+π t t t t st+1∼p
+H ·|
+t+1
+ruleas
+Q(s ,a ) r (s ,a )+γE [Q(s ,a )] (15)
+t t
+←
+π t t st+1∼p,at+1∼π t+1 t+1
+andapplythestandardconvergenceresultsforpolicyevaluation(Sutton&Barto,1998). Theassumption < is
+|A| ∞
+requiredtoguaranteethattheentropyaugmentedrewardisbounded.
+B.2.Lemma2
+Lemma2(SoftPolicyImprovement). Letπ Πandletπ betheoptimizeroftheminimizationproblemdefinedin
+old new
+∈
+Equation4. ThenQπnew(s
+t
+,a
+t
+) Qπold(s
+t
+,a
+t
+)forall(s
+t
+,a
+t
+) with < .
+≥ ∈S×A |A| ∞
+Proof. Letπ
+old
+ΠandletQπold andVπold bethecorrespondingsoftstate-actionvalueandsoftstatevalue,andletπ
+new
+∈
+bedefinedas
+π
+new
+( s
+t
+)=argminD
+KL
+(π(cid:48)( s
+t
+) exp(Qπold(s
+t
+, ) logZπold(s
+t
+)))
+·| π(cid:48)∈Π ·| (cid:107) · −
+=argminJ (π(cid:48)( s )). (16)
+π(cid:48)∈Π
+πold
+·|
+t
+ItmustbethecasethatJ (π ( s )) J (π ( s )),sincewecanalwayschooseπ =π Π. Hence
+πold new
+·|
+t
+≤
+πold old
+·|
+t new old
+∈
+E
+at∼πnew
+[logπ
+new
+(a
+t
+|
+s
+t
+)
+−
+Qπold(s
+t
+,a
+t
+)+logZπold(s
+t
+)]
+≤
+E
+at∼πold
+[logπ
+old
+(a
+t
+|
+s
+t
+)
+−
+Qπold(s
+t
+,a
+t
+)+logZπold(s
+t
+)],
+(17)
+andsincepartitionfunctionZπold dependsonlyonthestate,theinequalityreducesto
+E
+at∼πnew
+[Qπold(s
+t
+,a
+t
+)
+−
+logπ
+new
+(a
+t
+|
+s
+t
+)]
+≥
+Vπold(s
+t
+). (18)
+Next,considerthesoftBellmanequation:
+Qπold(s
+t
+,a
+t
+)=r(s
+t
+,a
+t
+)+γE
+st+1∼p
+[Vπold(s
+t+1
+)]
+≤
+r(s
+t
+,a
+t
+)+γE
+st+1∼p
+(cid:2)E
+at+1∼πnew
+[Qπold(s
+t+1
+,a
+t+1
+)
+−
+logπ
+new
+(a
+t+1
+|
+s
+t+1
+)] (cid:3)
+.
+.
+.
+Qπnew(s ,a ), (19)
+t t
+≤
+wherewehaverepeatedlyexpandedQπold ontheRHSbyapplyingthesoftBellmanequationandtheboundinEquation18.
+ConvergencetoQπnew followsfromLemma1.
+
+SoftActor-Critic
+B.3.Theorem1
+Theorem1(SoftPolicyIteration). Repeatedapplicationofsoftpolicyevaluationandsoftpolicyimprovementtoanyπ Π
+convergestoapolicyπ∗suchthatQπ∗ (s ,a ) Qπ(s ,a )forallπ Πand(s ,a ) ,assuming < . ∈
+t t t t t t
+≥ ∈ ∈S×A |A| ∞
+Proof. Letπ
+i
+bethepolicyatiterationi. ByLemma2,thesequenceQπi ismonotonicallyincreasing. SinceQπ isbounded
+aboveforπ Π(boththerewardandentropyarebounded),thesequenceconvergestosomeπ∗. Wewillstillneedto
+∈
+showthatπ∗isindeedoptimal. Atconvergence,itmustbecasethatJ π∗(π∗( s
+t
+))<J π∗(π( s
+t
+))forallπ Π,π =π∗.
+UsingthesameiterativeargumentasintheproofofLemma2,wegetQπ∗ (s ·| ,a )>Qπ(s , · a | )forall(s ,a ∈ ) (cid:54) ,
+t t t t t t
+∈S×A
+thatis,thesoftvalueofanyotherpolicyinΠislowerthanthatoftheconvergedpolicy. Henceπ∗isoptimalinΠ.
+C.EnforcingActionBounds
+WeuseanunboundedGaussianastheactiondistribution. However,inpractice,theactionsneedstobeboundedtoafinite
+interval. Tothatend,weapplyaninvertiblesquashingfunction(tanh)totheGaussiansamples,andemploythechangeof
+variablesformulatocomputethelikelihoodsoftheboundedactions. Intheotherwords,letu RD bearandomvariable
+∈
+andµ(us)thecorrespondingdensitywithinfinitesupport. Thena=tanh(u),wheretanhisappliedelementwise,isa
+|
+randomvariablewithsupportin( 1,1)withadensitygivenby
+−
+(cid:12) (cid:12) (cid:18) da (cid:19)(cid:12) (cid:12) −1
+π(as)=µ(us)(cid:12)det (cid:12) . (20)
+| | (cid:12) du (cid:12)
+SincetheJacobianda/du=diag(1 tanh2(u))isdiagonal,thelog-likelihoodhasasimpleform
+−
+D
+logπ(as)=logµ(us) (cid:88) log (cid:0) 1 tanh2(u ) (cid:1) , (21)
+i
+| | − −
+i=1
+whereu istheithelementofu.
+i
+
+SoftActor-Critic
+D.Hyperparameters
+Table1liststhecommonSACparametersusedinthecomparativeevaluationinFigure1andFigure4. Table2liststhe
+rewardscaleparameterthatwastunedforeachenvironment.
+Table1. SACHyperparameters
+Parameter Value
+Shared
+optimizer Adam(Kingma&Ba,2015)
+learningrate 3 10−4
+·
+discount(γ) 0.99
+replaybuffersize 106
+numberofhiddenlayers(allnetworks) 2
+numberofhiddenunitsperlayer 256
+numberofsamplesperminibatch 256
+nonlinearity ReLU
+SAC
+targetsmoothingcoefficient(τ) 0.005
+targetupdateinterval 1
+gradientsteps 1
+SAC(hardtargetupdate)
+targetsmoothingcoefficient(τ) 1
+targetupdateinterval 1000
+gradientsteps(excepthumanoids) 4
+gradientsteps(humanoids) 1
+Table2. SACEnvironmentSpecificParameters
+Environment ActionDimensions RewardScale
+Hopper-v1 3 5
+Walker2d-v1 6 5
+HalfCheetah-v1 6 5
+Ant-v1 8 5
+Humanoid-v1 17 20
+Humanoid(rllab) 21 10
+
+SoftActor-Critic
+E.AdditionalBaselineResults
+Figure 4 compares SAC to Trust-PCL (Figure 4. Trust-PC fails to solve most of the task within the given number of
+environmentsteps,althoughitcaneventuallysolvetheeasiertasks(Nachumetal.,2017b)ifranlonger. Thefigurealso
+includestwovariantsofSAC:avariantthatperiodicallycopiesthetargetvaluenetworkweightsdirectlyinsteadofusing
+exponentially moving average, and a deterministic ablation which assumes a deterministic policy in the value update
+(Equation6)andthepolicyupdate(Equation13),andthusstronglyresemblesDDPGwiththeexceptionofhavingtwo
+Q-functions,usinghardtargetupdates,nothavingaseparatetargetactor,andusingfixedexplorationnoiseratherthan
+learned. BothofthesemethodscanlearnallofthetasksandtheyperformcomparablytoSAConallbutHumanoid(rllab)
+task,onwhichSACisthefastest.
+4000
+3000
+2000
+1000
+0
+0.0 0.2 0.4 0.6 0.8 1.0
+millionsteps
+nruteregareva
+Hopper-v1
+6000
+5000
+4000
+3000
+2000
+1000
+0
+0.0 0.2 0.4 0.6 0.8 1.0
+millionsteps
+(a) Hopper-v1
+nruteregareva
+Walker2d-v1
+15000
+10000
+5000
+0
+0.0 0.5 1.0 1.5 2.0 2.5 3.0
+millionsteps
+(b) Walker2d-v1
+nruteregareva
+HalfCheetah-v1
+(c) HalfCheetah-v1
+6000
+4000
+2000
+0
+0.0 0.5 1.0 1.5 2.0 2.5 3.0
+millionsteps
+nruteregareva
+Ant-v1
+8000
+6000
+4000
+2000
+0
+0 2 4 6 8 10
+millionsteps
+(d) Ant-v1
+nruteregareva
+Humanoid-v1
+6000
+4000
+2000
+0
+0 2 4 6 8 10
+millionsteps
+(e) Humanoid-v1
+nruteregareva
+Humanoid(rllab)
+SAC
+SAC(hardtargetupdate)
+SAC(hardtargetupdate,deterministic)
+Trust-PCL
+(f) Humanoid(rllab)
+Figure4.Trainingcurvesforadditionalbaseline(Trust-PCL)andfortwoSACvariants.Softactor-criticwithhardtargetupdate(blue)
+differsfromstandardSACinthatitcopiesthevaluefunctionnetworkweightsdirectlyevery1000iterations,insteadofusingexponentially
+smoothedaverageoftheweights. Thedeterministicablation(red)usesadeterministicpolicywithfixedGaussianexplorationnoise,
+doesnotuseavaluefunction,dropstheentropytermsintheactorandcriticfunctionupdates,anduseshardtargetupdatesforthetarget
+Q-functions.ItisequivalenttoDDPGthatusestwoQ-functions,hardtargetupdates,andremovesthetargetactor.

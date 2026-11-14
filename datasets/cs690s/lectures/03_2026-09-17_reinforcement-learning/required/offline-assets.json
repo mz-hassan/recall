@@ -1,0 +1,919 @@
+{
+  "sources": {
+    "rl-intro-1.html": "https://spinningup.openai.com/en/latest/spinningup/rl_intro.html",
+    "rl-intro-2.html": "https://spinningup.openai.com/en/latest/spinningup/rl_intro2.html",
+    "ppo-doc.html": "https://spinningup.openai.com/en/latest/algorithms/ppo.html"
+  },
+  "assets": [
+    {
+      "url": "https://spinningup.openai.com/_/static/javascript/readthedocs-addons.js",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/_/static/javascript/readthedocs-addons.js",
+      "bytes": 479588,
+      "sha256": "5171b63059e1acd2a4bfb03c16a6cf8548be7c54076459a84e46310e111645e9"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/01d48ea453ecb7b560ea7d42144ae24422fbd0eb.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/01d48ea453ecb7b560ea7d42144ae24422fbd0eb.svg",
+      "bytes": 16636,
+      "sha256": "1359f47300c0bbf3a695bc0c64c4f61b788fd77c88b91912425058e9375550ce"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/08d4d3bab53ce2aef0a6fd4d8e0e9f5cd0e4f7ca.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/08d4d3bab53ce2aef0a6fd4d8e0e9f5cd0e4f7ca.svg",
+      "bytes": 11224,
+      "sha256": "15b89bd8544cc4d1ddb76a2788c893313991aa2fa0598866924d895b7350daec"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/09f82f133e9f89a59ba22266639c4968b5641c28.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/09f82f133e9f89a59ba22266639c4968b5641c28.svg",
+      "bytes": 6775,
+      "sha256": "d185117e2db3ec454f885319c75bb43809e7ec05830ca82ebd1513cba370311d"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/0aea7de5d8df7541d515b563b9c7bb0191e28b32.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/0aea7de5d8df7541d515b563b9c7bb0191e28b32.svg",
+      "bytes": 10932,
+      "sha256": "e61b4f5e4cd654935076b04c639ec05525c7bfd48e1c2a87b555ab998cec4f70"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/0b9672dcfd65483d710b61a359dcabea32dab1f6.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/0b9672dcfd65483d710b61a359dcabea32dab1f6.svg",
+      "bytes": 5346,
+      "sha256": "bf7ef170e07d99007ca0832d0bad69a9103873df23061b2bf72e2be2ad931ecf"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/123eb57279cfbea38a65e8e129bda64972fedc3d.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/123eb57279cfbea38a65e8e129bda64972fedc3d.svg",
+      "bytes": 1706,
+      "sha256": "67176455a1ae72b05c10f469c6cde949c2962c111ce594f4ef82b0f0d6ae447b"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/16da6346104894fb6a673473cbfc9ffeba6471fa.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/16da6346104894fb6a673473cbfc9ffeba6471fa.svg",
+      "bytes": 8284,
+      "sha256": "bc70915ff0d7514703a99a2eaf4d7308ef28655b8eaf291f3c34197cdf63a830"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/1ae2bd722da01b3a89ffc139af2437c28364a966.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/1ae2bd722da01b3a89ffc139af2437c28364a966.svg",
+      "bytes": 1355,
+      "sha256": "65d5e4bfb62a1e5106d6ca9dded91863765d986fa3f2e9321877bc1ea9d26f14"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/1f9d30d011e9fe548e999c9bfcf3fccfa27ec3ff.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/1f9d30d011e9fe548e999c9bfcf3fccfa27ec3ff.svg",
+      "bytes": 1979,
+      "sha256": "9fccab4f4a3eec13d1890da194cd3560da35b63da93d9dacfe96f0c27205a0b0"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/1fbf259ac070c92161e32b93c0f64705a8f18f0a.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/1fbf259ac070c92161e32b93c0f64705a8f18f0a.svg",
+      "bytes": 2490,
+      "sha256": "a61645c4cb5497f25cedd2d604681c13b03879a3af33db1a8e268126dc3dfa4f"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/20acc318d574242ee023ecdb36f3651847016480.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/20acc318d574242ee023ecdb36f3651847016480.svg",
+      "bytes": 4638,
+      "sha256": "b0c63f4dc90966a70940c0285841824150fbc5ea6fa4932e12bfbfde13abc5a0"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/26f82323a4055444b30fa791238ec90913a12d7b.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/26f82323a4055444b30fa791238ec90913a12d7b.svg",
+      "bytes": 25743,
+      "sha256": "b16924fb7fc98e664de834d3f0cd28edd664761390374bba75d10d43d1294898"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/2d44ad6f01d4e56266daa8e3b35bd4f298e25788.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/2d44ad6f01d4e56266daa8e3b35bd4f298e25788.svg",
+      "bytes": 2033,
+      "sha256": "14a8a322b5ef9f368a6769939afe84faaf5fccf6407976eaa432f489056b8dc8"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/2de61070bf8758d03104b4f15df45c8ff5a86f5a.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/2de61070bf8758d03104b4f15df45c8ff5a86f5a.svg",
+      "bytes": 13537,
+      "sha256": "ca72dc6fbcaee6b158fb8c7bf5a8d0ca98a3afcd583b8aa99320f3b0324f9a52"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/3276548e12065a40224719e967e02b1538d3c6b2.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/3276548e12065a40224719e967e02b1538d3c6b2.svg",
+      "bytes": 3956,
+      "sha256": "d448b6d5626275a309688abf86274c88b7d38a47c689fdf3cb4dcdba2298d8c6"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/35c684d9cc672fd0bbacd896f49abdd986f40b02.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/35c684d9cc672fd0bbacd896f49abdd986f40b02.svg",
+      "bytes": 6143,
+      "sha256": "427bdcc6337c8d520d7878117adc4abd5c790279540e8b99330cf56ce45e0de9"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/3748974cc061fb4065fa46dd6271395d59f22040.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/3748974cc061fb4065fa46dd6271395d59f22040.svg",
+      "bytes": 10940,
+      "sha256": "21544281e3fb7e6713e13fccb56f7c0e232f0cd8ad3bbd76a2c0e0241513d640"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/39079fcebc9eb2aba4ab3fe7359b34807ceccc0e.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/39079fcebc9eb2aba4ab3fe7359b34807ceccc0e.svg",
+      "bytes": 2519,
+      "sha256": "da7a62e7f5fe4245ed276cfe656bc92332e7c846bc3dc54ef910308607f48fa9"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/3923c00b0df8f8c1003312d5c125275bd10598ba.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/3923c00b0df8f8c1003312d5c125275bd10598ba.svg",
+      "bytes": 8763,
+      "sha256": "07b406a0b90c857cf6aa1f359ea55bab3c696a2bf1c738d3b7ab57b20bc91981"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/39f524858866b80e627840ba77a54360e3bac55e.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/39f524858866b80e627840ba77a54360e3bac55e.svg",
+      "bytes": 11453,
+      "sha256": "569e040d3bcbe996a5e131abeb5423ffe5801cd95315847929257ad58928a6c9"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/3a66e4711a16a69ca64bd10d96985363d6e4bc5c.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/3a66e4711a16a69ca64bd10d96985363d6e4bc5c.svg",
+      "bytes": 8975,
+      "sha256": "c2923dad46ed19e65db08f09e7acffaad29a45c119e6cba27535504aba0aa58c"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/3b22abcadf8773922f8db80011611bad8123a783.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/3b22abcadf8773922f8db80011611bad8123a783.svg",
+      "bytes": 1361,
+      "sha256": "1d6080fc9df62b2d1d037121550c47d39979f678bca9ac254b64bcb99022ebb4"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/3ffe1da701d78dd473975ebd2f875807611f7713.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/3ffe1da701d78dd473975ebd2f875807611f7713.svg",
+      "bytes": 1520,
+      "sha256": "ad0e63f5519c94acd0931482cef3e912f168946ae7627e1b523e0a246aa41fd4"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/400068784a9d13ffe96c61f29b4ab26ad5557376.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/400068784a9d13ffe96c61f29b4ab26ad5557376.svg",
+      "bytes": 5959,
+      "sha256": "40412e3b59288b269576bfdb570128e6d9c0658bbf41e4d270149910d382d94c"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/4015c2b584427ca2a76f50ed03b2c8d0b5b3b350.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/4015c2b584427ca2a76f50ed03b2c8d0b5b3b350.svg",
+      "bytes": 6987,
+      "sha256": "8cdc629139f712b8f7139919ab38252d5b9d00362f41dd92a1fbd9400f5797b5"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/411171ab57c4bec0d86c9f4b495106ba5d73decc.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/411171ab57c4bec0d86c9f4b495106ba5d73decc.svg",
+      "bytes": 3757,
+      "sha256": "99736232cf21729fdfe0b32555f2b54d8791562ce8928bc1cb657dd20342193f"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/42490c4d812c9ca1fc226684577900bc8bdd609b.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/42490c4d812c9ca1fc226684577900bc8bdd609b.svg",
+      "bytes": 15953,
+      "sha256": "15773eb16029fb8e302bcc6eec1e9b08248f814104fe8a3f1d550069ef7c8062"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/444ffe3079b81e8b1c42e462f0b6d63fbeeec6c6.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/444ffe3079b81e8b1c42e462f0b6d63fbeeec6c6.svg",
+      "bytes": 10122,
+      "sha256": "a5bebc792de9398c202824831f3079f2648a71446ad14321cfb9bd6663651055"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/4a1b4e2fc586f984a8edafbcae068c3f3c992402.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/4a1b4e2fc586f984a8edafbcae068c3f3c992402.svg",
+      "bytes": 4431,
+      "sha256": "9121702d5e4937b0f4df065caa4d745d24f92f8a73a82820a2c67e7a16b14813"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/4b669c18a22476afbab2c49bb68525256b416cff.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/4b669c18a22476afbab2c49bb68525256b416cff.svg",
+      "bytes": 3313,
+      "sha256": "9cdd32507faf55d40836524c88480390eda4b0abe305b2a15b31103072d0202e"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/4befde40a79499d3655bebda93423e2661036f0d.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/4befde40a79499d3655bebda93423e2661036f0d.svg",
+      "bytes": 7069,
+      "sha256": "c36db256b2eb77ab3e6022259ee21fa82ec38b728b51a41cf86d420f974b8e6b"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/4cbd255e1ecc9f7083034be12148e8b98cefc2ee.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/4cbd255e1ecc9f7083034be12148e8b98cefc2ee.svg",
+      "bytes": 14349,
+      "sha256": "bbcc7df7bff15f9f47fddea913ce5ac327b7a75dd8601b23d67dfcb66d3c62fa"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/4fcf0bf03c2a691496ce04ade269159d8b89caa5.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/4fcf0bf03c2a691496ce04ade269159d8b89caa5.svg",
+      "bytes": 2323,
+      "sha256": "1c93a5dd2f7b51bac59c5fc69c71a40a895d098db8a84b24b6459f9d106c8666"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/5151391b2cd2bfa909a3b5a057b6c93d4191790b.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/5151391b2cd2bfa909a3b5a057b6c93d4191790b.svg",
+      "bytes": 11968,
+      "sha256": "8e2a30419a6f7baa3072f30779fa3f3d1960640f00a822f515f99ba369815876"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/5364a8661022d60da78f14c9bd33124118719454.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/5364a8661022d60da78f14c9bd33124118719454.svg",
+      "bytes": 4474,
+      "sha256": "1d7ce08f21ce5c1cd3697225f70fc159b807045f008d6a9258c852dd34c20fe9"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/55c6e4a64640ac5e7b4da87ff4bcf12da93ef252.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/55c6e4a64640ac5e7b4da87ff4bcf12da93ef252.svg",
+      "bytes": 2392,
+      "sha256": "0a5bead18b7a8f2db1b2ffcdb34bb38afe52da6dc06b509e85f3047c63f91dd8"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/6159ad57fb5294b812e76c6260a65dc5ffa2a5f7.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/6159ad57fb5294b812e76c6260a65dc5ffa2a5f7.svg",
+      "bytes": 4848,
+      "sha256": "3493c1c68a6c893b40ca1d5463fa81126eea65cb3c77349b2cf26814627bbb88"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/655bf048edfc8ffd3b4655504e874a622ed888ce.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/655bf048edfc8ffd3b4655504e874a622ed888ce.svg",
+      "bytes": 6408,
+      "sha256": "7bc3c6f8dbf7566e4c2cb9d3f7c735568c1d89a13352d4e1abb63673069a9038"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/67a5412645decf6424bdd97aed3e9e7601bd784f.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/67a5412645decf6424bdd97aed3e9e7601bd784f.svg",
+      "bytes": 948,
+      "sha256": "a188e8cfc30c743dcaeeadc351ab49c4fdd08e934ffd60135eeb78ed2e521bf3"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/6923cb2043e84ea05d3eddbb7436c60659243cb9.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/6923cb2043e84ea05d3eddbb7436c60659243cb9.svg",
+      "bytes": 4742,
+      "sha256": "b6725d352fb57d5e1639675beebdbf321bb24d460c6e4a36ff74dd046f335cc3"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/69369e7fae3098a2f05a79680fbecbf48a4e7f66.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/69369e7fae3098a2f05a79680fbecbf48a4e7f66.svg",
+      "bytes": 16039,
+      "sha256": "e3f8932deebd95b1e0892576bd3dd94015633ef5463d1128bdb5fb9730347d36"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/693bb706835fbd5903ad9758837acecd07ef13b1.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/693bb706835fbd5903ad9758837acecd07ef13b1.svg",
+      "bytes": 4702,
+      "sha256": "24be0f1c58519f018d25d3f7b9d748b1960f881d86cad69c6eaa073afd605845"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/6e85fa05d4954e7c1e8037ee1bd163d15bc2e2d6.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/6e85fa05d4954e7c1e8037ee1bd163d15bc2e2d6.svg",
+      "bytes": 1848,
+      "sha256": "61d6d523d0a3c1a45db2070824685fb63a3efea0523f6d746c74b5ca75063406"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/6eb25f9175aa0471d7a7728ab237a92fef5009e9.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/6eb25f9175aa0471d7a7728ab237a92fef5009e9.svg",
+      "bytes": 6837,
+      "sha256": "f89024c1197669d0d198a54649ea1ec297851261c57783774d6c18c67117edd2"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/6ed565b0911f12c8ef64d93a617d8bb30380d5d5.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/6ed565b0911f12c8ef64d93a617d8bb30380d5d5.svg",
+      "bytes": 10127,
+      "sha256": "55b5e7c97aecc52002e13cf8fc979e52b9d4ce17254779757a1fdbf6da5c2f6a"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/713b5ea31ad66705079ea5786dd84e06944402b7.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/713b5ea31ad66705079ea5786dd84e06944402b7.svg",
+      "bytes": 2465,
+      "sha256": "5ebc7e5d58f277281a9ca6d405f532883f37c024146b1a0bdff82b0e2cc26c7c"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/73fcacd255a221d20d5d9300acf86e4d3bf5ea1b.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/73fcacd255a221d20d5d9300acf86e4d3bf5ea1b.svg",
+      "bytes": 7369,
+      "sha256": "0e9260f5d30dc7e91cd418eec3eac7792673f409ecc4052e89d3f406e843b531"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/76a319586cd215c8f2075b938fc6f6e07c81714b.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/76a319586cd215c8f2075b938fc6f6e07c81714b.svg",
+      "bytes": 1596,
+      "sha256": "79de358c554dd5d9e6970956af17efd2a40621fc0f41540ba543040ecf3e9625"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/77c323f00609b53862181c31bf0d045c75b29440.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/77c323f00609b53862181c31bf0d045c75b29440.svg",
+      "bytes": 1040,
+      "sha256": "2d4c1a57f189bacc7886002691eaee8d11538fe2396ad9c7fbbb4df9cb0785ea"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/7c0000152970a235979a501b70bd05c781a8b1ec.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/7c0000152970a235979a501b70bd05c781a8b1ec.svg",
+      "bytes": 5033,
+      "sha256": "2580a5db91ec1b6ac02f42d9e96ffbbf8305c52f06bda356f4493adc8edd64f0"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/7e4a2964e190104a669406ca5e1e320a5da8bae0.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/7e4a2964e190104a669406ca5e1e320a5da8bae0.svg",
+      "bytes": 20459,
+      "sha256": "507737c52cf331e685217889e1a64d1024ebc87a3a530ab0cfe5fa8a51e84185"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/7ed8f1921a380f7a5f45b87825838fdced658554.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/7ed8f1921a380f7a5f45b87825838fdced658554.svg",
+      "bytes": 1331,
+      "sha256": "e5be65c70de418bb7c0f06245ef1067bd204cae758bc5e6df3f0d2b776c576d7"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/82d6b288e893443689bf88b41b1f0f532c54f2f3.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/82d6b288e893443689bf88b41b1f0f532c54f2f3.svg",
+      "bytes": 10334,
+      "sha256": "f1a905cc6d8ed0fd14114e78a2376a8d832b1151fe2e93dabcb41344541fde6d"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/831f731859658682b2af7e217a76648697c9de46.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/831f731859658682b2af7e217a76648697c9de46.svg",
+      "bytes": 10477,
+      "sha256": "c6886a5eaf83194ee01bdcdfced4f9be199cb19fcc4b4698270fff69d7e359da"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/8337d86159a1cd98dfcd0601993d7b6b2fbb54d9.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/8337d86159a1cd98dfcd0601993d7b6b2fbb54d9.svg",
+      "bytes": 7820,
+      "sha256": "9e047f841e90d7c89c9275382b0faa653ee398676a27cd05d4ae54f50f8520d3"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/844fe92e58a680253626f9b0706a06c578a4e040.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/844fe92e58a680253626f9b0706a06c578a4e040.svg",
+      "bytes": 1698,
+      "sha256": "18c01b75899feec472424d07b5a12dc9b12694dec054400ad3b6f36b70e3bbf3"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/85d41c8c383a96e1ed34fc66f14abd61b132dd28.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/85d41c8c383a96e1ed34fc66f14abd61b132dd28.svg",
+      "bytes": 13995,
+      "sha256": "f7dfbb4d29383b868b57f13e228f3ad39d5e8d204fb4327df938a5b1c9cb3bbb"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/86549c5748a6fdd134970fd88f4842bd862a8b25.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/86549c5748a6fdd134970fd88f4842bd862a8b25.svg",
+      "bytes": 6955,
+      "sha256": "2b825ef3ee15372e2c9fcde554a65b65c603bd249c3fc77052b42bee68837e3b"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/872390af4f5b2541d17e7ef2bfaecbe1e9746d94.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/872390af4f5b2541d17e7ef2bfaecbe1e9746d94.svg",
+      "bytes": 9142,
+      "sha256": "c2c600b1ae63aa1a0a14fd70f093b018103cb237f82fec5a7244afeb2c1bef5c"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/886f88801abbe687ef8480ddd980f4215d2aaa17.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/886f88801abbe687ef8480ddd980f4215d2aaa17.svg",
+      "bytes": 1860,
+      "sha256": "0924530ffabb1e131e663fb24e25db48f92f6997feb7c8495b5be7d769e42b1a"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/89397c4cc47a40c3466507e1330dc380458f762e.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/89397c4cc47a40c3466507e1330dc380458f762e.svg",
+      "bytes": 3530,
+      "sha256": "d70e8e36c7a2473de19b07fb63cb02c7a0a2880f808f27619f62f102b05d98d0"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/89757355805c4084ac93610e9581c060f2e61610.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/89757355805c4084ac93610e9581c060f2e61610.svg",
+      "bytes": 7399,
+      "sha256": "2690aeb7bf537d0af7a98687d1d0cc09e0fd270ad2a8e54fb95f47199e2966b4"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/8d2c2c23f74e7a0cf98b0ee1de016825eb50e2d4.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/8d2c2c23f74e7a0cf98b0ee1de016825eb50e2d4.svg",
+      "bytes": 4145,
+      "sha256": "dd3963e8e8ce146555c1e41fa896b9df927433571d8cf0bbe12b5a86a8d61d97"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/96a52e61318720522e040e433c938ee829d54506.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/96a52e61318720522e040e433c938ee829d54506.svg",
+      "bytes": 25690,
+      "sha256": "10e62ca64a0f6e9e2334d6005216ffa8afa1b2bb1188001b7cf831ce92c643f6"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/96ac51b9afe79581e48f2f3f0ad3faa0f4402cc7.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/96ac51b9afe79581e48f2f3f0ad3faa0f4402cc7.svg",
+      "bytes": 1403,
+      "sha256": "e9411c86563c96fb4f315400da4ccd01be776a38702ddcfe54ccfe4ed48b1721"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/96b876944de9cf0f980fe261562e8e07029245bf.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/96b876944de9cf0f980fe261562e8e07029245bf.svg",
+      "bytes": 4290,
+      "sha256": "ac86e1a7d95c4728e72477f7f4c13269e008175c92c9fe57ddf1525c15f600bb"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/9954b39a284ca1aa0aed2dc3f769404cc4e9f397.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/9954b39a284ca1aa0aed2dc3f769404cc4e9f397.svg",
+      "bytes": 3478,
+      "sha256": "7f7b24c15558f96e635a5f7e4c87a5d78a6451ce69d5ad208c40b7100a128a9f"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/99621d5bcaccd056d6ca3aeb48a27bf8cc0e640c.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/99621d5bcaccd056d6ca3aeb48a27bf8cc0e640c.svg",
+      "bytes": 27094,
+      "sha256": "f59f928ec132d603832d8dd6e4f5ad245d79326115a25e5bf2fb0aba34f4d39d"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/a236fe76423c33d18465350c1c36cef9aa8fdc31.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/a236fe76423c33d18465350c1c36cef9aa8fdc31.svg",
+      "bytes": 1529,
+      "sha256": "6ace20498155042942a1a77ba3bb0290662a17913a44dd0b9b25ec8fc1a4351c"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/a29aa94bd66ac7a6bb3195233fd9a9df8575af86.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/a29aa94bd66ac7a6bb3195233fd9a9df8575af86.svg",
+      "bytes": 2123,
+      "sha256": "f0224a8e376258d00ea0d3bfc944fd1cc7a925244b9ffc65e8bb7a17a3240832"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/a52117d0fa54eb8449482447cad9c0ab54c757cc.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/a52117d0fa54eb8449482447cad9c0ab54c757cc.svg",
+      "bytes": 4193,
+      "sha256": "f1b62734a8874fa6b3452dff6099ba40b4af8597882a1c7e89a1969e0c427e97"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/a5a922f10e8b343418b1600a9a1601183673d126.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/a5a922f10e8b343418b1600a9a1601183673d126.svg",
+      "bytes": 7655,
+      "sha256": "190247a40c082104e9f852575ce757f46ec33fda71dd9cb397c326a28c9db30f"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/a7e1a4549f45dc56849b1ff857a19a71f9cc02a6.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/a7e1a4549f45dc56849b1ff857a19a71f9cc02a6.svg",
+      "bytes": 9490,
+      "sha256": "2f8b7e7da878f40e11bb8239f0e02b3c297ca7709c293086684664c4e712a9e4"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/a81303323c25fc13cd0652ca46d7596276e5cb7e.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/a81303323c25fc13cd0652ca46d7596276e5cb7e.svg",
+      "bytes": 4832,
+      "sha256": "c80451e9b7123891da6ddc127790340938257a0abd09893a52e981344618baff"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/ab8f7f4aaa7f1a3d1039ebdee058f297ed712c5a.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/ab8f7f4aaa7f1a3d1039ebdee058f297ed712c5a.svg",
+      "bytes": 12879,
+      "sha256": "69caa6a390ad70a0cd9061d5f8b3ab20700e8330d95d69fe2c4d45bb9c9d596c"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/b18a4163a861b1fc18c6a6824af3f5540d4e2468.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/b18a4163a861b1fc18c6a6824af3f5540d4e2468.svg",
+      "bytes": 10917,
+      "sha256": "bde7924dea4d1899280e0ce7895e8852d90b8b03994adcb6240b53ae631baec1"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/b2466507811fc9b9cbe2a0a51fd36034e16f2780.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/b2466507811fc9b9cbe2a0a51fd36034e16f2780.svg",
+      "bytes": 10638,
+      "sha256": "95f1808317a03e80a74164bce367f9ea5dbd8549d02564044fcb23de680c1713"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/b3f46cc6cd6c2fa9068013fafbe1b4b029bb8a58.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/b3f46cc6cd6c2fa9068013fafbe1b4b029bb8a58.svg",
+      "bytes": 3867,
+      "sha256": "31047a3176eb68ec1c43a5f2573fe43905165860b806a741d98a6d31875f4984"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/b4e46e01172264315e9e5d6c8bd2ced884d6602c.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/b4e46e01172264315e9e5d6c8bd2ced884d6602c.svg",
+      "bytes": 23420,
+      "sha256": "840e57f48d8fa360ef9c6f4d51f2a849ea13389ce1b7461021a35ad21326bd54"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/b8b23f5e4578125c2d8fbfc66442629ff7a85fb5.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/b8b23f5e4578125c2d8fbfc66442629ff7a85fb5.svg",
+      "bytes": 24152,
+      "sha256": "f9eeb831543c48d82d1c04441d9cf78a8320335006fec46dea0ecdd9666af82f"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/baf715aa6a295b7b7d85e1e1123552c5ae705756.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/baf715aa6a295b7b7d85e1e1123552c5ae705756.svg",
+      "bytes": 5001,
+      "sha256": "88e3a6a57690065a34954faf3f5a049dc9f3ce2cd48c4689a4aef7dc02d64f45"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/bbe16bfd192df4894eaef8bfe3133325ba462202.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/bbe16bfd192df4894eaef8bfe3133325ba462202.svg",
+      "bytes": 1927,
+      "sha256": "73ecd21410cef36c3aaa47a7ba8010e9b5966ba02fbab3e43160ad42fddfe342"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/bc92e8ce1cf0aaa212e144d5ed74e3b115453cb6.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/bc92e8ce1cf0aaa212e144d5ed74e3b115453cb6.svg",
+      "bytes": 19014,
+      "sha256": "0d74374a2d02771b74e19588a2632c35306e3f950c22ed6cac98dc9a092347bd"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/bf047f4b5c542c1bfbaf4bf411919f5e1f7ecba8.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/bf047f4b5c542c1bfbaf4bf411919f5e1f7ecba8.svg",
+      "bytes": 2307,
+      "sha256": "57a8f806661dfe1ee020135b3579ef18d3926ce0f0b8213c875de50e8f710925"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/bf49428c66c91a45d7b66a432450ee49a3622348.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/bf49428c66c91a45d7b66a432450ee49a3622348.svg",
+      "bytes": 11243,
+      "sha256": "c61c7384d93c92ba940e583e2350a0ec876452fada0da28e47449bf1ee454125"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/c2d6738c058406ade40dcf870311db157ed80e0f.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/c2d6738c058406ade40dcf870311db157ed80e0f.svg",
+      "bytes": 3794,
+      "sha256": "3974908fec7b1a0fdb320e4d83f74c64f30da33a7da5fe87b304994f5a6b35b8"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/c2e969d09ae88d847429eac9a8494cc89cabe4bd.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/c2e969d09ae88d847429eac9a8494cc89cabe4bd.svg",
+      "bytes": 2842,
+      "sha256": "70cfebc7b3ee605f3ff80f1bfa92278c38fa4d6de2dbbebace13fe1f3d60410a"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/c589a82739d7aa277bcf45e632d930d1c119b7ef.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/c589a82739d7aa277bcf45e632d930d1c119b7ef.svg",
+      "bytes": 1096,
+      "sha256": "8e6a56b94927ce40658b470520db5c9eafd805cac33bb7d426c7f3cffa24d61d"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/c65796f3bb56c457e63ebc770e3d775cace08673.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/c65796f3bb56c457e63ebc770e3d775cace08673.svg",
+      "bytes": 3663,
+      "sha256": "85ef033486b3e53985dd5e5c905525153e0391127125367ba501a6c5cc7d03b4"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/ca2d5053d03bd8fd9f399e5afbb834202e2d2f2d.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/ca2d5053d03bd8fd9f399e5afbb834202e2d2f2d.svg",
+      "bytes": 932,
+      "sha256": "5659179b031f0fce28bc6e7b8d7d12af46138c771dfb105b6b1465e156d64f22"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/cbed396f671d6fb54f6df5c044b82ab3f052d63e.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/cbed396f671d6fb54f6df5c044b82ab3f052d63e.svg",
+      "bytes": 6971,
+      "sha256": "25429f5126118227af01465ede3d9b28698be418cd16e2342ce59fd3d99d5be3"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/cc2095cba170e09137c55cb4f1786955b3174336.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/cc2095cba170e09137c55cb4f1786955b3174336.svg",
+      "bytes": 8917,
+      "sha256": "2ab898918e3937210c4a5f75a7131799414882850ba6ad8f477760b765c1dac0"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/cd6cc1a1e8ed7fc447a2ea0e59ad848707631c94.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/cd6cc1a1e8ed7fc447a2ea0e59ad848707631c94.svg",
+      "bytes": 4031,
+      "sha256": "5fefc16f9ecdb623295ca157b26aab8828a9dd29c0eefedad5b3f0c406cdfaca"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/ce5edddd490112350f4bd555d9390e0e845f754a.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/ce5edddd490112350f4bd555d9390e0e845f754a.svg",
+      "bytes": 1066,
+      "sha256": "cf8c122ae3316f780fc563d5a313d1d7ff5afa497f9c2423158aa3a695da041b"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/cee08da41b29ab9355f2e4dac94de335c6eff03f.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/cee08da41b29ab9355f2e4dac94de335c6eff03f.svg",
+      "bytes": 10630,
+      "sha256": "c6d984d319cea272e3d2ecb8ceca96c95315fc3615f0fa4c30f07b464039eae1"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/d353412962e458573b92aac78df3fbe0a10d998d.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/d353412962e458573b92aac78df3fbe0a10d998d.svg",
+      "bytes": 15532,
+      "sha256": "37d9a756d7f1f5b2b97477602bb1d0f1b1c57d2434e8e5b8d6cbb87bde4ae497"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/dd41a29292af3bc58c0c76bc7dba82a7355bf929.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/dd41a29292af3bc58c0c76bc7dba82a7355bf929.svg",
+      "bytes": 23848,
+      "sha256": "6752fb7aebf104129c27c8a7764de139abd3d35b74d82068a743713cb301c942"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/de947d14fdcfaa155ef3301fc39efcf9e6c9449c.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/de947d14fdcfaa155ef3301fc39efcf9e6c9449c.svg",
+      "bytes": 6598,
+      "sha256": "be628aaf3c54e4638e052124fb3dfb2838ac0aeb6f30138a44ba673e007ffe42"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/e043709b46c9aa6811953dabd82461db6308fe19.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/e043709b46c9aa6811953dabd82461db6308fe19.svg",
+      "bytes": 11619,
+      "sha256": "e97770ea349d60a129d75a23f76a98856b5c2526d67ef1bd6f05e572c3e1f7fb"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/e62a8971472597f4b014c2da064f636ffe365ba3.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/e62a8971472597f4b014c2da064f636ffe365ba3.svg",
+      "bytes": 117199,
+      "sha256": "6140352a18b2a5dd6f73043d6ba861043d078d7dbe8fb3594019b9ad7dcb1f52"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/e87025074e03131c69c6c5758e873a6224ea5d3a.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/e87025074e03131c69c6c5758e873a6224ea5d3a.svg",
+      "bytes": 3353,
+      "sha256": "3c0883606b8e7a11f6d4e3859db543fa5f3247025ab2f6df221de75df215ff2c"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/eac18a6e37a9272c1458d3086adb317ecda571e8.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/eac18a6e37a9272c1458d3086adb317ecda571e8.svg",
+      "bytes": 8966,
+      "sha256": "dffad2f3f2191d71516f9bfbff28ef56da7ef4cdb804c82fa1ce0444cdb86c3a"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/ed45f9d37dbb092727104773ca3a464d46f892b8.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/ed45f9d37dbb092727104773ca3a464d46f892b8.svg",
+      "bytes": 7485,
+      "sha256": "909881143455207269444d64785c8c12c4578389de2a038b9a9b7efb8c5d7365"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/eef23a6502b9cec4bc399bcbce93547c3723643c.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/eef23a6502b9cec4bc399bcbce93547c3723643c.svg",
+      "bytes": 5586,
+      "sha256": "410fcc2a1e5a3ed283981852b965d4c52b25f8ea656f6f7db663ace5256b1452"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/f03ec2afde0e994f47df68b273d86e3afbfdce80.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/f03ec2afde0e994f47df68b273d86e3afbfdce80.svg",
+      "bytes": 885,
+      "sha256": "dfe84304f8ca9420f179abfd9227bbb93a71c353c64dcabf11a3bc7bc819af72"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/f0d6e3879540e318df14d2c8b68af828b1b350da.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/f0d6e3879540e318df14d2c8b68af828b1b350da.svg",
+      "bytes": 13191,
+      "sha256": "36a5b2002df8b099c9fbd3bfa249ca7baa28fee6cf4b9f485ba5e2745b2c7030"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/math/f8ab9b211bc9bb91cde189360051e3bd1f896afa.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/math/f8ab9b211bc9bb91cde189360051e3bd1f896afa.svg",
+      "bytes": 24390,
+      "sha256": "664c77c5c0d55446b3a7b3de7e2acb4c4f329f128f9ca091c9406c5e6664e651"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/rl_algorithms_9_15.svg",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/rl_algorithms_9_15.svg",
+      "bytes": 31498,
+      "sha256": "8f502703cecdddf97afe96fb35f7deb8c904cc2febc93c4e62232bf6ade454af"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_images/rl_diagram_transparent_bg.png",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_images/rl_diagram_transparent_bg.png",
+      "bytes": 8106,
+      "sha256": "ea2b11649e9cdacde127b8660818f4619da32ffc10f026fb7b76cbc700ddeed3"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/css/modify.css",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/css/modify.css",
+      "bytes": 4501,
+      "sha256": "b9d96803dd5891ecc21a69e4c4ea3dacca7cf86adfa8c6f55fa3cc9590a70578"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/css/theme.css",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/css/theme.css",
+      "bytes": 116318,
+      "sha256": "3cb3c1d931b363bc5734b50514c8727346d6dbd648d7217128cc676e4a77773a"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/doctools.js",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/doctools.js",
+      "bytes": 8166,
+      "sha256": "1aecb61a989f26d7dc327a997c8287c1fa6a3f5fed6698a4c65f4287489a1a28"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bold.eot",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bold.eot",
+      "bytes": 256056,
+      "sha256": "b91fc1ca55df440dc11354b32a39b45db663d24bb17b16dcb2e706330955b0d1"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bold.ttf",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bold.ttf",
+      "bytes": 600856,
+      "sha256": "f71f833c099f450606f8107b83ef208ae918c0ea00779466d45e9be96b0bc7cc"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bold.woff",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bold.woff",
+      "bytes": 309728,
+      "sha256": "0e56b17d142eb366c8007031d14e34da48c70b4a9d9a0ca492e696a7bae45e1e"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bold.woff2",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bold.woff2",
+      "bytes": 184912,
+      "sha256": "ae88fc0d7a961832f809527d30bd3983a6866d42f66a56ade23f543681594db6"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bolditalic.eot",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bolditalic.eot",
+      "bytes": 266158,
+      "sha256": "b3d585879a02f48c5d43d8f91d06b167e367a31934bb3b8147c0a90b5ca32bfc"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bolditalic.ttf",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bolditalic.ttf",
+      "bytes": 622572,
+      "sha256": "f98d040631714eabffd0ffb747576674fa78c2910f6d9e3dc0c58481d03c1898"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bolditalic.woff",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bolditalic.woff",
+      "bytes": 323344,
+      "sha256": "980c8592e5488df256192c999e92db8fd302db8cd8909b7fa266a684e37e45f8"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bolditalic.woff2",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-bolditalic.woff2",
+      "bytes": 193308,
+      "sha256": "c0916a33340d063f7b05679e08031e729d1888444706f04804705da5966d895d"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-italic.eot",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-italic.eot",
+      "bytes": 268604,
+      "sha256": "bc24dbe04f5b2415678f978e7e2f630cc6610670d684e088e73ad29c439eafe3"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-italic.ttf",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-italic.ttf",
+      "bytes": 639388,
+      "sha256": "12d825af88eafea1ce3aa469f83c03acaecd0d03f690f409c8643529f1205b4f"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-italic.woff",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-italic.woff",
+      "bytes": 328412,
+      "sha256": "26318a1467a5e5caf10b04cfa942d079632560cd7a29cec565fd1dc9f7ec5081"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-italic.woff2",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-italic.woff2",
+      "bytes": 195704,
+      "sha256": "4465765f2f6eddcdad34ffd7cab559e56bc0e75e45e192f85e9562b0771481dc"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-regular.eot",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-regular.eot",
+      "bytes": 253461,
+      "sha256": "e735410675eacc363b257112f39eb819a854b03077d7b1f0caa6e7660ffbd8b3"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-regular.ttf",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-regular.ttf",
+      "bytes": 607720,
+      "sha256": "089ab6d4a57e0e6c4dd3b681b6fd50a5184f1b902429d35e1227e52d6ccad1bd"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-regular.woff",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-regular.woff",
+      "bytes": 309192,
+      "sha256": "5b9025dda4d7688e3311b0c17eddc501133b807def33effaef6593843cf5416e"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/Lato/lato-regular.woff2",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/Lato/lato-regular.woff2",
+      "bytes": 182708,
+      "sha256": "983b0caf336e8542214fc17019a4fc5e0360864b92806ca14d55c1fc1c2c5a0f"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-bold.eot",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-bold.eot",
+      "bytes": 79520,
+      "sha256": "4438991a12ff951cc8d0e83348ec06d9f910591b1b014c476e9595d4da099e48"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-bold.ttf",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-bold.ttf",
+      "bytes": 170616,
+      "sha256": "ba12d2eab1fa765b6b05398fa7e047dd76293f0c051ce57a8f7b0c591c14d42b"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-bold.woff",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-bold.woff",
+      "bytes": 87624,
+      "sha256": "9fec87cadbe2413b255f1ec577573a83f1ca2e1c37aa023dbebcd3a7b864636a"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-bold.woff2",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-bold.woff2",
+      "bytes": 67312,
+      "sha256": "1a0c024dd1a267c52d5575469ffe8570d1e84164de7d393cf3414bafd17d7a0c"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-regular.eot",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-regular.eot",
+      "bytes": 78331,
+      "sha256": "b3809b71d417c6c225e77a55880aa7915b4e4b4f77a5e2d243f3563731e7f55c"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-regular.ttf",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-regular.ttf",
+      "bytes": 169064,
+      "sha256": "13aa5f54c6f2fa2e388fe0e675cdbcc6a81f6270a8bf9c03a5df8af9cb022810"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-regular.woff",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-regular.woff",
+      "bytes": 86288,
+      "sha256": "9f32630e2c0c5135bf1e86e36cb65b3932e4410644235bc2bd995e9c7f6ff117"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-regular.woff2",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab-v7-regular.woff2",
+      "bytes": 66444,
+      "sha256": "874e42222856d7af03b3f438d21d923a4280d47fe67c48510e2174a1579795ef"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.eot",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.eot",
+      "bytes": 165742,
+      "sha256": "7bfcab6db99d5cfbf1705ca0536ddc78585432cc5fa41bbd7ad0f009033b2979"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.eot?v=4.7.0",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.eot-1793f04d41",
+      "bytes": 165742,
+      "sha256": "7bfcab6db99d5cfbf1705ca0536ddc78585432cc5fa41bbd7ad0f009033b2979"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.svg?v=4.7.0",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.svg-1793f04d41",
+      "bytes": 444379,
+      "sha256": "ad6157926c1622ba4e1d03d478f1541368524bfc46f51e42fe0d945f7ef323e4"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.ttf?v=4.7.0",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.ttf-1793f04d41",
+      "bytes": 165548,
+      "sha256": "aa58f33f239a0fb02f5c7a6c45c043d7a9ac9a093335806694ecd6d4edc0d6a8"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.woff2?v=4.7.0",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.woff2-1793f04d41",
+      "bytes": 77160,
+      "sha256": "2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.woff?v=4.7.0",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/fonts/fontawesome-webfont.woff-1793f04d41",
+      "bytes": 98024,
+      "sha256": "ba0c59deb5450f5cb41b3f93609ee2d0d995415877ddfa223e8a8a7533474f07"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/jquery.js",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/jquery.js",
+      "bytes": 86351,
+      "sha256": "702b9e051e82b32038ffdb33a4f7eb5f7b38f4cf6f514e4182d8898f4eb0b7fb"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/js/modernizr.min.js",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/js/modernizr.min.js",
+      "bytes": 15414,
+      "sha256": "cf25ec18f223f4c51ce1128a42e644cdc2244d88f89d1a51440d9dbe51f4efe8"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/js/theme.js",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/js/theme.js",
+      "bytes": 4400,
+      "sha256": "c132ba71881f7d6f103565eb555fdcf258af9495ead1b82aad578bf10079677d"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/openai_icon.ico",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/openai_icon.ico",
+      "bytes": 5430,
+      "sha256": "2c7c61eec25b242db38ef88c4403253cf3a8176c436f87aa905135ddf7427d85"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/pygments.css",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/pygments.css",
+      "bytes": 4368,
+      "sha256": "7029cabd6297c2a33d33024ab77167f9d7b2dafd5445ee24ca6e13a366426d46"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/readthedocs-data.js",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/readthedocs-data.js",
+      "bytes": 539,
+      "sha256": "a1da7e816fbc342667353a82bd4bb388e40b330170f01bcf2b24b356efe99aa2"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/spinning-up-logo2.png",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/spinning-up-logo2.png",
+      "bytes": 15212,
+      "sha256": "12498f83e69a7961975c8e92dc009298db51f500abda037a1a956e845f0e905b"
+    },
+    {
+      "url": "https://spinningup.openai.com/en/latest/_static/underscore.js",
+      "file": "lectures/03_2026-09-17_reinforcement-learning/required/_assets/spinningup.openai.com/en/latest/_static/underscore.js",
+      "bytes": 12140,
+      "sha256": "42d8fad13bc28fc726775196ec9ab953febf9bde175c5845128361c953fa17f4"
+    }
+  ],
+  "unavailable_assets": {
+    "https://spinningup.openai.com/en/latest/_static/fonts/RobotoSlab/roboto-slab.eot": "HTTP Error 404: Not Found"
+  },
+  "limitations": "Local reading snapshot, not a full offline website. Embedded videos, search and links to other pages require internet. Any unavailable assets are listed; font fallbacks may differ."
+}

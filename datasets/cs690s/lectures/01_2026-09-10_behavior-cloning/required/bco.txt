@@ -1,0 +1,595 @@
+In Proceedingsofthe27thInternationalJointConferenceonArtificialIntelligence(IJCAI 2018),
+Stockholm, Sweden, July 2018
+Behavioral Cloning from Observation
+FarazTorabi1,GarrettWarnell2,PeterStone1
+1 TheUniversityofTexasatAustin
+2 U.S.ArmyResearchLaboratory
+{faraztrb,pstone}@cs.utexas.edu,garrett.a.warnell.civ@mail.mil
+Abstract START
+BehavioralCloningfromObservation(BCO)
+Humans often learn how to perform tasks via im-
+itation: they observe others perform a task, and Initialize π φ 0 Run {(sa t ,sa t+1 )} Appendto
+then very quickly infer the appropriate actions to policyπ φ i=0 policyπ φ i {a t } T π a,A π
+take based on their observations. While extend-
+ing this paradigm to autonomous agents is a well- π φ i T π a,A π
+studied problem in general, there are two particu- Update A˜ demo Infer Mi θ Update
+lar aspects that have largely been overlooked: (1) State-only policyπ φ i S demo actions modelMi θ
+thatthelearningisdonefromobservationonly(i.e.,
+demonstrations
+without explicit action information), and (2) that D
+demo
+thelearningistypicallydoneveryquickly. Inthis
+work, we propose a two-phase, autonomous imi- Figure 1: Behavioral Cloning from Observation (BCO(α)) frame-
+tationlearningtechniquecalledbehavioralcloning workproposedinthispaper.Theagentisinitializedwitha(random)
+from observation (BCO), that aims to provide im- policywhichinteractswiththeenvironmentandcollectsdatatoto
+learn its own agent-specific inverse dynamics model. Then, given
+proved performance with respect to both of these
+state-only demonstration information, the agent uses this learned
+aspects. First, we allow the agent to acquire ex-
+modeltoinfertheexpert’smissingactioninformation. Oncethese
+perience in a self-supervised fashion. This expe-
+actions have been inferred, the agent performs imitation learning.
+rience is used to develop a model which is then
+Theupdatedpolicyisthenusedtocollectdataandthisprocessre-
+utilized to learn a particular task by observing an peats.
+expertperformthattaskwithouttheknowledgeof
+thespecificactionstaken. Weexperimentallycom-
+pareBCOtoimitationlearningmethods,including
+First,unliketheclassicalLfDsetting,humansdonottypically
+thestate-of-the-art,generativeadversarialimitation
+have knowledge of the precise actions executed by demon-
+learning(GAIL)technique,andweshowcompara-
+strators,i.e.,theinternalcontrolsignalsdemonstratorsuseto
+bletaskperformanceinseveraldifferentsimulation
+guidetheirbehaviorSecond,humansareabletoperformim-
+domainswhileexhibitingincreasedlearningspeed
+itationwithoutneedingtospendalotoftimeinteractingwith
+afterexperttrajectoriesbecomeavailable.
+theirenvironmentafterthedemonstrationhasbeenprovided.
+Most LfD work is unlike human imitation in its assump-
+1 Introduction
+tion that imitators know the actions executed by demonstra-
+Theabilitytolearnthroughexperienceisahallmarkofintel- tors. Human imitators typically do not have access to this
+ligence. Humans most certainly learn this way, and, using information, and requiring it immediately precludes using a
+reinforcement learning (RL) [Sutton and Barto, 1998], au- large amount of demonstration data where action sequences
+tonomous agents may do so as well. However, learning to arenotgiven. Forexample,thereisagreatnumberoftutorial
+performataskbasedsolelyonone’sownexperiencecanbe videosonYouTubethatonlyprovidetheobserverknowledge
+verydifficultandslow. Humansareoftenabletolearnmuch ofthedemonstrator’sstatetrajectory. Itwouldbeimmensely
+fasterbyobservingandimitatingthebehaviorofothers. En- beneficialifwecoulddeviseLfDalgorithmstomakeuseof
+ablingthissameabilityinautonomousagents,referredtoas suchinformation.
+learning from demonstration (LfD), has been given a great AnotherchallengefacedbyLfDisthenecessityofenviron-
+deal of attention in the research community [Schaal, 1997; mentinteraction, whichcanbeexpensiveinseveralregards.
+Argalletal.,2009]. One is the amount of time it requires: executing actions, ei-
+While much of LfD research is motivated by the way hu- therintherealworldorinsimulation,takestime. Ifalearn-
+mans learn from observing others, it has largely overlooked ing algorithm requires that a large number of actions must
+the integration of two important aspects of that paradigm. be executed in order to find a good imitation policy after a
+8102
+yaM
+11
+]IA.sc[
+2v45910.5081:viXra
+
+demonstrationispresented,thentherewillbeanundesirable beensuccessfullyusedtoteachmanipulatorrobotscomplex,
+amountofdelaybeforetheimitatingagentwillbesuccessful. multi-step, real-world tasks using kinesthetic demonstration
+Furthermore, algorithms that require post-demonstration in- [Niekumetal.,2015]. Whilebehavioralcloningispowerful,
+teractiontypicallyrequireitagainandagainforeachnewly- it is also only applicable in scenarios where the demonstra-
+demonstrated task, which could result in even more delay. tor’sactionsequencesareavailable. However,whenhumans
+Beyonddelay,environmentinteractioncanalsoberisky. For wanttoimitateeachother’sactions,theydonothaveaccess
+example, when training autonomous vehicles, operating on totheinternalcontrolsignalsthedemonstratorused. Instead,
+city streets while learning might endanger lives or lead to theyonly seethe effectsofthose actions. In oursetting, we
+costlydamageduetocrashes. Therefore,wedesireanalgo- wishtoperformimitationinthesescenarios,andsowecan-
+rithmforwhichenvironmentinteractionscanbeperformedas notapplyBCtechniquesastheyaretypicallyformulated.
+a pre-processing step - perhaps in a safer environment - and
+wheretheinformationlearnedfromthoseinteractionscanbe Inversereinforcementlearningisasecondcategoryofim-
+re-usedforavarietyofdemonstratedtasks. itation learning. IRL techniques seek to learn a cost func-
+In this paper, we propose a new imitation learning al- tion that has the minimum value for the demonstrated ac-
+gorithm called behavioral cloning from observation (BCO). tions. The learned cost function is then used in combina-
+BCO simultaneously addresses both of the issues discussed tion with RL methods to find an imitation policy. Like BC
+above, i.e., it provides reasonable imitation policies almost techniques, IRL methods usually assume that state-action
+immediatelyuponobservingstate-trajectory-onlydemonstra- pairs are available [Finn et al., 2016; Ho and Ermon, 2016;
+tions. First,itcallsfortheagenttolearnatask-independent, Ho et al., 2016], and also that the reward is a function of
+inverse dynamics model in a pre-demonstration, exploratory both states and actions. An exception is the work of Liu et
+phase. Then, upon observation of a demonstration without al. [2017]. Inthiswork,itisassumedthatbothdemonstrator
+actioninformation, BCOusesthelearnedmodeltoinferthe andimitatorarecapableoffollowingatrajectoryattheexact
+missing actions. Finally, BCO uses the demonstration and samepacetoperformatask,andtheIRLmethoddefinesthe
+theinferredactionstofindapolicyviabehavioralcloning. If rewardsignaltobetheproximityoftheimitatoranddemon-
+post-demonstrationenvironmentinteractionisallowed,BCO strator’sencodedstatefeaturesateachtimestep. Asaresult,
+additionally specifies an iterative scheme where the agent therewardsignalcanonlybegeneratedafterthedemonstra-
+usestheextrainteractiontimeinordertolearnabettermodel tionismadeavailable,afterwhichreinforcementlearningand
+andimproveitsimitationpolicy. Thisiterativeschemethere- environmentinteractionmustbecompletedinordertofinda
+fore provides a tradeoff between imitation performance and goodpolicy. Inourwork,wewishtominimizetheamountof
+post-demonstrationenvironmentinteraction. environmentinteractionnecessaryafterthedemonstrationis
+provided,andsoweseekanalternativetoIRL.
+2 RelatedWork
+BCO is also related to the model-based learning litera-
+BCO is related to both imitation learning and model-based ture in that it makes use of learned models of the environ-
+learning. We begin with a review of imitation learning ap- ment. In general, model-based methods have major advan-
+proaches, which typically fall under one of two broad cat- tages over those that are model-free. First, they are more
+egories: behavioral cloning (BC) and inverse reinforcement sample-efficient [Chebotar et al., 2017], i.e., they do not re-
+learning(IRL). quireasmanyenvironmentinteractionsasmodel-freemeth-
+Behavioral cloning [Bain and Sommut, 1999; Ross et al., ods. Second, the learned models can be transferred across
+2011;Daftryetal., 2016]isoneofthemainmethodstoap- tasks[Tayloretal.,2008].Typicalmodel-learningtechniques
+proach an imitation learning problem. The agent receives focus on obtaining an estimate of the transition dynamics
+as training data both the encountered states and actions of model, i.e., a mapping from current state and action to the
+the demonstrator, and then uses a classifier or regressor to nextstate. Inourwork,ontheotherhand,wewanttheagent
+replicate the expert’s policy [Ross and Bagnell, 2010]. This to learn a model of the environment that will help us infer
+method is powerful in the sense that it is capable of imitat- missingactions,andthereforeBCOlearnsaslightly-different
+ingthedemonstratorimmediatelywithouthavingtointeract inversedynamicsmodel,i.e.,amappingfromstatetransitions
+with the environment. Accordingly, BC has been used in a totheactions[HannaandStone,2017].
+varietyofapplications. Forinstance,ithasbeenusedtotrain
+a quadrotor to fly down a forest trail [Giusti et al., 2016]. Therehasalsobeenrecentworkdonewhereinversemod-
+There, the training data is the pictures of the forest trail la- els have been used to perform imitation learning in the ab-
+beledwiththeactionsthatthedemonstratingquadrotorused, sence of action information. Niekum et al [2015a] present
+andthepolicyismodeledasaconvolutionalneuralnetwork suchatechniqueforsituationsinwhichthekinematicequa-
+classifier. Intheend,thequadrotormanagestoflydownthe tions are known. Nair et al [2017] propose a technique that
+trailsuccessfully. BChasalsobeenusedinautonomousdriv- first learns an inverse dynamics model and then use that
+ing[Bojarskietal.,2016]. Thetrainingdataisacquiredfrom modeltoestimatethemissingactioninformationateachtime
+a human demonstrator, and a convolutional neural network step from a single demonstration. The method we develop
+is trained to map raw pixels from a single front-facing cam- here, on the other hand, both does not assume prior knowl-
+eradirectlytosteeringcommands. Aftertraining,thevehicle edge of the inverse model and is capable of generalizing in
+is capable of driving in traffic on local roads. BC has also caseswhenmulitipledemonstrationsareavailable.
+
+Pre-demonstration Post-demonstration
+|Ipre|
+BCO(0)
+|Ipre| α|Ipre| α|Ipre| α|Ipre| ...α|Ipre|
+BCO(α)
+|IIRL|
+...
+GAIL&FEM
+Figure2: LearningtimelinesforBCO(0),BCO(α),andtheIRLmethodswecompareagainstinthispaper. Thehorizontalaxisrepresents
+time,grayrectanglesmarkwheneachtechniquerequiresenvironmentinteractions. ForBCO,thewhiteandgraycirclesdenotetheinverse
+modelandpolicylearningsteps,respectively. ForBCO,α|Ipre|isthenumberofpost-demonstrationenvironmentinteractionsperformed
+beforeeachmodel-andpolicy-improvementstepandforIRLmethods,|IIRL|representsthetotalnumberofinteractions.
+3 ProblemFormulation fromobservation[Liuetal.,2017]. Inthissetting,oneseeks
+to find an imitation policy from a set of state-only demon-
+We consider agents acting within the broad framework of strations D = {ζ ,ζ ,...} in which each ζ is a state-only
+1 2
+Markov decision processes (MDPs). We denote a MDP us- trajectory{s ,s ,...,s }.
+0 1 N
+ing the 5-tuple M = {S,A,T,r,γ}, where S is the agent’s
+Thespecificproblemthatweareinterestedinisimitation
+state space, A is its action space, T s s i i + a 1 = P(s i+1 |s i ,a) is fromobservationunderaconstrainednumberofenvironment
+afunctiondenotingtheprobabilityoftheagenttransitioning interactions.Byenvironmentinteractionswemeantimesteps
+from state s i to s i+1 after taking action a, r : S ×A → R forwhichwerequireouragenttogathernewdatabyexecut-
+isafunctionspecifyingtheimmediaterewardthattheagent inganactioninitsenvironmentandobservingthestateout-
+receivesfortakingaspecificactioninagivenstate,andγ is come. We are concerned here in particular with the cost of
+a discount factor. In this framework, agent behavior can be thelearningprocess, intermsofthenumberofenvironment
+specified by a policy, π : S → A, which specifies the ac- interactions, bothbeforeandaftertheexpertdemonstrations
+tion (or distribution over actions) that the agent should use are provided. Pre- and post-demonstration environment in-
+when in a particular state. We denote the set of state transi- teractionsarerepresentedbyIpre andIpost,respectively,to
+tionsexperiencedbyanagentduringaparticularexecutionof denotesetsofinteractions(s ,a ,s )thatmustbeexecuted
+i i i+1
+apolicyπbyT π ={(s i ,s i+1 )}. byalearnerbeforeandafterademonstrationbecomesavail-
+In the context of these transitions, we will be interested able. In this context, we are concerned here with the fol-
+in the inverse dynamics model, M a sisi+1 = P(a|s i ,s i+1 ), lowingspecificgoal: givenasetofstate-onlydemonstration
+which is the probability of having taken action a given that trajectories,D,findagoodimitationpolicyusingaminimal
+the agent transitioned from state s i to s i+1 . Moreover, we numberofpost-demonstrationenvironmentinteractions,i.e.,
+specifically seek task-independent models. We assume that |Ipost|.
+some of the state features are specifically related to the task In pursuit of this goal, we propose a new algorithm for
+andothersspecificallytotheagent,i.e.,agivenstatescanbe imitation learning that can operate both in the absence of
+partitionedintoanagent-specificstate,sa,andatask-specific
+demonstrator action information and while requiring no or
+state,st,whicharemembersofsetsSa andSt,respectively
+very few post-demonstration environment interactions. Our
+(i.e., S = Sa ×St) [Konidaris, 2006; Gupta et al., 2017]. framework consists of two components, each of which con-
+Using this partitioning, we define the agent-specific inverse sidersaseparatepartofthisproblem. Thefirstofthesecom-
+dynamicsmodeltobeafunctionM θ :Sa×Sa →p(A)that ponents considers the problem of learning an agent-specific
+maps a pair of agent-specific state transitions, (sa,sa ) ∈ inverse dynamics model, and the second one considers the
+i i+1
+T π a, to a distribution of agent actions that is likely to have problemoflearninganimitationpolicyfromasetofdemon-
+givenrisetothattransition. strationtrajectories.
+Imitation learning is typically defined in the context of
+a MDP without an explicitly-defined reward function, i.e.,
+4 BehavioralCloningfromObservation
+M \r. Thelearningproblemisforanagenttodeterminean
+imitationpolicy,π :S →Athattheagentmayuseinorderto We now describe our imitation learning algorithm, BCO,
+behaveliketheexpert,usingaprovidedsetofexpertdemon- whichcombinesinversedynamicsmodellearningwithlearn-
+strations{ξ ,ξ ,...}inwhicheachξ isademonstratedstate- ing an imitation policy. We are motivated by the fact that
+1 2
+action trajectory {(s ,a ),(s ,a ),...,(s ,a )}. There- humans have access to a large amount of prior experience
+0 0 1 1 N N
+fore,inthissetting,theagentmusthaveaccesstothedemon- about themselves, and so we aim to also provide an au-
+strator’sactions.Iftheimitatorisunabletoobservetheaction tonomous agent with this same prior knowledge. To do so,
+sequences used by the demonstrator, the resulting imitation beforeanydemonstrationinformationisobserved, weallow
+learning problem has recently been referred to as imitation the agent to learn its own agent-specific inverse dynamics
+
+model.Then,givenstate-onlydemonstrationinformation,we Algorithm1BCO(α)
+usethislearnedmodeltoinfertheexpert’smissingactionin-
+1: InitializethemodelM θ asrandomapproximator
+formation. Once these actions have been inferred, the agent
+2: Setπ φ tobearandompolicy
+performsimitationlearningviaamodifiedversionofbehav- 3: SetI =|Ipre|
+ioralcloning(Figure1). Thepseudo-codeofthealgorithmis
+4: whilepolicyimprovementdo
+giveninAlgorithm1.
+5: fortime-stept=1toI do
+4.1 InverseDynamicsModelLearning 6: Generatesamples(sa t ,sa t+1 )anda t usingπ φ
+In order to infer missing action information, we first allow 7: AppendsamplesT π a φ ←(sa t ,sa t+1 ),A πφ ←a t
+8: endfor
+theagenttoacquirepriorexperienceintheformofanagent-
+specificinversedynamicsmodel. Inordertodoso,weletthe 9: ImproveM θ bymodelLearning(T π a φ ,A πφ )
+10: Generatesetofagent-specificstatetransitionsTa
+agent perform an exploration policy, π. In this work, we let demo
+fromthedemonstratedstatetrajectoriesD
+π be a random policy (Algorithm 1, Line 2). While execut- demo
+ing this policy, the agent performs some number of interac- 11: UseM θ withT d a emo toapproximateA˜ demo
+tions with the environment, i.e., Ipre. Because we seek an 12: Improveπ φ bybehavioralCloning(S demo ,A˜ demo )
+agent-specific inverse dynamics model as described in Sec- 13: SetI =α|Ipre|
+tion3,weextracttheagent-specificpartofthestatesinIpre 14: endwhile
+and store them as Ta = {(sa,sa )}, and their associated
+πe i i+1
+actions,A ={a }(Algorithm1,Lines5-8). Giventhisin-
+πe i for each transition (sa,sa ) ∈ Ta , the algorithm com-
+formation, the problem of learning an agent-specific inverse i i+1 demo
+putesthemodel-predicteddistributionoverdemonstratorac-
+dynamicsmodelisthatoffindingtheparameterθ forwhich
+tions, M (sa,sa ) and uses the maximum-likelihood ac-
+M θ best describes the observed transitions. We formulate θ∗ i i+1
+this problem as one of maximum-likelihood estimation, i.e., tionastheinferredaction,a˜ i ,whichisplacedinasetA˜ demo
+weseekθ∗as (Algorithm1,Line11). Usingtheseinferredactions,wethen
+buildthesetofcompletestate-actionpairs{(s ,a˜ )}.
+i i
+θ∗ =argmax Π|Ipre| p (a |sa,sa ), (1) With this new set of state-action pairs, we may now seek
+θ i=0 θ i i i+1
+theimitationpolicyπ .Wecastthisproblemasoneofbehav-
+wherep istheconditionaldistributionoveractionsinduced φ
+θ ioralcloning,i.e.,givenasetofstate-actiontuples{(s ,a˜ )},
+by M given a specific state transition. Any number of su- i i
+θ
+the problem of learning an imitation policy becomes that of
+pervisedlearningtechniques,denotedas“modelLearning”in
+findingtheparameterφforwhichπ bestmatchesthissetof
+Algorithm1,maybeusedtosolve(1). φ
+provided state-action pairs (Algorithm 1, Line 12). We find
+Somedetailsregardingparticularchoicesmadeinthispa-
+thisparameterusingmaximum-likelihoodestimation,i.e.,we
+per: Fordomainswithacontinuousactionspace,weassume
+seekφ∗as
+a Gaussian distribution over each action dimension and our
+model estimates the individual means and standard devia-
+φ∗ =argmax ΠN π (a˜ |s ). (2)
+tions. We use a neural network for M , where the network φ i=0 φ i i
+θ
+receives a state transition as input and outputs the mean for Somedetailsregardingparticularchoicesmadeinthispa-
+eachactiondimension.Thestandarddeviationisalsolearned per: For continuous action spaces, we assume our policy to
+for each dimension, but it is computed independently of the beGaussianovereachactiondimension,and,fordiscreteac-
+statetransitions. Inordertotrainthisnetwork(i.e.,tofindθ∗ tionsspacesweuseasoftmaxfunctiontorepresenttheprob-
+in (1)), we use the Adam variant [Kingma and Ba, 2014] of abilityofselectingeachvalue. Weletπ beaneuralnetwork
+stochastic gradient decent. Intuitively, the gradient for each thatreceivesasinputastateandoutputseithertheGaussian
+sample is computed by finding a change in θ that would in- distributionparametersortheactionprobabilitiesforcontin-
+crease the probability of a with respect to the distribution uous or discrete action spaces, respectively. We then solve
+i
+specifiedbyM (s ,s ).Whentheactionspaceisdiscrete, for φ∗ in (2) using Adam SGD, where the intuitive view of
+θ i i+1
+we again use a neural network for M , where the network thegradientisthatitseekstofindchangesinφthatincrease
+θ
+computestheprobabilityoftakingeachactionviaasoftmax theprobabilityofeachinferreddemonstratoraction,a˜ ,inthe
+i
+function. imitationpolicy’sdistributionπ (·|s ).
+φ i
+4.2 BehavioralCloning 4.3 ModelImprovement
+Our overarching problem is that of finding a good imita- The techniques described above form the building blocks of
+tion policy from a set of state-only demonstration trajecto- BCO. If one is willing to tolerate post-demonstration en-
+ries, D = {ζ ,ζ ,...} where each ζ is a trajectory vironment interaction, a modified version of our algorithm
+demo 1 2
+{s ,s ,...,s }. Note that, although the inverse dynamics canfurtherimproveboththelearnedmodelandtheresulting
+0 1 N
+model is learned using a set of agent-generated data in Sec- imitation policy. This modified algorithm proceeds as fol-
+tion4.1,thedatausedthereisnotutilizedinthisstep. Inor- lows. After the behavioral cloning step, the agent executes
+dertousethelearnedagent-specificinversedynamicsmodel, the imitation policy in the environment for a short period of
+we first extract the agent-specific part of the demonstrated time. Then, the newly-observed state-action sequences are
+statesequencesandthenformthesetofdemonstratedagent- used to update the model, and, accordingly, the imitation
+specificstatetransitionsTa (Algorithm1,Line10). Next, policy itself. The above procedure is repeated until there is
+demo
+
+(a)CartPole (b)MountainCar (c)Reacher (d)Ant
+Figure3:Representativescreenshotsofthedomainsconsideredinthispaper.
+no more improvement in the imitation policy. We call this 2016]: Amodifiedversionoftheapproachpresentedby
+modified version of our algorithm BCO(α), where α is a Abbeel and Ng [2004]. It uses trust region policy opti-
+user-specified parameter that is used to control the number mizationwithalinearcostfunctioninordertotraintrain
+of post-demonstration environment interactions at each iter- neuralnetworkpolicies.
+ation, M, according to M = α|Ipre|. The total number of
+3. GeneralAdversarialImitationLearning(GAIL)[Ho
+post-demonstration interactions required by BCO(α) can be
+andErmon, 2016]: Astate-of-the-artinIRL.Itusesa
+calculated as |Ipre| = TM = Tα|Ipre|, where T is the
+specificclassofcostfunctionswhichallowsfortheuse
+total number of model-improvement iterations required by
+ofgenerativeadversarialnetworksinordertodoappren-
+BCO(α). Using a nonzero α, the model is able to leverage
+ticeshiplearning.
+post-demonstrationenvironmentinteractioninordertomore
+accuratelyestimatetheactionstakenbythedemonstrator,and Noteinparticularthatourmethodistheonlymethodthat
+therefore improve its learned imitation policy. If one has a doesnothaveaccesstothedemonstrator’sactions. How-
+fixed budget for post-demonstration interactions, one could ever,asourresultswillshow,BCO(α)canstillachievecom-
+considerterminatingthemodel-improvementiterationsearly, parable performance to these other techniques, and do so
+i.e.,specifybothαandT. whilerequiringfarfewerenvironmentinteractions.
+5.1 TrainingDetailsandResults
+5 ImplementationandExperimentalResults
+Because both BC and BCO(α) rely on supervised learning
+We evaluated BCO(α) in several domains available in Ope-
+methods, we use only 70% of the available data for training
+nAIGym[Brockmanetal.,2016]. Continuoustasksaresim-
+andusetherestforvalidation. Westoptrainingwhentheer-
+ulated by MuJoCo [Todorov et al., 2012]. These domains
+roronthe30%validationdatastartstoincrease.Fortheother
+have different levels of difficulty, as measured by the com-
+methods, all available data was used in the training process.
+plexityofthedynamicsandthesizeandcontinuityofthestate
+Wewillnowdiscussthearchitecture,detailsforeachdomain.
+and action spaces. Ordered from easy to hard, the domains
+weconsideredare: CartPole, MountainCar, Reacher, and • CartPole:Thegoalistokeepthepoleverticallyupward
+Ant-v1. Eachofthesedomainshaspredefinedstatefeatures, aslongaspossible(Figure3a). Thisdomainhasadis-
+actionsandrewardfunctionsinthesimulator. AnyRLalgo- creteactionspace. Inthisdomain,weconsideredlinear
+rithmcouldbeusedwiththisrewardfunctiontogeneratean models over the pre-defined state features for both the
+expertpolicy. Sincetrustregionpolicyoptimization(TRPO) inversedynamicsmodelandtheimitationpolicyandwe
+[Schulmanetal.,2015]hasshownpromisingperformancein onlyusedM =1000interactionstolearnthedynamics.
+simulation [Liu et al., 2017], we generated our demonstra-
+• MountainCar: The goal is to have the car reach the
+tionsusingagentstrainedwiththismethod.
+target point (Figure 3b). This domain has a discrete
+We evaluated our algorithm in two senses. First, with re-
+action space. In this domain, the data set for learning
+spect to the number of environment interactions required to
+the inverse dynamics model is acquired by letting the
+attainacertainperformance. Inareal-worldenvironment,in-
+agent to explore its action space for M = 2000 time
+teractionscanbeexpensivewhichmakesitaveryimportant
+steps. Forboththeimitationpolicyandinversedynam-
+criterion. The second way in which we evaluate our algo-
+icsmodel,weusedneuralnetworkswithtwohiddenlay-
+rithmiswithrespecttodataefficiency,i.e.,theimitator’stask
+ers, 8 nodes each, and leaky rectified linear activation
+performanceasafunctionoftheamountofavailabledemon-
+functions(LReLU).
+strationdata. Ingeneral,demonstrationdataisscarce,andso
+makingthebestuseofitisveryimportant. • Reacher: This domain has a continuous action space.
+WecomparedBCO(α)tothefollowingmethods: Thegoalistohavethefingertipofthearmreachthetar-
+getpointwhosepositionchangesineveryepisode(Fig-
+1. Behavioral Cloning (BC): This method applies super-
+ure3c). Therefore,inthisdomain,wecanpartitionthe
+vised learning over state-action pairs provided by the
+state-spacetoagent-specificfeatures(i.e.,thoseonlyre-
+demonstrator.
+lated to the arm) and task-specific features (i.e., those
+2. Feature Expectation Matching (FEM) [Ho et al., related to the position of the target). A neural network
+
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0
+0.0 0.5 1.0 1.5
+1e6
+ecnamrofreP
+CartPole* MountainCar Reacher** Ant
+1.0 1.0 1.0
+1e3 interactions 5e3 interactions
+0.8 0.5 0.5 5e5 interactions
+2e3 interactions 0.0
+0.6 0.0
+−0.5
+0.4 −1.0 −0.5
+0.2 −1.5 −1.0
+−2.0
+0.0
+−1.5
+0.0 0.5 1.0 1.5 0.0 0.2 0.4 0.6 0.8 1.0 0.0 0.5 1.0 1.5 2.0 2.5
+1e6 1e7 1e7
+Number of interactions Random GAIL BCO(0)
+Expert FEM
+Figure4: Performanceofeachtechniquewithrespecttothenumberofpost-demonstrationinteractions. Foreachdomain,tendemonstrated
+trajectorieswereconsidered. BCO(0)isdepictedasahorizontallinesinceallenvironmentinteractionshappenbeforethedemonstrationis
+provided. Performancevaluesarescaledsuchthatperformanceofarandompolicyiszeroandtheperformanceoftheexpertisone. Note
+thatGAILandFEMhaveaccesstodemonstrationactioninformationwhereasBCOdoesnot. *TheBCOlineisnotvisiblefortheCartPole
+domainbecauseBCOhasthesameperformanceastheexpert.**FEMisnotshownfortheReacherdomainbecauseitsperformanceismuch
+worsethantheothertechniques.
+.
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0
+1 4 7 10
+ecnamrofreP
+CartPole MountainCar Reacher* Ant
+1.0 1.0
+1.0
+0.8 0.8
+0.5
+0.6 0.6
+0.0
+0.4 0.4 −0.5
+0.2 0.2 −1.0
+0.0 0.0 −1.5
+1 4 7 10 1 5 10 15 5 10 15 20 25
+Random FEM BCO(0)**
+Number of demonstrated trajectories
+Expert GAIL BC
+Figure5:Performanceofimitationagentswithrespecttothenumberofavailabledemonstrationtrajectories.Rectangularbarsanderrorbars
+representthemeanreturnandthestandarderror,respectively,asmeasuredover5000trajectories. Returnshavebeenscaledsuchthatthe
+performanceofarandompolicyandthedemonstratingagentarezeroandone,respectively. *NotethatFEMisnotshownfortheReacher
+domainbecauseitsperformanceismuchworsethantheothers. **NotethatBC,GAIL,andFEMallhaveaccesstodemonstrationaction
+informationwhereasBCO(0)doesnot.
+architecturewithtwohiddenlayersof100LReLUnodes reflectionoftherelativelylowvarianceintheexpertdemon-
+areusedwithM = 5000agent-specificstatetransition- strations.
+actionpairsinordertolearnthedynamicsandthenthis
+In our first experiment, we compare the number of en-
+modelisusedtolearnapolicywhichalsohastwolayers
+vironment interactions needed for BCO(0) with the num-
+butwith32LReLUnodes.
+ber required by other methods (Figure 4.) We can clearly
+• Ant: The goal to have the ant to run as fast as pos- see how imitation performance improves as the agent is
+sible(Figure 3d). This domain has a continuous action able to interact more with the environment. In the case of
+space. This is the most complex domain considered in BCO(0), the interactions with the environment happen be-
+this work. The state and action space are 111 and 8 fore the policy-learning process starts, and so we represent
+dimensional, respectively. The number of interactions itsperformancewithahorizontalline. Theheightoftheline
+neededtolearnthedynamicswasM = 5e5andthear- indicatestheperformance,andwedisplaythenumberofpre-
+chitecturesforinversedynamicslearningandthepolicy demonstrationenvironmentinteractionsitrequirednexttoit.
+aresimilartothoseweusedinReacher. Therandomandexpertpoliciesalsodonotbenefitfrompost-
+demonstration environment interaction, and so they are also
+5.2 Discussion shown using horizontal lines. From these plots, we can see
+that it takes at least 40 times more interactions required by
+Each experiment was executed twenty times, and all results
+GAILorFEMtogainthesameperformanceasBCO(0).
+presentedherearetheaveragevaluesoverthesetwentyruns.
+We selected twenty trials because we empirically observed Now, we aim to compare the performance of our algo-
+verysmallstandarderrorbarsinourresults. Thisislikelya rithm BCO(α) with the other algorithms. To do so, we use
+
+0.8
+0.6
+0.4
+0.2
+0.0
+1 4 7 10
+ecnamrofreP
+MountainCar Reacher Ant
+1.0
+1.0
+0.8
+0.8
+0.6
+0.6
+0.4
+0.4
+0.2 0.2
+0.0 0.0
+1 5 10 15 5 10 15 20 25
+α=0 α=4E−3 BC
+Number of demonstrated trajectories
+α=2E−3 α=1E−2
+Figure 6: The performance of BC and several BCO(α) techniques (varying α) with respect to the number of demonstrated trajectories
+provided. Rectangularbarsanderrorbarsrepresentthemeanreturnandthestandarderror,respectively,asmeasuredover5000trajectories.
+Byincreasingα,morepost-demonstrationenvironmentinteractionsareallowedtooccur,whichincreasestheperformanceoftheimitation
+policy.NotethatBChasaccesstodemonstrationactioninformationwhereasBCOdoesnot.Alsonotethatthenumberoftrajectoriesrequired
+forlearningafairlygoodpolicyisverysmall. Eachdemonstratedtrajectoryhas5,50,and50transitionsforeachdomainfromlefttoright,
+respectively.NotethatwedidnotdemonstratetheresultsforCartPolebecausetheresultswereequallyperfectregardlessofthevalueofα.
+MountainCar(pre-demo= 2E3) Reacher(pre-demo= 5E3) Ant(pre-demo= 5E5)
+d\α 2E−3 4E−3 1E−2 d\α 2E−3 4E−3 1E−2 d\α 2E−3 4E−3 1E−2
+1 6825 23475 28950 1 210052 358736 912368 5 602500 1270000 3362500
+4 8387 12000 31200 5 270500 486578 1837500 10 940000 2075000 5000000
+7 6300 23100 122200 10 221421 569736 1055921 15 1387500 2855000 7325000
+10 45462 61450 88600 15 509289 852210 1859210 20 1925000 4055000 9687500
+Table1:ThisisanextensiontoFigure6whichprovidesthenumberofpost-demonstrationinteractionsforeachcase.Firstverticalcolumnfor
+eachdomain(d)showsthenumberofdemonstratedtrajectories.Asanexample,fortheMountainCardomainwith1demonstratedtrajectory
+andα = 2E−3,theaveragenumberofpost-demonstrationinteractionsis6825. Wecanalsoseeatthetopofthetablethatthenumber
+ofpre-demonstrationinteractionsis2E3sotheoverallnumberofinteractionswouldbecome8825. Itcanbeseenthatalmostalwaysby
+increasingαorthenumberofdemonstratedtrajectories,thenumberofpost-demonstrationinteractionsincreases. Alsotheoverallnumber
+ofinteractions(combinedpre-andpost-demonstrationinteractions)inallthecasesisfarlessthantheoverallnumberofinteractionsrequired
+bytheothermethods(FEMandGAIL).
+each algorithm to train the agents, and then calculate the fi- areovereachother. InthecaseofMountainCar, ourperfor-
+nalperformancebycomputingtheaveragereturnover 5000 manceisworsethanothermethods. Conversely,forReacher,
+episodes. For comparison purposes, we scale these perfor- ours is more sample efficient than GAIL, i.e., with smaller
+mance values such that the performance of the expert and a numberofdemonstrationswegetmuchbetterresults. Inthe
+random policy are 1.0 and 0.0, respectively. This compari- caseofAnt,ourmethodperformsalmostasgoodasGAIL.In
+son is shown in Figures 5, and 6 where we have plotted the Figure6,wecanseethatBCO’sperformanceimproveswith
+performanceofeachalgorithmwithrespecttothenumberof larger α since the extra environment interactions allow it to
+availabledemonstratedtrajectories. Figure5showsthecom- makebetterestimatesofthedemonstrator’sactions.
+parisonbetweentheperformanceofBCO(0)withalltheother
+methods,andFigure6comparestheperformanceofBCO(α) 6 Conclusions
+across different values of α. In Figure 5, we can see that
+performance of our method is comparable with other meth- Inthispaper, wehavepresentedBCO,analgorithmforper-
+odseventhoughourmethodistheonlyonewithoutaccessto forming imitation learning that requires neither access to
+theactions. InthecaseofReacher, thetransferabilityofthe demonstratoractionsnorpost-demonstrationenvironmentin-
+learnedinversemodelishighlightedbythehighperformance teraction. Our experimental results show that the result-
+of BCO. In the case of the Reacher and Ant domains, we ing imitation policies perform favorably compared to those
+can see that FEM performs poorly compared to others, per- generated by existing imitation learning approaches that do
+hapsbecausetherewardsarenotsimpleenoughtobeapprox- require access to demonstrator actions. Moreover, BCO
+imated by linear functions. In the CartPole domain, each of requires fewer post-demonstration environment interactions
+themethodsperformsaswellastheexpertandsoallthelines thantheseothertechniques,meaningthatareasonableimita-
+tionpolicycanbeexecutedwithlessdelay.
+
+Acknowledgments [Hoetal.,2016] Jonathan Ho, Jayesh Gupta, and Stefano
+Ermon. Model-free imitation learning with policy opti-
+PeterStoneservesontheBoardofDirectorsofCogitai,Inc.
+mization. InInternationalConferenceonMachineLearn-
+The terms of this arrangement have been reviewed and ap-
+ing,pages2760–2769,2016.
+proved by the University of Texas at Austin in accordance
+withitspolicyonobjectivityinresearch. [KingmaandBa,2014] Diederik Kingma and Jimmy Ba.
+Adam: A method for stochastic optimization. arXiv
+References preprintarXiv:1412.6980,2014.
+[Konidaris,2006] George D Konidaris. A framework for
+[Argalletal.,2009] Brenna D Argall, Sonia Chernova,
+transferinreinforcementlearning. InICML-06Workshop
+Manuela Veloso, and Brett Browning. A survey of robot
+onStructuralKnowledgeTransferforMachineLearning,
+learning from demonstration. Robotics and autonomous
+2006.
+systems,57(5):469–483,2009.
+[Liuetal.,2017] YuXuan Liu, Abhishek Gupta, Pieter
+[BainandSommut,1999] Michael Bain and Claude Som-
+Abbeel, and Sergey Levine. Imitation from observation:
+mut. A framework for behavioural claning. Machine In-
+Learningtoimitatebehaviorsfromrawvideoviacontext
+telligence15,15:103,1999.
+translation. arXivpreprintarXiv:1707.03374,2017.
+[Bojarskietal.,2016] Mariusz Bojarski, Davide Del Testa,
+[Niekumetal.,2015] Scott Niekum, Sarah Osentoski,
+Daniel Dworakowski, Bernhard Firner, Beat Flepp, Pra-
+George Konidaris, Sachin Chitta, Bhaskara Marthi,
+soon Goyal, Lawrence D Jackel, Mathew Monfort, Urs
+and Andrew G Barto. Learning grounded finite-state
+Muller, Jiakai Zhang, et al. End to end learning for self-
+representationsfromunstructureddemonstrations. TheIn-
+drivingcars. arXivpreprintarXiv:1604.07316,2016.
+ternationalJournalofRoboticsResearch,34(2):131–157,
+[Brockmanetal.,2016] Greg Brockman, Vicki Cheung, 2015.
+Ludwig Pettersson, Jonas Schneider, John Schulman, Jie
+[RossandBagnell,2010] Ste´phaneRossandDrewBagnell.
+Tang, and Wojciech Zaremba. OpenAI Gym. arXiv
+Efficientreductionsforimitationlearning. InProceedings
+preprintarXiv:1606.01540,2016.
+of the thirteenth international conference on artificial in-
+[Chebotaretal.,2017] Yevgen Chebotar, Karol Hausman, telligenceandstatistics,pages661–668,2010.
+Marvin Zhang, Gaurav Sukhatme, Stefan Schaal, and
+[Rossetal.,2011] Ste´phane Ross, Geoffrey J Gordon, and
+Sergey Levine. Combining model-based and model-
+DrewBagnell.Areductionofimitationlearningandstruc-
+freeupdatesfortrajectory-centricreinforcementlearning.
+tured prediction to no-regret online learning. In Interna-
+arXivpreprintarXiv:1703.03078,2017.
+tionalConferenceonArtificialIntelligenceandStatistics,
+[Daftryetal.,2016] Shreyansh Daftry, J Andrew Bagnell, pages627–635,2011.
+and Martial Hebert. Learning transferable policies for
+[Schaal,1997] StefanSchaal. Learningfromdemonstration.
+monocular reactive mav control. In International Sym-
+In Advances in neural information processing systems,
+posium on Experimental Robotics, pages 3–11. Springer,
+pages1040–1046,1997.
+2016.
+[Schulmanetal.,2015] John Schulman, Sergey Levine,
+[Finnetal.,2016] Chelsea Finn, Sergey Levine, and Pieter
+PieterAbbeel,MichaelJordan,andPhilippMoritz. Trust
+Abbeel. Guidedcostlearning: Deepinverseoptimalcon-
+regionpolicyoptimization. InProceedingsofthe32ndIn-
+trol via policy optimization. In International Conference
+ternationalConferenceonMachineLearning(ICML-15),
+onMachineLearning,pages49–58,2016.
+pages1889–1897,2015.
+[Giustietal.,2016] AlessandroGiusti,Je´roˆmeGuzzi,DanC [SuttonandBarto,1998] Richard S Sutton and Andrew G
+Cires¸an,Fang-LinHe,JuanPRodr´ıguez,FlavioFontana, Barto. Reinforcement learning: An introduction, vol-
+MatthiasFaessler,ChristianForster,Ju¨rgenSchmidhuber,
+ume1. MITpressCambridge,1998.
+Gianni Di Caro, et al. A machine learning approach to
+[Tayloretal.,2008] Matthew E Taylor, Nicholas K Jong,
+visual perception of forest trails for mobile robots. IEEE
+and Peter Stone. Transferring instances for model-
+RoboticsandAutomationLetters,1(2):661–667,2016.
+basedreinforcementlearning. InJointEuropeanConfer-
+[Guptaetal.,2017] AbhishekGupta,ColineDevin,YuXuan ence on Machine Learning and Knowledge Discovery in
+Liu,PieterAbbeel,andSergeyLevine. Learninginvariant Databases,pages488–505.Springer,2008.
+feature spaces to transfer skills with reinforcement learn-
+[Todorovetal.,2012] EmanuelTodorov,TomErez,andYu-
+ing. arXivpreprintarXiv:1703.02949,2017.
+val Tassa. Mujoco: A physics engine for model-based
+[HannaandStone,2017] Josiah P Hanna and Peter Stone. control. In Intelligent Robots and Systems (IROS), 2012
+Groundedactiontransformationforrobotlearninginsim- IEEE/RSJInternationalConferenceon,pages5026–5033.
+ulation. InAAAI,pages3834–3840,2017. IEEE,2012.
+[HoandErmon,2016] Jonathan Ho and Stefano Ermon.
+Generative adversarial imitation learning. In Advances
+in Neural Information Processing Systems, pages 4565–
+4573,2016.

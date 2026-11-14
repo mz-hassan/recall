@@ -1,0 +1,1836 @@
+Of Moments and Matching:
+A Game-Theoretic Framework for Closing the Imitation Gap
+GokulSwamy1 SanjibanChoudhury2 J.AndrewBagnell12 ZhiweiStevenWu3
+Abstract f f f
+( ) ( ) ( ) ( ) ( ) ( )
+E E E
+Weprovideaunifyingviewofalargefamilyof
+previous imitation learning algorithms through
+thelensofmomentmatching.Atitscore,ourclas-
+sificationschemeisbasedonwhetherthelearner
+attemptstomatch(1)rewardor(2)action-value
+momentsoftheexpert’sbehavior,witheachop-
+tionleadingtodifferingalgorithmicapproaches.
+Byconsideringadversariallychosendivergences
+betweenlearnerandexpertbehavior,weareable (a) (b) (c)
+toderiveboundsonpolicyperformancethatapply
+forallalgorithmsineachoftheseclasses,thefirst
+Figure1.We consider three classes of imitation learning algo-
+toourknowledge.Wealsointroducethenotionof
+rithms. (a) On-policy reward moment-matching algorithms re-
+momentrecoverability,implicitinmanyprevious
+quireaccesstotheenvironmenttogeneratelearnertrajectories.(b)
+analysesofimitationlearning,whichallowsusto Off-policyQ-valuemoment-matchingalgorithmsruncompletely
+cleanlydelineatehowwelleachalgorithmicfam- offlinebutcanproducepolicieswithquadraticallycompounding
+ily is able to mitigate compounding errors. We errors. (c)On-policyQ-valuemoment-matchingalgorithmsre-
+derivethreenovelalgorithmtemplates(AdVIL, quireaccesstotheenvironmentandaqueryableexpertbutcan
+AdRIL,andDAeQuIL)withstrongguarantees, producestrongpoliciesinrecoverableMDPs.
+simpleimplementation,andcompetitiveempiri-
+calperformance.
+aproblemofmomentmatching,or,equivalently,optimizing
+IntegralProbabilityMetrics(Sunetal.2019)(IPMs). This
+isbecausealearnerthatinexpectationmatchestheexpert
+1.Introduction
+on all the basis functions of a class that includes the ex-
+Whenformulatedasastatisticallearningproblem,imitation
+pert’sobjectivefunction,ormatchesmoments,mustachieve
+learningisfundamentallyconcernedwithfindingpolicies thesameperformanceandwillthusbeindistinguishablein
+thatminimizesomenotionofdivergencebetweenlearner termsofquality. Additionally,insharpcontrasttorecently
+behaviorandthatofanexpertdemonstrator. Existingwork proposedapproaches(Keetal.2019,Kostrikovetal.2019,
+has explored various types of divergences including KL Jarrettetal.2020,Rhinehartetal.2018),moments,dueto
+(Pomerleau 1989, Bojarski et al. 2016), Jensen-Shannon theirsimpleformsasexpectationsofbasisfunctions,can
+(Rhinehartetal.2018),ReverseKL(Kostrikovetal.2019), beeffectivelyestimatedviademonstratorsamplesandthe
+f (Keetal.2019),andWasserstein(Dadashietal.2020). uncertaintyintheseestimatescanoftenbequantifiedtoreg-
+ularizethematchingobjective(Dudiketal.2004). Inshort:
+At heart, though, we care about the performance of the
+these moment matching procedures are simple, effective,
+learnedpolicyunderanobjectivefunctionthatisnotknown
+andprovidethestrongestpolicyperformanceguaranteeswe
+to the learner. As argued by (Abbeel and Ng 2004) and
+areawareofforimitationlearning.
+(Ziebartetal.2008),thisgoalismostcleanlyformulatedas
+AsillustratedinFig. 1,therearethreeclassesofmoments
+1RoboticsInstitute,CarnegieMellonUniversity2AuroraInno- alearnercanfocusonmatching: (a)on-policyrewardmo-
+vation3InstituteforSoftwareResearch,CarnegieMellonUniver-
+ments, (b)off-policyQ-valuemoments, and(c)on-policy
+sity.Correspondenceto:GokulSwamy<gswamy@cmu.edu>.
+Q-value moments, each of which have different require-
+Proceedings of the 38th International Conference on Machine mentsontheenvironmentandontheexpert. Weabbreviate
+Learning,PMLR139,2021.Copyright2021bytheauthor(s). themasreward,off-Q,andon-Qmoments,respectively.
+1202
+nuJ
+01
+]GL.sc[
+2v63230.3012:viXra
+
+OfMomentsandMatching
+Ourkeyinsightisthatrewardmomentshavemorediscrim- kindoffeedbackthelearnerisexposedto–whetherthey
+inativepower becausetheycanpickupondifferencesin areabletoseetheconsequencesoftheirownactionsvia
+inducedstatevisitationdistributionsratherthanjustaction rolloutsoriftheyareonlyabletoproposeactionsinstates
+conditionals. Thus,rewardmomentmatchingisaharder fromexperttrajectories.Ourproposedapproachesalsohave
+problemwithstrongerguaranteesthanoff-Qandon-Qmo- stronger guarantees and less brittle performance than the
+mentmatching. popularGAIL(HoandErmon2016).
+Ourworkmakesthefollowingthreecontributions: MathematicalTools. Ouralgorithmicapproachcombines
+twotoolsthathaveenjoyedsuccessinimitationlearning:
+1. Wepresentaunifyingframeworkformomentmatch-
+functional gradients (Ratliff et al. 2009) and the Integral
+inginimitationlearning. Ourframeworkcapturesawide
+ProbabilityMetric(Sunetal.2019). Wedefinetwoalgo-
+range of prior approaches and allows us to construct, to
+rithms,AdRILandAdVILthatarebasedonoptimizingthe
+ourknowledge,thefirstformallowerboundsdemonstrat-
+value-directedIPM,withAdRILhavingthediscriminative
+ingthatthechoicebetweenmatching“reward”,“off-Q”,or
+playerperformupdatesviafunctionalgradientdescent. The
+“on-Q”momentsisfundamentaltotheproblemofimitation
+IPM is linear in the discriminative function, unlike other
+learningratherthananartifactofaparticularalgorithmor
+proposedmetricsliketheDonsker-VaradhanboundonKL
+analysis.
+divergence. Specifically,theDonsker-Varadhanboundin-
+2. We clarify the dependence of imitation learning cludesanexpectationoftheexponentiateddiscriminative
+boundsonproblemstructure. Weintroduceajointprop- function,whichmakesestimationdifficultwithafewsam-
+ertyofanexpertpolicyandmomentclass,momentrecov- ples(McAllesterandStratos2020). Ouranalysismakesre-
+erability,thathelpsuscharacterizetheproblemsforwhich peateduseofthePerformanceDifferenceLemma(Kakade
+compounding errors are likely to occur, regardless of the and Langford 2002, Bagnell et al. 2003) or PDL, which
+kindoffeedbackthelearnerisexposedto. allowsustoboundthesuboptimalityofthelearner’spolicy.
+3. We provide three novel algorithms with strong per- Our proposed algorithms bear some resemblance to pre-
+formanceguarantees. Wederiveidealizedalgorithmsthat viouslyproposedmethods,withAdRILresemblingSQIL
+matcheachclassofmoments. Wealsoprovidepracticalin- (Reddy et al. 2019) and AdVIL resembling ValueDICE
+stantiationsoftheseideas,AdVIL,AdRIL,andDAeQuIL. (Kostrikovetal.2019). WenotethatAdVIL,whilecleanly
+Thesealgorithmshavesignificantlydifferentpracticalper- derivedfromthePDL,canalsobederivedfromanIPMby
+formanceaswellastheoreticalguaranteesintermsofcom- usingatelescopingsubstitutionsimilartotheValueDICE
+poundingoferrorsovertimestepsoftheproblem. derivation. Notably, because AdVIL is linear in the dis-
+criminator,itdoesnotsufferfromValueDICE’sdifficulty
+inestimatingtheexpectationofanexponential. Thisdiffi-
+2.RelatedWork
+cultymighthelpexplainwhyValueDICEcanunderperform
+Imitation Learning. Imitation learning has been shown thebehavioralcloningbaselineonseveralbenchmarktasks
+tobeaneffectivemethodofsolvingavarietyofproblems, (Jarrettetal.2020). Similarly,AdRILcanavoidthesharp
+from getting cars to drive themselves (Pomerleau 1989), degradationinpolicyperformancethatSQILdemonstrates
+to achieving superhuman performance in games like Go (Bardeetal.2020). ThisisbecauseSQILhard-codesthe
+(Silver et al. 2016, Sun et al. 2018), to sample-efficient discriminatorwhileAdRILadaptivelyupdatesthediscrimi-
+learningofcontrolpoliciesforhighDoFrobots(Levineand natortoaccountforchangesinthepolicy’strajectorydistri-
+Koltun2013), toallowinghumanoperatorstoeffectively bution. DAeQuILcanbeseenasthenaturalextensionof
+superviseandteachrobotfleets(Swamyetal.2020). The DAgger(Rossetal.2011)totheadversariallosssetting.
+issueofcompoundingerrorsinimitationlearningwasfirst
+formalizedby(Rossetal.2011),withtheauthorsproving 3.MomentMatchingImitationLearning
+thataninteractiveexpertthatcansuggestactionsinstates
+generatedvialearnerpolicyrolloutswillbeabletoteach Webeginbyformalizingoursetupandobjective.
+thelearnertorecoverfrommistakes.
+3.1.ProblemDefinition
+Adversarial Imitation Learning. Starting with the sem-
+inal work of (Ho and Ermon 2016), numerous proposed Let ∆( ) denote the space of all probability distribu-
+approaches have framed imitation learning as a game be- tion ove X r a set . Consider an MDP parameterized by
+tweenalearner’spolicyandanothernetworkthatattempts , , ,r,T,P X 1, where is the state space, is the
+0
+todiscriminatebetweenlearnerrolloutsandexpertdemon- (cid:104) a S ctio A ns T pace, : (cid:105) ∆ S ( )isthetransition A operator,
+strations(Fuetal.2018,Songetal.2018). Webuildupon r : T [ S 1, × 1] A is → a rew S ard function, T is the hori-
+thisworkbyelucidatingthepropertiesthatresultfromthe S ×A → −
+1Weignorethediscountfactorforsimplicity.
+
+OfMomentsandMatching
+zon, and P is the initial state distribution. Let π denote
+0
+the learner’s policy and let π
+E
+denote the demonstrator’s MOMENT CLASS ENV. π
+E
+QUERIES
+policy. A trajectory τ ∼ π = { s t ,a t } t=1...T refers to a REWARD F r :[−1,1] (cid:51) (cid:55)
+sequenceofstate-actionpairsgeneratedbyfirstsampling OFF-POLICYQ F
+Q
+:[−T,T] (cid:55) (cid:55)
+a state s
+1
+from P
+0
+and then repeatedly sampling actions ON-POLICYQ F
+QE
+:[−Q,Q] (cid:51) (cid:51)
+a and next states s from π and for T 1 time-
+t t+1
+T − Table1.Anoverviewoftherequirementsforthethreeclassesof
+steps. We also define our value and Q-value functions
+as V t π(s) = E τ∼π|st=s [ (cid:80)T t(cid:48)=t r(s t(cid:48) ,a t(cid:48))], Qπ t (s,a) = momentmatching.
+E τ∼π|st=s,at=a [ (cid:80)T t(cid:48)=t r(s t(cid:48) ,a t(cid:48))]. We also define the ad-
+vantagefunctionasAπ(s,a)=Qπ(s,a) Vπ(s). Lastly,
+letperformancebeJ(π t )=E [ (cid:80) t T r − (s , t a )]. Then, In the last step, we use the fact that − r(s,a) ∈ F r . Cru-
+τ∼π t=1 t t cially,rewardmoment-matchingdemandson-policyrollouts
+Definition1. Wedefinetheimitationgapas: τ πforthelearnertocalculateper-timestepdivergences.
+∼
+J(π ) J(π) (1)
+E − Insteadofmatchingmomentsoftherewardfunction,wecan
+The goal of the learner is to minimize (1) and close the consider matching moments of the action-value function.
+imitationgap. Theuniquechallengeinimitationlearningis WecanapplythePerformanceDifferenceLemma(PDL)
+thattherewardfunctionrisunknownandthelearnermust toexpandtheimitationgap(1)intoeitheron-policyoroff-
+relyondemonstrationsfromtheexpertπ tominimizethe policyexpressions.
+E
+gap. Anaturalwaytosolvethisproblemistoempirically
+Off-PolicyQ. StartingfromthePDL:
+matchallmomentsofJ(π ). Ifallthemomentsareper-
+E
+fectlymatched,regardlessoftheunknownrewardfunction,
+J(π ) J(π)
+E
+theimitationgapmustgotozero. Wenowdelveintothe (cid:88) − T
+= E [ Qπ(s ,a ) E [Qπ(s ,a)]]
+varioustypesofmomentswecanmatch. τ∼πE t=1 t t t −a∼π(st) t t
+(cid:88)T
+sup E [ E [f(s ,a)] f(s ,a )]
+t t t
+3.2.MomentTaxonomy ≤ f∈FQ τ∼πE t=1a∼π(st) −
+Broadly speaking, a learner can focus on matching per-
+timesteprewardorover-the-horizonQ-valuemomentsof Inthelaststep,weusethefactthatQπ t (s,a) ∈F Q forall
+e c x la p s e s r o t f b r e e h w av ar i d or f . u W nc e ti u o s n e s, F r : S : ×A→ [ − [ 1 T ,1 , ] T t ] o t d o e d n e o n t o e t a e π on ∈ ly Π req an u d ire r s ∈ ac F o r ll . e T ct h e e d a d b a o t v as e e e t x o p f r e e x s p si e o r n tt i r s aj o e f c f t - o p r o i l e i s cy to – b i e t
+Q
+the set of Q functions ind F uced S b × y A sam → pli − ng actions from evaluatedandminimized. Ingeneralthough, Q canbea
+F
+s s o et m o e f π Q ∈ fu Π nc , t a i n o d ns F i Q nd E uc : e S d × by A sa → mp [ l − in Q g , a Q ct ] io to ns de fr n o o m te π the . f b a o r th m t o h r e e d c y o n m am p i l c e s x o c f la th s e s M tha D n P F an r d b t e h c e a c u h s o e i i c t e h s a o s f t a o ny ca p p o t l u ic r y e .
+E
+Weassumeallthreefunctionclassesareclosedundernega-
+On-PolicyQ. Expandinginthereversedirection:
+tion. Lastly,werefertoH [0,2Q]astherecoverability
+∈
+constantoftheproblemanddefineitasfollows:
+J(π ) J(π)
+E
+−
+D o ∀ f a e e fi ∈ x n p i A e t r i , t o ∀ Q n f - 2 f . ∈ un A F ct p Q io a E n ir , s ( | i f π s ( E s s a , , i F d a) Q to − E b ) E e o a H f (cid:48) a ∼ - n r π e E e c x ( o s p v ) e [ e r f r t ( a p s b o , l l e a ic (cid:48) i ) f y ] ∀ | a s < nd ∈ H s S e . t , = − s τ u ∼ E p π [ (cid:88) E T t [ = (cid:88) 1 Q T π t E( f s ( t s , t a , t a ) t − ) a∼π E E E (st) [Q [f π t E (s ( t s , t a , ) a ] ) ] ]]
+H isanupperboundonallpossibleadvantagesthatcould
+≤ f∈FQE τ∼π t=1 −a∼πE(st)
+beobtainedbytheexpertunderaQ-functionin . Intu-
+F QE Inthelaststep,weusethefactthatQπE(s,a) for
+itively,H tellsushowmanytime-stepsittakestheexpertto t ∈ F QE
+all r . In the realizable setting, π Π,
+recoverfromanarbitrarymistake. Wedeferamorein-depth
+∈ F
+r E
+∈ F
+QE
+⊆
+. While is a smaller class, to actually evaluate
+discussionoftheimplicationsofthisconcepttoSection4.5.
+F
+Q
+F
+QE
+this expression, we require an interactive expert that can
+Reward. Matchingrewardmomentsentailsminimizingthe telluswhatactiontheywouldtakeinanystatevisitedby
+followingexpansionoftheimitationgap: thelearneraswellason-policysamplesfromthelearner’s
+J(π ) J(π) currentpolicyτ π.
+E
+− ∼
+(cid:88)T (cid:88)T
+= E r(s t ,a t ) E r(s t ,a t ) Withthistaxonomyinmind,wenowturnourattentionto
+τ∼πE
+(cid:88)T
+t=1 −τ∼π
+(cid:88)
+t=
+T
+1
+derivingpolicyperformancebounds. 2
+= E r(s ,a ) E r(s ,a )
+t t t t
+τ∼π t=
+(cid:88)
+1−
+T
+−τ∼πE t
+(cid:88)
+=1
+T
+− 2SeeSup.EformixedmomentsandanalternativeQ-moment
+sup E f(s t ,a t ) E f(s t ,a t ) scheme that can be extended to the IL from observation alone
+≤ f∈Fr τ∼π t=1 −τ∼πE t=1 setting.
+
+OfMomentsandMatching
+3.3.MomentMatchingGames
+MOMENTMATCHED UPPERBOUND LOWERBOUND
+A unifying perspective on the three moment matching
+variants can be achieved by viewing the learner as solv-
+REWARD O((cid:15)T) Ω((cid:15)T)
+OFF-POLICYQ O((cid:15)T2) Ω((cid:15)T2)
+ing a game. More specifically, we consider variants of
+ON-POLICYQ O((cid:15)HT) Ω((cid:15)T)
+a two-player minimax game between a learner and a dis-
+criminator. The learner selects a policy π Π, where Table2.Anoverviewofthedifferenceinboundsbetweenthethree
+Π (cid:44) π : ∆( ) . We assume Π is c ∈ onvex, com- typesofmomentmatching.Allboundsareonimitationgap(1).
+{ S → A }
+pactandthatπ Π.3 Thediscriminator(adversarially)
+E
+selectsafunction ∈ f ,where (cid:44) f : R .
+Weassumethat is ∈ co F nvex,com F pact, { close S d × un A der → nega } - sourcesincludingrestrictedpolicyclass,optimizationerror,
+tion, and finite d F imensional.4 Depending on the class of orimperfectestimationofexpertmoments. Moreformally,
+momentsbeingmatched,weassumethat isspannedby in a game with payoff U j , a pair (πˆ Π,fˆ ) is a
+convexcombinationsoftheelementsof F /2, /2T,or δ-approximateequilibriumsolutionifth ∈ efollowi ∈ ng F holds:
+r Q
+F F
+F pl Q ay E e / r 2 a T n . dt L h a e s d tl i y s , cr w im e i s n e a t to th r e as le th ar e n m er ax a i s m t i h z e at m io i n ni p m la iz y a e t r i . on supU j (f,πˆ) δ U j (fˆ,πˆ) inf U j (fˆ,π)+ δ
+f∈F
+− 2 ≤ ≤π∈Π 2
+Definition3. Theon-policyreward,off-policyQ,andon-
+policyQpayofffunctionsare,respectively: We assume access to an algorithmic primitive capable of
+findingsuchstrategies:
+T T
+1 (cid:88) (cid:88)
+U (π,f)= ( E [ f(s ,a )] E [ f(s ,a )]) Definition 4. An imitation game δ-oracle Ψ δ () takes
+1 T τ∼π t t −τ∼πE t t payofffunctionU : Π [ k,k]andret { ur } ns · a(kδ)-
+t=1 t=1
+×F → −
+T T approximateequilibriumstrategyforthepolicyplayer.
+1 (cid:88) (cid:88)
+U (π,f)= ( E [ f(s ,a)] E [ f(s ,a )])
+2 T τ∼πE t −τ∼πE t t Wenowboundtheimitationgapofsolutionsreturnedby
+a∼π(st) t=1 t=1
+suchanoracle.
+T T
+1 (cid:88) (cid:88)
+U (π,f)= ( E [ f(s ,a )] E [ f(s ,a)])
+3 T τ∼π t t − τ∼π t 4.1.ExampleMDPs
+t=1 a∼πE(st) t=1
+Foruseinouranalysis,wefirstintroducetwoMDPs,LOOP
+When optimizing over the policy class Π which contains and CLIFF. AsseeninFig. 2, LOOP isanMDPwherea
+π E ,wehaveaminimaxvalueof0: forj 1,2,3 , learnercanenterastatewhereithasseennoexpertdemon-
+∈{ }
+strations (s ) and make errors for the rest of the horizon.
+minmaxU (π,f)=0 2
+j
+π∈Πf∈F CLIFFisanMDPwhereasinglemistakecanresultinthe
+learnerbeingstuckinanabsorbingstate.
+Furthermore, for certain representations of the policy,5
+strongdualityholds: forj 1,2,3 ,
+a
+∈{ } 2
+minmaxU
+j
+(π,f)=maxminU
+j
+(π,f)
+s
+π∈Πf∈F f∈F π∈Π a 1 1 s 0 a 1 s 1 a 1 s 2 a 1 ...
+s a a
+Wenowstudythepropertiesthatresultfromachievingan 0 1 1 a a a
+2 2 2
+approximateequilibriumforeachimitationgame.
+a
+2 s
+s x
+2
+4.FromApproximateEquilibriatoBounded
+a a
+Regret 2 1
+Alearnercomputinganequilibriumpolicyforanyofthe Figure2.Left:Borrowedfrom(Rossetal.2011),thegoalofLOOP
+moment matching games will be imperfect due to many istospendtimeins 1 . Right: afolkloreMDPCLIFF,wherethe
+goalistonot“falloffthecliff”andendupins evermore.
+x
+3Thefullpolicyclasssatisfiesalltheseassumptions.
+4Ourresultsextendtoinfinite-dimensionalReproducingKernel 4.2.RewardMomentPerformanceBounds
+HilbertSpaces.
+5OneoptionisamixturedistributionoverclassΠ(cid:48)whereopti- Letusfirstconsidertherewardmoment-matchinggame.
+mizationisnowperformedoverthemixtureweights.Thisdistribu-
+Lemma 1. Reward Upper Bound: If spans , then
+tioncanthenbecollapsedtoasinglepolicy(Syedetal.2008).A F r F
+secondoptionistooptimizeoverthecausalpolytopeP(AT||ST), forallMDPs,π E ,andπ Ψ (cid:15) (U 1 ),J(π E ) J(π)
+← { } − ≤
+asdefinedin(Ziebartetal.2010). O((cid:15)T).
+
+OfMomentsandMatching
+Proof.Westartbyexpandingtheimitationgap: The T in the second to last line comes from the fact that
+/2T . Thus,apolicyπreturnedbyΨ (cid:15) (U )must
+J(π ) J(π) Q 2
+s E up − E (cid:88)T f(s t ,a t ) E (cid:88)T f(s t ,a t ) F s O a ( ti (cid:15) s T fy 2) J w ⊆ (π o F E rs ) e − tha J n (π th ) e ≤ ex O pe ( r (cid:15) t T . 2)–thatis,it { ca } ndoupto
+≤ f∈Fr τ∼π t=1 −τ∼πE t=1
+sup E (cid:88)T 2f(s t ,a t ) E (cid:88)T 2f(s t ,a t ) Lemma4. Off-QLowerBound:ThereexistsanMDP,π E ,
+≤ f∈Fτ∼π t=1 −τ∼πE t=1 andπ Ψ (cid:15) (U
+2
+)suchthatJ(π
+E
+) J(π) Ω((cid:15)T2).
+=2T supU (π,f) 2T(cid:15) ← { } − ≥
+1
+f∈F
+≤ Proof.Once again, consider CLIFF. If the learner policy
+insteadtakesa withprobability(cid:15)T ins ,theoptimaldis-
+2 0
+Thefirstlinefollowsfromtheclosureof undernegation.
+r criminatorwouldbeabletopenalizethelearnerupto(cid:15)T
+F
+Thelastlinefollowsfromthedefinitionofan(cid:15)-approximate
+forthattimestepand(cid:15)onaverage. However, onrollouts,
+equilibrium.
+the learner would have an (cid:15)T chance of paying a cost of
+1 for the rest of the horizon, leading to a lower bound of
+Inwords,thisboundmeansthatintheworstcase,wehave
+J(π ) J(π)=(cid:15)T2 Ω((cid:15)T2).
+animitationgapthatisO((cid:15)T)ratherthananimitationgap E
+− ≥
+thatcompoundsquadraticallyintime.
+Theseboundsapplyforallalgorithmsthatcanbewrittenin
+Lemma 2. Reward Lower Bound: There exists an MDP, theformofanoff-Qimitationgame,includingbehavioral
+π E ,andπ Ψ (cid:15) (U 1 )suchthatJ(π E ) J(π) Ω((cid:15)T). cloning(Pomerleau1989)andValueDICE(Kostrikovetal.
+← { } − ≥
+Proof.ConsiderCLIFFwitharewardfunctioncomposedof 2019).
+twoindicators: r(s,a)= 1 1 andaperfectexpert
+−
+sx
+−
+a2
+thatnevertakesa . Ifwithprobability(cid:15)thelearner’spolicy 4.4.On-QMomentPerformanceBounds
+2
+takesactiona onlyins ,theoptimaldiscriminatorwould
+2 0 We now derive performance bounds for on-Q algorithms
+not only be able to penalize the learner for taking a but
+2 withinteractiveexperts.
+alsoforthenextT 1timestepsforbeingins . Together,
+x
+−
+thiswouldleadtoanaveragecostof(cid:15)pertimestep. Under Lemma 5. On-Q Upper Bound: If
+F
+QE spans
+F
+, then
+r, this would make the learner (cid:15)T worse than the expert, for all MDPs with H-recoverable (
+F
+QE ,π E ), and π
+←
+givingusJ(π E ) − J(π)=(cid:15)T ≥ Ω((cid:15)T). Ψ { (cid:15) } (U 3 ),J(π E ) − J(π) ≤ O((cid:15)HT).
+Proof.StartingfromthePDL:
+Notably,bothoftheseboundsarepurelyafunctionofthe
+game,notthepolicysearchalgorithmandthereforeapply
+J(π ) J(π)
+for all algorithms that can be written in the form of a re- E
+−
+(cid:88)T
+wardmoment-matchingimitationgame. Ourboundsdonot sup E [ f(s ,a ) E [f(s ,a )]]
+t t t t
+depend on the size of the state space and therefore apply ≤ f∈FQE τ∼π t=1 −a∼πE(st)
+(cid:88)T
+tocontinuousspaces,unlikethosepresentedin(Rajaraman sup E [ 2Tf(s ,a ) E [2Tf(s ,a)]]
+t t t
+etal.2020). Severalrecentlyproposedalgorithms(Hoand ≤ f∈Fτ∼πE t=1 −a∼πE(st)
+Ermon2016,Brantleyetal.2020,Spenceretal.2021,Yang H
+=2T2supU (π,f) ((cid:15) )2T2 =(cid:15)HT
+etal.2020)includingGAILandSQILcanbeunderstoodas 3 ≤ 2T
+f∈F
+alsosolvingthisorarelatedgame.
+Asbefore,theT inthesecondtolastlinecomesfromthe
+4.3.Off-QMomentPerformanceBounds factthat /2T . TheH/2T factorcomesfromthe
+F
+QE
+⊆F
+scaleofthepayoff. Thus,apolicyπreturnedbyΨ (cid:15) (U )
+Wecontrasttheprecedingguaranteeswiththosebasedon { } 3
+mustsatisfyJ(π ) J(π) O((cid:15)HT)–thatis,itcando
+matchingoff-Qmoments. E − ≤
+uptoO((cid:15)HT)worsethantheexpert.
+Lemma3. Off-QUpperBound: If spans ,thenfor
+Q
+F F Lemma6. On-QLowerBound:ThereexistsanMDP,π ,
+all MDPs, π , and π Ψ (cid:15) (U ), J(π ) J(π) E
+E 2 E
+O((cid:15)T2). ← { } − ≤ andπ
+←
+Ψ
+{
+(cid:15)
+}
+(U 3 )suchthatJ(π E )
+−
+J(π)
+≥
+Ω((cid:15)T).
+Proof.StartingfromthePDL: Proof.Theproofoftherewardlowerboundholdsverbatim
+becauseeverypolicy,includingthepreviouslyconsidered
+J(π ) J(π)
+E − (cid:88)T π E willbestuckins x afteritfallsin.
+sup E [ E [f(s ,a)] f(s ,a )]
+t t t
+≤ f∈FQ τ∼πE t=1a∼π(st) − Asbefore, theseboundsapplyforallalgorithmsthatcan
+(cid:88)T
+sup E [ E [2Tf(s ,a)] 2Tf(s ,a )] bewrittenintheformofanon-Qimitationgame,includ-
+t t t
+≤ f∈Fτ∼πE t=1a∼π(st) − ingDAgger(Rossetal.2011)andAggreVaTe(Rossand
+=2T2supU (π,f) 2(cid:15)T2 Bagnell2014). Forexample,intheboundsforAggreVaTe,
+2
+≤
+f∈F Q isequivalenttotherecoverabilityconstantH.
+max
+
+OfMomentsandMatching
+4.5.RecoverabilityinImitationLearning 5.FindingEquilibria: IdealizedAlgorithms
+Theboundswepresentedabovebegthequestionofwhen We now provide reduction-based methods for computing
+on-Qmomentmatchinghaserrorpropertiessimilartothose (approximate)equilibriaforthesemomentmatchinggames
+ofrewardmomentmatchingversusthoseofoff-Qmoment which can be seen as blueprints for constructing our pre-
+matching. Recoverabilityallowsustocleanlyanswerthis viouslydescribedoracle(Def. 4). Westudy,inparticular,
+questionandothers. Webeginbyprovidingmoreintuition finitestateproblemsandacompletepolicyclass. Weana-
+forsaidconcept. lyzeanapproachtoequilibriafindingwhereanouterplayer
+followsano-regret strategyandtheinnerplayerfollowa
+Concretely, in Fig. 2, LOOP is 1-recoverable for the ex-
+(modified) best response strategy, by which we can effi-
+pert policy that always moves towards s
+1
+. CLIFF is not
+cientlyfindpolicieswithstrongperformanceguarantees.
+H-recoverableforanyH <T iftheexpertneverendsup
+in s . A sufficient condition for H-recoverability is that
+x
+5.1.Preliminaries
+thestateoccupancydistributionthatresultsfromtakingan
+arbitrary action and then H 1 actions according to π E An efficient no-regret algorithm over a class produces
+is the same as that of taking − H actions according to π E . iteratesx1,...,xH thatsatisfythefollow X ingproperty
+Weemphasizethatrecoverabilityisapropertyofthesetof foranysequenceof ∈ los X sfunctionsl1,...,lH:
+momentsmatchedandtheexpert,notjustoftheexpert,as
+(cid:88)H (cid:88)H
+hasbeenpreviouslyconsidered(Panetal.2019). Regret(H)= lt(xt) min lt(x) β (H)
+X
+t −x∈X t ≤
+BoundClarification. Ourpreviouslyderivedupperbound
+for on-Q moment matching (J(π E ) − J(π) ≤ O((cid:15)HT)) whereβ X (H)/H ≤ (cid:15)holdsforH thatareO(poly(1 (cid:15) )).
+tells us that for O(1)-recoverable MDPs, on-Q moment
+matching behaves like reward moment matching while 5.2.TheoreticalGuarantees
+for O(T)-recoverable MDPs, it instead behaves like off-
+Weareinterestedinobtainingapolicyefficientlythatisa
+Q moment matching and has an O((cid:15)T2) upper bound.
+near-equilibrium solution to the game. We consider two
+Thus, O(1)-recoverability is in a certain sense necessary
+generalstrategiestodoso:
+forachievingO((cid:15)T)errorwithon-Qmomentmatching.
+Primal. We execute a no-regret algorithm on the policy
+Another perspective on recoverability is that it helps us
+representation,whileamaximizationoracleoverthespace
+delineateproblemswherecompoundingerrorsarehardto
+computesthebestresponsetothosepolicies.
+avoid for both on-Q and reward moment matching. Let F
+l(s) = (cid:80)
+a(cid:48)∈A|
+E
+a∼πE(s)
+[1 a(cid:48)(a)]
+−
+E
+a∼π(s)
+[1 a(cid:48)(a)]
+|
+be Dual. We execute a no-regret algorithm on the space
+F
+,
+theclassificationerrorofastates. Weprovethefollowing whileaminimizationoracleoverpoliciescomputesentropy
+lemmainSupplementaryMaterialA.1: regularizedbestresponsepolicies.
+Theasymmetryintheaboveisdrivenbytheneedtorecover
+Lemma 7. Let κ > 0. There exists a (π , r, r ) pair
+E
+{ − } theequilibriumstrategyforthepolicyplayerandthefact
+thatforanyH <T isnotH-recoverablesuchthatl(s)=κ
+thatadualapproachontheoriginal,unregularizedobjective
+onanystateleadstoJ(π ) J(π) Ω(κT2).
+E
+− ≥ U (,f) will typical not converge to a single policy but
+j
+·
+rathershiftrapidlyasf changes.6
+Because some states might not appear on expert rollouts,
+By choosing the the policy representation to be a
+evaluatingl(s)canrequireaninteractiveexpert. However,
+causallyconditionedprobabilitydistributionoveractions,
+even with this strong form of feedback, a classification
+error of κ on a single state can lead to Ω(κT2) imitation P(AT || ST) = (cid:81)T t=1 P(A t | S 1:t ,A 1:t−1 ),wefindeachof
+theimitationgamesisbilinearinbothpolicyanddiscrimina-
+gapforO(T)-recoverableMDPs. Thislemmaalsoimplies
+torf andstronglydual.7 Thus,wecanefficientlycompute
+that in such an MDP, achieving O(κT) imitation gap via
+anear-equilibriumassumingaccesstotheoptimizationora-
+on-policy moment matching would require the learner to
+clesineitherprimalordualabove:
+haveaclassificationerror κ/T,ortomakevanishingly
+∝
+rare errors as we increase the horizon. We note that this 6Theaverageoveriterationsofthepoliciesgeneratedinan
+does not conflict with our previously stated bounds but unregularized dual will also be near-equilibrium but can be in-
+revealsthatachievingamoment-matchingerrorof(time- convenient.Entropyregularizationprovidesaconvenientwayto
+independent)(cid:15)mightrequireachievingaclassificationerror extractasinglepolicyandmesheswellwithempiricalpractice.
+thatscalesinverselywithtimeforO(T)-recoverableMDPs.
+7Following(Ziebartetal.2010)wecanrepresentthepolicyas
+anelementofthecausalconditionedpolytopeandregularizewith
+Practically, this can be rather challenging. Thus, neither
+the causal entropy H(P(AT||ST)) to denote the causal Shan-
+on-Q nor reward moment matching is a silver bullet for nonentropyofapolicy. Anequivalentresultcanbeprovedfor
+gettingO((cid:15)T)errorforO(T)-recoverableproblems. optimizingoveroccupancymeasures(HoandErmon2016).
+
+OfMomentsandMatching
+Algorithm1AdVIL Algorithm2AdRIL
+Input: Expertdemonstrations ,PolicyclassΠ,Dis- Input: Expertdemonstrations ,PolicyclassΠ,Dy-
+E E
+D D
+criminatorclass ,Performancethresholdδ,Learning namics ,KernelK,Performancethresholdδ
+F T
+ratesη >η Output: Trainedpolicyπ
+f π
+Output: Trainedpolicyπ Setπ Π,f =0, = , (cid:48) = ,L(π,f)=2δ
+π
+∈ D {} D {}
+Setπ Π,f ,L(π,f)=2δ whileL(π,f)>δdo
+while ∈ L(π,f) ∈ > F δdo f E [ (cid:80) K(sa, )] E [ (cid:80) K(sa, )]
+L(π,f)=E [E [f(s,x)] f(s,a)] π, ← (cid:48) τ∼ M D a π xEn t tRL(T · = − ,r τ = ∼DE f) t ·
+(s,a)∼DE x∼π(s)
+− D ← T −
+f f +η L(π,f) (cid:48)
+f f π π
+π ←
+←
+π
+−
+η
+π
+∇
+∇ π
+L(π,f) L D (π ← ,f) D = ∪E
+τ
+D ∼D(cid:48)[ (cid:80)
+t
+f(s,a)]
+−
+E
+τ∼DE
+[ (cid:80)
+t
+f(s,a)]
+endwhile endwhile
+Theorem 1. Given access to the no-regret and maxi- off-Qmomentmatchingframeworkbyperformingaseries
+mization oracles in either primal or dual above, for ofsubstitutions. WereferinterestedreaderstoSupplemen-
+all three imitation games we are able to compute a δ- tary Material B.1. We arrive at the following expression:
+approximateequilibriumstrategyforthepolicyplayerin
+T
+p m o i l z y a ( ti 1 δ o , n T . ,ln |S| ,ln |A| )iterationsoftheouterplayeropti- v s ∈ u F p τ∼ E πE [ (cid:88)
+t=1
+a∼π E (st) [v(s t ,a)] − v(s t ,a t )] (3)
+Intuitively,byminimizing(3)overpoliciesπ Π,oneis
+This result relies on a general lemma that establishes we drivingdowntheextracostthelearnerhasove ∈ rtheexpert.
+canrecovertheequilibriuminnerplayerbyappropriately WetermthisapproachAdversarialValue-momentImitation
+entropyregularizingthatinnerplayer’sdecisions. Weprove Learning(AdVIL)becauseifweviewπasoptimizingcu-
+bothinSup. A. mulativereward, v couldbeviewedasavaluefunction.
+−
+Wesetthelearningrateforf tobegreaterthanthatforπ,
+By substituting δ = (cid:15) in Theorem 1 and combining with
+makingAdVILaprimalalgorithm.
+ourpreviouslyderivedbounds, wecancleanlyshowthat
+thesetheoremscanalsobeviewedascertificatesofpolicy Practically,AdVILbearssimilaritytotheWassersteinGAN
+performance. Thus,ourframeworkenablesustoefficiently (WGAN) framework (Arjovsky et al. 2017), though we
+closetheimitationgap. consideranIPMratherthanthemorerestrictedWasserstein
+distances. However,theoverlapisenoughthattechniques
+6.PracticalMomentMatchingAlgorithms fromtheWGANliteratureincludinggradientpenaltieson
+the discriminator (Gulrajani et al. 2017) and orthogonal
+We now present three practical algorithms that match re- regularizationofthepolicyplayer(Brocketal.2018)help.
+wardmoments(AdRIL),off-Qmoments(AdVIL),oron-
+Qmoments(DAeQuIL).Theyarespecific,implementable
+6.2.AdRIL:AdversarialReward-momentImitation
+versionsofourprecedingabstractprocedures. Attheircore,
+Learning
+allthreealgorithmsoptimizeanIPM.IPMsareadistance
+betweentwoprobabilitydistributions(Mu¨lleretal.1997): We now present our dual reward moment matching algo-
+rithmandreferinterestedreaderstoSupplementaryMaterial
+sup E [f(x)] E [f(x)]
+f∈Fx∼P1 −x∼P2 B.2 for the full derivation. In brief, we solve for the dis-
+criminatorinclosedformviafunctionalgradientdescent
+Plugginginthelearnerandexperttrajectorydistributions,
+inReproducingKernelHilbertSpace(RKHS)andhavethe
+weendupwithourIPM-basedobjective:
+policy player compute a best response via maximum en-
+T tropyreinforcementlearning. Let denotetheaggregated
+(cid:88) k
+sup E [f(s t ,a t )] E [f(s t ,a t )] (2) dataset of policy rollouts. Assum D ing a constant number
+f∈F τ∼π −τ∼πE
+t=1 oftrainingstepsateachiterationandaveragingfunctional
+Asnotedpreviously,thisobjectiveisequivalenttoandin- gradientsoverkiterationsofthealgorithm,wegetthecost
+heritsthestrongguaranteesofmomentmatchingandallows functionforthepolicyandroundk:
+ouranalysistoeasilytransfer.
+(cid:88)
+T
+1 (cid:88)
+Dk
+1 (cid:88)
+DE
+K([s ,a ], ) K([s ,a ], )
+t t t t
+6.1.AdVIL:AdversarialValue-momentImitation t=1 |D k | τ · − |D E | τ ·
+Learning
+Foranindicatorkernelandundertheassumptionwenever
+WecantransformourIPM-basedobjective(2)intoanex- see the same state twice, this is equivalent to maximiz-
+pressiononlyover(s,a)pairsfromexpertdatatofitintothe ing a reward function that is 1 at each expert datapoint,
+
+OfMomentsandMatching
+Figure3.Ourproposedmethods(inorange)areabletomatchorout-performthebaselinesacrossavarietyofcontinuouscontroltasks.
+J(π)sareaveragedacross10evaluationepisodes.Standarderrorsareacross5runsofeachalgorithm.
+−1 alongpreviousrolloutsthatdonotperfectlymatch 7.Experiments
+∝ k
+theexpert,and0everywhereelse. Wetermthisapproach
+AdversarialReward-momentImitationLearning(AdRIL).
+100 100 100
+80 80 80
+Wenotethatundertheseassumption,ourobjectiveresem-
+60 60 60
+blesthatofSQIL(Reddyetal.2019). SQILcanbeseen
+40 40 40
+asadegeneratecaseofAdRILthatneverupdatesthedis-
+20 20 20
+criminatorfunction. Thisoddityremovessolutionquality
+0 0 0
+0 25 50 75 100 0 25 50 75 100 0 25 50 75 100
+guarantees while introducing the need for early stopping
+(ArenzandNeumann2020).
+Figure4.Left:Theexpertdemonstratesmanyfeasibletrajectories,
+causingalearnerthatattemptstojustmatchthemeanactionto
+6.3.DAeQuIL:DAgger-esqueQu-momentImitation crashdirectlyintothetreetheexpertwasavoiding.Center:On-
+Learning policycorrectionsdonothelpDAggerasitstilltriestomatchthe
+meanactionandcrashesintothefirsttreeitencounters. Right:
+We present the natural extension of DAgger (Ross et al.
+DAeQuIL,whenrunwithmomentsthatallowthelearnertofocus
+2011)tothespaceofmoments: DAeQuIL(DAgger-esque onswervingoutofthewayoftrees,regardlessofdirection,isable
+Qu-momentImitationLearning)inAlgorithm3. LikeDAg- toproducepoliciesthatsuccessfullynavigatethroughtheforest.
+ger,onecanviewDAeQuILasaprimalalgorithmthatuses
+FollowtheRegularizedLeaderastheno-regretalgorithm Wetestouralgorithmsagainstseveralbaselinesonseveral
+forthepolicyplayer. Per-roundlossesareadversariallycho- higher-dimensionalcontinuouscontroltasksfromthePy-
+senthough. Itisasubtlepointbutaswritten,DAeQuILis Bulletsuite(CoumansandBai2016–2019). Wemeasure
+technicallynotsolvingtheon-Qgamedirectlybecauseit the performance of off-Q algorithms as a function of the
+optimizesoverahistoryoflearnerstatedistributionsinstead amountofdataprovidedwithafixedmaximumcomputa-
+ofthecurrentlearner’sstatedistribution. However,itretains tionalbudgetandofrewardmoment-matchingalgorithms
+strongperformanceguarantees–seeSup. B.3formore. asafunctionoftheamountofenvironmentinteractions. We
+see from Fig. 3 that AdVIL can match the performance
+ofValueDICEandBehavioralCloningacrossmosttasks.
+Algorithm3DAeQuIL
+AdRILperformsbetterthanGAILacrossallenvironments
+Input: Queryableexpertπ ,PolicyclassΠ,Discrimina-
+E and does not exhibit the catastrophic collapse in perfor-
+torclass ,Performancethresholdδ,Behavioralcloning
+loss(cid:96) F :Π R,StronglyconvexfnR:Π R manceSQILdoesonthetestedenvironments. Onbothenvi-
+BC → → ronments,behavioralcloningisabletorecovertheoptimal
+Output: Trainedpolicyπ
+policywithenoughdata,indicatingthereislittlecovariate
+Optimize: π ← argmin π(cid:48)∈Π (cid:96) BC (π(cid:48)). shift(Spenceretal.2021). However,onHalfCheetah,we
+SetL(π)=2δ, =[],F =[],t=1
+D
+seeAdRILrecoverastrongpolicywithfarlessdatathan
+whileL(π)>δdo
+it takes Behavioral Cloning to, showcasing the potential
+Rolloutπtogenerate [(s,a),...].
+D π ← benefitofthelearnerobservingtheconsequencesoftheir
+Relabel to [(s,a(cid:48))a(cid:48) π (s), s ]
+L(f)=
+DE π D E
+[
+←
+f(s,a)]
+|E∼ E
+[f(
+∀
+s,a
+∈
+)]
+D π own actions. We refer readers to Sup. C for a descrip-
+(s,a)∼Dπ − (s,a)∼DE tion of our hyparameters and setup. Notably, AdVIL is
+Append: F ← F ∪ [argmax f(cid:48)∈F L(f(cid:48))]. abletoconvergereliablytoapolicyofthesamequalityas
+Append: [(s,t) s ].
+L(π)=ED ←D
+[F
+∪
+[t](s,π
+|
+(
+∀
+s))
+∈
+]+
+D
+(cid:96)
+π
+(π)+R(π)
+thatfoundbyValueDICEwithanorderofmagnitudeless
+(s,t)∈D BC compute. As seen in Fig. 4, DAeQuIL is able to signifi-
+Optimize: π ← argmin π(cid:48)∈Π L(π(cid:48)). cantlyout-performDAggeronatoyUAVnavigationtask
+t t+1
+← –seeSup. Dforfullinformation. Wereleaseourcodeat
+endwhile
+https://github.com/gkswamy98/pillbox.
+
+OfMomentsandMatching
+8.Discussion butionsunderaweakrealizabilityassumptionintheon-Q
+setting. Intheprecedingexample,theQ-matchingsettings
+8.1.AUnifyingViewofMomentMatchingIL
+arelikebeinghandedanodeateachlevelofthetreeand
+Wepresentacohesiveperspectiveofmomentmatchingin beingaskedtochoosebetweenthe edgesavailable,lead-
+|A|
+imitationlearninginTable3. Wenotethatrewardmoment- ing to a total of O( T) options to choose between. As
+|A|
+matchingdualalgorithmshavebeenarepeatedsuccessstory we saw in Sec. 5, the policy player sometimes needs to
+inimitationlearningbutthattherehasbeencomparatively compute a best response over the entire set of choices it
+lessworkdoneinoff-Qandon-Qdualalgorithms. hasavailable,whichmeansthesesearchspacesizesdirectly
+affecttheper-iterationcomplexityofthemoment-matching
+algorithms.Concisely,thepricewepayforsolvinganeasier
+MOMENT PRIMAL DUAL
+optimizationproblemislooserpolicyperformancebounds.
+OFF-Q VDICE,ADVIL (cid:55)
+MMP,LEARCH,
+8.3.Takeaways
+REWARD GAIL MAXENTIOC,SQIL,
+ADRIL,A+N Inthiswork,weteaseapartthedifferencesinrequirements
+ON-Q
+DAGGER,GPS
+(cid:55)
+andperformanceguaranteesthatcomefrommatchingre-
+IFAIL,DAEQUIL ward,on-Q,andoff-Qadversariallychosenmoments. Re-
+wardmomentmatchinghasstrongguaranteesbutrequires
+Table3.Antaxonomyofmomentmatchingalgorithms.Boldtext
+access to an accurate simulator or the real world. Off-Q
+indicatesalgorithmsthatareIPM-based.
+momentmatchingcanbedonepurelyoncollecteddatabut
+incursanO((cid:15)T2)imitationgap.
+8.2.TheHiddenCostofRewardMomentMatching
+Weformalizeanotionofrecoverabilitythatisbothneces-
+Atfirstglance,therewardmomentmatchingboundmight saryandsufficienttounderstandrecoveringfromerrorsin
+seemtogoodtobetrue–rewardmatchingalgorithmsdon’t imitationlearning. Ifaproblem(duetoexpertortheMDP
+requireaqueryableexpertlikeon-Qapproachesyettheir itself)isO(T)-recoverable,thereexistproblemswhereno
+performanceboundseemstobetighter. Thisbetterperfor- algorithmcanescapeanO(T2)compoundingoferrors;if
+mancecharacteristicisaproductofapotentiallyexponen- itisO(1)-recoverable,wefindonpolicyalgorithmsprevent
+tiallyharderoptimizationproblemforthelearner. Consider compounding. Together,theseconstituteacohesivepicture
+thefollowingtree-structuredMDPwith actionsateach ofmomentmatchinginimitationlearning.
+|A|
+step, each of which lead to a distinct state. Consider an
+Wederiveidealizedno-regretproceduresandpracticalIPM-
+basedalgorithmsthatareconceptuallyelegantandcorrect
+s
+0 for difficulties encountered by prior methods. While be-
+a
+|A| havioralcloningequallyweightsaction-conditionalerrors,
+s ... s AdVIL can prevent headaches with value moment-based
+a 1
+a weighting. AdRILissimpletoimplement,doesnotrequire
+|A|
+trainingaGAN,andenjoysstrongperformancebothinthe-
+s ... s s ... s s ... s
+b c d e f 2
+oryandpractice.DAeQuIL’smoment-basedlossesareable
+...
+tohelprelievehiccupsfromfocusingonaction-conditionals
+thatcanstymieDAgger.
+Figure5.InTREE,theexpertalwaystakestheright-mostaction
+fromthecurrentnode. TheexponentialnumberofT-lengthtra- Acknowledgments
+jectoriesinthisproblemmakeitachallengeforrewardmoment
+matchingapproaches. WethankSiddharthReddyforhelpfuldiscussions. Wealso
+thankAllieDelGiorno,AnirudhVemula,andthemembers
+expertthattakesa ateachtimestep. Solvingthereward
+|A| of the Social AI Group for their comments on drafts of
+matching problem requires the learner to simultaneously
+this work. ZSW was supported in part by the NSF FAI
+optimizeoverallT timestepsoftheproblemwhileconsid-
+Award#1939606,aGoogleFacultyResearchAward,aJ.P.
+eringtheeffectofpastactionsonfuturestates. IfwesetΠ
+MorganFacultyAward,aFacebookResearchAward,and
+tobetheclassofdeterministicpolicies,thisisequivalent
+aMozillaResearchGrant. Lastly,GSwouldliketothank
+to optimizing over the set of all length T trajectories, of
+JohnSteinbeckforinspiringthetitleofthiswork:
+which there are O( T) in tree-structured problems. In
+|A| “As happens sometimes, a moment settled and
+contrast,foroff-Qapproaches,weattempttomatchexpert
+hoveredandremainedformuchmorethanamo-
+momentsonafixedexpertstatedistribution. Similarly,we
+ment.”–JohnSteinbeck,OfMiceandMen.
+canoptimizeoverafixedhistoryofpastlearnerstatedistri-
+
+OfMomentsandMatching
+References JustinFu,KatieLuo,andSergeyLevine. Learningrobust
+rewardswithadversarialinversereinforcementlearning,
+Pieter Abbeel and Andrew Y Ng. Apprenticeship learn-
+2018.
+ingviainversereinforcementlearning. InProceedings
+ofthetwenty-firstinternationalconferenceonMachine
+IshaanGulrajani,FarukAhmed,MartinArjovsky,Vincent
+learning,page1,2004.
+Dumoulin, and Aaron C Courville. Improved training
+ofwassersteingans. InAdvancesinneuralinformation
+OlegArenzandGerhardNeumann. Non-adversarialimita-
+processingsystems,pages5767–5777,2017.
+tionlearninganditsconnectionstoadversarialmethods,
+2020.
+TuomasHaarnoja,AurickZhou,PieterAbbeel,andSergey
+Levine. Softactor-critic: Off-policymaximumentropy
+Martin Arjovsky, Soumith Chintala, and Le´on Bottou.
+deepreinforcementlearningwithastochasticactor.arXiv
+Wassersteingan,2017.
+preprintarXiv:1801.01290,2018.
+JamesBagnell,ShamMKakade,JeffSchneider,andAn-
+Jonathan Ho and Stefano Ermon. Generative adversarial
+drewNg. Policysearchbydynamicprogramming. Ad-
+imitationlearning,2016.
+vancesinneuralinformationprocessingsystems,16:831–
+838,2003.
+Daniel Jarrett, Ioana Bica, and Mihaela van der Schaar.
+Paul Barde, Julien Roy, Wonseok Jeon, Joelle Pineau, Strictlybatchimitationlearningbyenergy-baseddistri-
+ChristopherPal,andDerekNowrouzezahrai. Adversarial butionmatching,2020.
+softadvantagefitting: Imitationlearningwithoutpolicy
+ShamKakadeandJohnLangford. Approximatelyoptimal
+optimization,2020.
+approximate reinforcement learning. In In Proc. 19th
+MariuszBojarski,DavideDelTesta,DanielDworakowski, InternationalConferenceonMachineLearning.Citeseer,
+BernhardFirner,BeatFlepp,PrasoonGoyal,LawrenceD. 2002.
+Jackel,MathewMonfort,UrsMuller,JiakaiZhang,Xin
+Liyiming Ke, Matt Barnes, Wen Sun, Gilwoo Lee, San-
+Zhang,JakeZhao,andKarolZieba. Endtoendlearning
+jiban Choudhury, and Siddhartha S. Srinivasa. Imi-
+forself-drivingcars. CoRR,abs/1604.07316,2016. URL
+tation learning as f-divergence minimization. CoRR,
+http://arxiv.org/abs/1604.07316.
+abs/1905.12888, 2019. URL http://arxiv.org/
+Kiante Brantley, Wen Sun, and Mikael Henaff. abs/1905.12888.
+Disagreement-regularizedimitationlearning. InEighth
+IlyaKostrikov,OfirNachum,andJonathanTompson. Imita-
+InternationalConferenceonLearningRepresentations
+tionlearningviaoff-policydistributionmatching,2019.
+(ICLR),April2020.
+SergeyLevineandVladlenKoltun. Guidedpolicysearch.
+AndrewBrock,JeffDonahue,andKarenSimonyan. Large
+InInternationalConferenceonMachineLearning,pages
+scalegantrainingforhighfidelitynaturalimagesynthesis.
+arXivpreprintarXiv:1809.11096,2018. 1–9,2013.
+ErwinCoumansandYunfeiBai. Pybullet,apythonmodule DavidMcAllesterandKarlStratos. Formallimitationson
+forphysicssimulationforgames,roboticsandmachine themeasurementofmutualinformation,2020.
+learning. http://pybullet.org,2016–2019.
+K-RMu¨ller,AlexanderJSmola,GunnarRa¨tsch,Bernhard
+Robert Dadashi, Le´onard Hussenot, Matthieu Geist, and Scho¨lkopf,JensKohlmorgen,andVladimirVapnik. Pre-
+OlivierPietquin. Primalwassersteinimitationlearning. dicting time series with support vector machines. In
+arXivpreprintarXiv:2006.04678,2020. InternationalConferenceonArtificialNeuralNetworks,
+pages999–1004.Springer,1997.
+MiroslavDudik,StevenJPhillips,andRobertESchapire.
+Performance guarantees for regularized maximum en- YunpengPan, Ching-AnCheng, KamilSaigol, Keuntaek
+tropy density estimation. In International Conference Lee, Xinyan Yan, Evangelos Theodorou, and Byron
+on Computational Learning Theory, pages 472–486. Boots. Imitationlearningforagileautonomousdriving.
+Springer,2004. InTheInternationalJournalofRoboticsResearch(IJRR),
+2019.
+YoavFreundandRobertESchapire. Adecision-theoretic
+generalizationofon-linelearningandanapplicationto DeanAPomerleau. Alvinn: Anautonomouslandvehicle
+boosting. Journalofcomputerandsystemsciences,55 inaneuralnetwork. InAdvancesinneuralinformation
+(1):119–139,1997. processingsystems,pages305–313,1989.
+
+OfMomentsandMatching
+AntoninRaffin. Rlbaselines3zoo. https://github. Wen Sun, Anirudh Vemula, Byron Boots, and J. Andrew
+com/DLR-RM/rl-baselines3-zoo,2020. Bagnell. Provablyefficientimitationlearningfromobser-
+vationalone,2019.
+AntoninRaffin,AshleyHill,MaximilianErnestus,Adam
+Gleave, Anssi Kanervisto, and Noah Dormann. Sta- Gokul Swamy, Siddharth Reddy, Sergey Levine, and
+ble baselines3. https://github.com/DLR-RM/ Anca D Dragan. Scaled autonomy: Enabling human
+stable-baselines3,2019. operatorstocontrolrobotfleets. In2020IEEEInterna-
+tionalConferenceonRoboticsandAutomation(ICRA),
+NivedRajaraman,LinF.Yang,JiantaoJiao,andKannanRa- pages5942–5948.IEEE,2020.
+machandran. Towardthefundamentallimitsofimitation
+learning,2020. UmarSyed,MichaelBowling,andRobertESchapire. Ap-
+prenticeshiplearningusinglinearprogramming. InPro-
+Nathan D Ratliff, David Silver, and J Andrew Bagnell. ceedingsofthe25thinternationalconferenceonMachine
+Learningtosearch: Functionalgradienttechniquesfor learning,pages1032–1039,2008.
+imitation learning. Autonomous Robots, 27(1):25–53,
+Gerald Tesauro. Temporal difference learning and td-
+2009.
+gammon. Communications of the ACM, 38(3):58–68,
+SiddharthReddy,AncaD.Dragan,andSergeyLevine. Sqil: 1995.
+Imitationlearningviareinforcementlearningwithsparse
+StevenWang,SamToyer,AdamGleave,andScottEmmons.
+rewards,2019.
+The imitation library for imitation learning and
+NicholasRhinehart,KrisMKitani,andPaulVernaza.R2p2: inverse reinforcement learning. https://github.
+Areparameterizedpushforwardpolicyfordiverse,pre-
+com/HumanCompatibleAI/imitation,2020.
+cisegenerativepathforecasting. InProceedingsofthe
+FanYang,AlinaVereshchaka,YufanZhou,ChangyouChen,
+EuropeanConferenceonComputerVision(ECCV),pages
+and Wen Dong. Variational adversarial kernel learned
+772–788,2018.
+imitationlearning. 34:6599–6606, Apr.2020. doi: 10.
+1609/aaai.v34i04.6135. URL https://ojs.aaai.
+StephaneRossandJ.AndrewBagnell. Reinforcementand
+org/index.php/AAAI/article/view/6135.
+imitationlearningviainteractiveno-regretlearning,2014.
+BrianDZiebart,AndrewLMaas,JAndrewBagnell,and
+Stephane Ross, Geoffrey J. Gordon, and J. Andrew Bag-
+AnindKDey. Maximumentropyinversereinforcement
+nell. A reduction of imitation learning and structured
+learning. InProceedingsoftheTwenty-ThirdAAAICon-
+predictiontono-regretonlinelearning,2011.
+ferenceonArtificialIntelligence,2008.
+JohnSchulman,FilipWolski,PrafullaDhariwal,AlecRad-
+BrianDZiebart,JAndrewBagnell,andAnindKDey. Mod-
+ford, and Oleg Klimov. Proximal policy optimization
+eling interaction via the principle of maximum causal
+algorithms. arXivpreprintarXiv:1707.06347,2017.
+entropy. 2010.
+DavidSilver,AjaHuang,ChrisJMaddison,ArthurGuez,
+LaurentSifre,GeorgeVanDenDriessche,JulianSchrit-
+twieser, Ioannis Antonoglou, Veda Panneershelvam,
+Marc Lanctot, et al. Mastering the game of go with
+deepneuralnetworksandtreesearch. nature,529(7587):
+484–489,2016.
+Jiaming Song, Hongyu Ren, Dorsa Sadigh, and Stefano
+Ermon. Multi-agent generative adversarial imitation
+learning. CoRR, abs/1807.09936, 2018. URL http:
+//arxiv.org/abs/1807.09936.
+JonathanSpencer,SanjibanChoudhury,ArunVenkatraman,
+BrianZiebart,andJ.AndrewBagnell. Feedbackinimita-
+tionlearning: Thethreeregimesofcovariateshift,2021.
+WenSun,GeoffreyJGordon,ByronBoots,andJBagnell.
+Dualpolicyiteration. AdvancesinNeuralInformation
+ProcessingSystems,31:7059–7069,2018.
+
+convex,andthethirdtermisaconstant. Thistellsusthat:
+α
+M(πR) M(πˆ) M(πR)T(πR πˆ) πR πˆ 2
+Supplementary Material − ≤∇ − − 2|| − ||1
+WenotethatbecauseπRminimizesM,thefirsttermonthe
+RHSisnegative,allowingustosimplifythisexpressionto:
+α
+A.Proofs 2|| πR − πˆ || 2 1 ≤ M(πˆ) − M(πR)
+A.1.ProofofLemma7 We now upper bound the RHS of this expression via the
+followingseriesofsubstitutions:
+Proof.ConsiderthefollowingMDP:
+M(πˆ)=maxU (πˆ,f) αH(πˆ)+αT(ln +ln )
+j
+a 1 f∈F − |A| |S|
+U (πˆ,fˆ) αH(πˆ)+αT(ln +ln )+δ
+j
+s ≤ − |A| |S|
+1
+U (πR,fˆ) αH(πR)+αT(ln +ln )+δ
+j
+≤ − |A| |S|
+a 2 ≤ m f∈ a F xU j (πR,f) − αH(πR)+αT(ln |A| +ln |S| )+δ
+=M(πR)+δ
+s
+2
+Rearranging terms to get the desired bound on strategy
+a distance:
+1
+M(πˆ) M(πR) δ
+Figure6. InUNICYCLE,thegoalistostayins
+1
+forever. − ≤
+2δ
+πR πˆ 2
+⇒|| − ||1 ≤ α
+A fo s r i t l h l i u s st M ra D te P d .L ab e o t v th e, e c e ( x s p , e a r ) tp = erf 1 ec s t 2 ly is op th ti e m c i o ze st th fu is nc fu ti n o c n - ⇒|| πR − πˆ || 1 ≤ (cid:114) 2 α δ
+tion by always taking a in s . Thus, we are in the
+1 1
+O(T)-recoverable setting. Then, for any (cid:15) > 0, if the Next,weprovethatπRisaαT(ln +ln )-approximate
+|A| |S|
+learnertakesa 2 ins 1 withprobability(cid:15),J(π E ) J(π)= equilibriumstrategyfortheoriginal, unregularizedgame.
+(cid:80)T (cid:15)(1 (cid:15))t−1(T t)=Ω((cid:15)T2). Thereison − lyoneac- WenotethatH(π) [0,T(ln +ln )]andthenpro-
+t=1 − − ∈ |A| |S|
+tionins soitisnotpossibletohaveanonzeroclassification ceedasfollows:
+2
+errorinthisstate.
+maxU (πR,f)=M(πR)+αH(πR) αT(ln +ln )
+j
+f∈F − |A| |S|
+A.2.ProofofEntropyRegularizationLemma M(πR)
+≤
+Lemma 8. Entropy Regularization Lemma: By optimiz- αT(ln +ln )
+≤ |A| |S|
+ingU (π,f) αH(π)toaδ-approximateequilibrium,one
+j − (cid:113) Thelastlinecomesfromthefactthatplayingtheoptimal
+recoversatworstaQ M 2 α δ +αT(ln |A| +ln |S| )equilib- strategyintheoriginalgameontheregularizedgamecould
+riumstrategyforthepolicyplayerontheoriginalgame. atworstleadtoapayoffofαT(ln +ln ). Therefore,
+|A| |S|
+thevalueoftheregularizedgamecanatmostbethisquan-
+Proof.WeoptimizeintheP(AT ST)policyrepresentation
+|| tity. Recallingthatthevalueoftheoriginalgameis0and
+wherestrongdualityholdsanddefinethefollowing:
+rearrangingterms,weget:
+πR =argmin(maxU (π,f) αH(π))
+π∈Π f∈F j − m f∈ a F xU j (πR,f) − αT(ln |A| +ln |S| ) ≤ 0=m f∈ a F xm π∈ i Π nU j (π,f)
+First,wederiveaboundonthedistancebetweenπˆ andπR.
+Thus by definition, πR must be half of an αT(ln +
+WedefineM asfollows: |A|
+ln )-approximateequilibriumstrategypair.
+|S|
+M(π)=maxU j (π,f) αH(π)+αT(ln +ln ) Next, let Q denote the absolute difference between the
+f∈F − |A| |S| M
+minimumandmaximumQ-value. Forafixedf,themaxi-
+M isanα-stronglyconvexfunctionwithrespectto mumamountthepolicyplayercouldgainfromswitchingto
+1
+||·||
+becauseU isamaxoflinearfunctions, H is1-strongly policieswithinanL ballofradiusrcenteredattheoriginal
+1
+−
+
+OfMomentsandMatching
+policyisrQ bythebilinearityofthegameandHo¨lder’s Inwords,thismeansthatbysettingπˆ tothepolicywiththe
+M
+inequality. Becausethesupremumoverk-Lipschitzfunc- lowestlossoutoftheN computed,weareabletoefficiently
+tionsisknowntobek-Lipschitz,thisimpliesthesameis (withinpoly(1)iterations)findaδ-approximateequilibrium
+δ
+true for the payoff against the best response f. To com- strategy for the policy player. Note that this result holds
+(cid:113)
+plete the proof, we can set r = 2δ and combine this without assuming a finite and and does not require
+α regularizationofthepolicy. S Howev A er,itrequiresustohave
+withthefactthatπR achievesintheworstcaseapayoffof
+ano-regretalgorithmoverΠwhichcanbeachallengefor
+αT(ln +ln )toprovethatπˆcanatmostachieveapay-
+|A|(cid:113) |S| therewardmoment-matchinggame.
+offofQ 2δ +αT(ln +ln )ontheoriginalgame,
+M α |A| |S| Wenowconsiderthedualcase. Asbefore,wewishtofind
+(cid:113)
+whichestablishesπˆasa(Q 2δ +αT(ln +ln ))- apolicyπˆ suchthat:
+M α |A| |S|
+approximateequilibriumsolution.
+maxU (πˆ,f) δ
+j
+f∈F ≤
+WerunthefollowingprocedureonU (π,f) αH(π):
+j
+−
+A.3.ProofofTheorem1
+1. Fort=1...N,do:
+Weproceedincases.
+2. No-regretalgorithmcomputesft.
+Proof.We first consider the primal case. Our goal is to
+computeapolicyπˆ suchthat: 3. Setπttothebestresponsetoft.
+4. Returnπˆ =argmin U (π,f) αH(π).
+maxU (πˆ,f) δ π∈Π j −
+j
+f∈F ≤
+By the classic result of (Freund and Schapire 1997), we
+We prove that such a policy can be found efficiently by know that the average of the N iterates produced by
+executingthefollowingprocedureforapolynomiallylarge the above procedure (which we denote f and π) is a
+numberofiterations: δ(cid:48)-approximate equilibrium strategy for some N that is
+poly(1). Applying our Entropy Regularization Lemma,
+δ(cid:48)
+1. Fort=1...N,do: wecanupperboundthepayoffofπontheoriginalgame:
+2. No-regretalgorithmcomputesπt. (cid:114)
+2δ(cid:48)
+3. Setfttothebestresponsetoπt. supU j (π,f) ≤ Q M α +αT(ln |A| +ln |S| )
+f∈F
+4. Returnπˆ =πt∗,t∗ =argmin U (πt,ft).
+t j
+WenowproceedsimilarlytoourproofoftheEntropyRegu-
+larizationLemmabyfirstboundingthedistancebetweenπ
+Recallthatviaourno-regretassumptionweknowthat
+andπˆandtheappealingtotheQ -LipschitznessofU . Let
+m j
+1 (cid:88) N U (πt,ft) 1 min (cid:88) N U (π,ft) β Π (N) δ l th (π at ) l = is U α- j s ( t π ro , n f g ) ly − c α o H nv ( e π x ) i . n T m h i e n n d , : whilekeepingthefact
+N j − N π∈Π j ≤ N ≤
+t t α
+l(πˆ) l(π) l(πˆ)T(πˆ π) π πˆ 2
+for some N that is poly(1). We can rearrange terms and − ≤∇ − − 2|| − ||1
+δ α
+usethefactthatπ Πtoupperboundtheaveragepayoff: π πˆ 2 l(π) l(πˆ)+ l(πˆ)T(πˆ π)
+E ∈ ⇒ 2|| − ||1 ≤ − ∇ −
+α
+N N π πˆ 2 l(π) l(πˆ)
+1 (cid:88) U (πt,ft) δ+ 1 min (cid:88) U (π,ft) δ ⇒ 2|| − ||1 ≤ −
+N t j ≤ N π∈Π t j ≤ ⇒ α 2|| π − πˆ || 2 1 ≤ δ(cid:48)
+(cid:114)
+Usingthepropertythattheremustbeatleastoneelement 2δ(cid:48)
+inanaveragethatisatmostthevalueoftheaverage: ⇒||
+π
+−
+πˆ
+|| 1 ≤ α
+N Asbefore,thesecondtolaststepfollowsfromthedefinition
+1 (cid:88)
+m t inU j (πt,ft) ≤ N U j (πt,ft) ≤ δ ofaδ(cid:48)-approximateequilibrium. Now,bythebilinearityof
+t thegame,Ho¨lder’sinequality,andthefactthatsupremum
+overk-Lipschitzfunctionsisknowntobek-Lipschitz,we
+To complete the proof, we recall that ft is chosen as the
+canstatethat:
+bestresponsetoπt,givingusthat:
+(cid:114)
+2δ(cid:48)
+m t inm f∈ a F xU j (πt,f) ≤ δ f su ∈F pU j (πˆ,f) ≤ 2Q M α +αT(ln |A| +ln |S| )
+
+OfMomentsandMatching
+ToensurethattheLHSofthisexpressionisupperbounded B.2.AdRILDerivation
+by δ, it is sufficient to set α = δ and δ(cid:48) =
+2T(ln|A|+ln|S|) Let beaRKHSbeequippedwithkernelK :( )
+32 δ Q 2α 2 . Pluggingintheseterms,wearriveat: ( F ) R. Oniterationkofthealgorithm,c S on × si A der × a
+M S ×A →
+purelycosmeticvariationofourIPM-basedobjective(2):
+δ δ
+supU (πˆ,f) + δ
+f∈F j ≤ 2 2 ≤ sup (cid:88) T ( E [c(s ,a )] E [c(s ,a )])=supL (c)
+t t t t k
+Wenotethatinpractice,αisrathersensitivehyperparame- c∈F
+t=1
+τ∼πk −τ∼πE c∈F
+terofmaximumentropyreinforcementlearningalgorithms
+We evaluate the first expectation by collecting on-policy
+(Haarnoja et al. 2018) and hope that the above expres-
+rolloutsintoadataset andthesecondbysamplingfroma
+k
+sion might provide some rough guidance for how to set D
+fixedsetofexpertdemonstrations . Assumethat is
+α. Tocompletetheproof,notethatN ispoly(1)and 1 = D E |D k |
+δ(cid:48) δ(cid:48) constantacrossiterations.Let betheevaluationfunctional.
+64Q2 M T(ln|A|+ln|S|). Thus,N ispoly(1,T,ln ,ln )). Then,takingthefunctionalgr E adient:
+δ3 δ |A| |S|
+(cid:88)
+T
+1 (cid:88)
+Dk
+1 (cid:88)
+DE
+L (c)= [c;(s ,a )] [c;(s ,a )]
+c k c t t c t t
+∇ ∇ E − ∇ E
+k E
+t=1 |D | τ |D | τ
+B.AlgorithmDerivations
+(cid:88)
+T
+1 (cid:88)
+Dk
+1 (cid:88)
+DE
+B.1.AdVILDerivation = K([s t ,a t ], ) K([s t ,a t ], )
+· − ·
+k E
+t=1 |D | τ |D | τ
+We begin by performing the following substitution: f = whereKcouldbeanstate-actionindicator(1 )indiscrete
+s,a
+v πv,where
+spacesandrelaxedtoaGaussianincontinuousspaces. Let
+−B
+B πv = st+1∼T E (·|st,at), [v] D ag k in = gf (cid:83) u k i n = c 0 ti D on i a b l e gr th a e di a e g n g ts re o g v a e ti r o i n te o ra f t a io ll n p s r o ev f i t o h u e s a D lg i o . r A it v h e m r-
+at+1∼π(st+1)
+(which,otherthanascalefactorthatdoesnotaffecttheop-
+istheexpectedBellmanoperatorunderthelearner’scurrent
+timalpolicy,isequivalenttohavingaconstantlearningrate
+policy. Ourobjective(2)thenbecomes:
+of1),wegetthecostfunctionourpolicytriestominimize:
+T
+(cid:88) k
+sup E [v(s ,a ) πv(s ,a )] (cid:88)
+t t t t C(π )= L (c)
+v∈F t=1 τ∼π −B k ∇ c i
+i=0
+E [v(s ,a ) πv(s ,a )]
+−τ∼πE t t −B t t (cid:88) T 1 (cid:88) Dk 1 (cid:88) DE
+= K([s ,a ], ) K([s ,a ], )
+t t t t
+· − ·
+Thisexpressiontelescopesovertime,simplifyingto: t=1 |D k | τ |D E | τ
+(5)
+T
+(cid:88)
+sup E [v(s ,a )] E [v(s ,a ) πv(s ,a )]
+0 0 t t t t
+v∈Fτ∼π − τ∼πE −B B.3.DAeQuILDerivations
+t=1
+Letd denotethestate-actionvisitationdistributionofπ.
+We approximate πv via a single-sample estimate from π
+B Then, DAeQuIL can be seen as Follow The Regularized
+therespectiveexperttrajectory,yieldingthefollowingoff-
+Leaderonthefollowingsequenceoflosses:
+policyexpression:
+T 1. f =argmax E [f(s,a) f(s,π (s))]
+sup E [v(s ,a )] (cid:88) E [v(s ,a ) E [v(s ,a)]] i f∈F s,a∼dπi − E
+0 0 t t t+1
+v∈Fτ∼π −
+t=1
+τ∼πE −a∼π(st+1) 2. l
+i
+(π)=E
+s∼dπi
+[f
+i
+(s,π(s))
+−
+f
+i
+(s,π
+E
+(s))]
+This resembles the form of the objective in ValueDICE
+Solving the on-Q game proper would instead require
+(Kostrikovetal.2019)butwithoutrequiringustotakethe
+l(cid:48)(π) = E [f (s,π(s)) f (s,π (s))] – for the state
+expectation of the exponentiated discriminator. We can i s∼dπ i − i E
+distributiontodependonthepolicythatispassedtotheloss.
+furthersimplifythisobjectivebynoticingthattrajectories
+Whilethiswouldallowourpreviousno-regretanalysisto
+generatedbyπ andπhavethesamestartingstatedistribu-
+E applyaswritten,wewouldneedtore-sampletrajectories
+tion:
+aftereverygradientstep,aburdenwe’dliketoavoid.
+T
+(cid:88)
+sup E [ E [v(s ,a)] v(s ,a )] (4) Let us consider the no-regret guarantee we get from the
+t t t
+v∈Fτ∼πE
+t=1
+a∼π(st) − DAeQuILlosses:
+N N
+We also note that this AdVIL objective can be derived 1 (cid:88) l (πt) 1 min (cid:88) l (π) β Π (N) δ
+straightforwardlyviathePerformanceDifferenceLemma. N t − N π∈Π t ≤ N ≤
+t t
+
+OfMomentsandMatching
+Notice that l t (πt) = max f∈F U 3 (πt,f), the exact quan- PARAMETER VALUE
+tity we’d like to bound. The tricky part comes from the
+BUFFERSIZE 300000
+secondtermintheregret–underrealizability,(π E Π), BATCHSIZE 256
+∈
+thistermis0andDAeQuILdirectlyfindsaδ-approximate γ 0.98
+equilibriumfortheon-Qgame. Otherwise,werequirethe τ 0.02
+followingweaknotionofrealizabilitytomaintaintheon-Q
+TRAININGFREQ. 64
+momentmatchingbounds: π(cid:48) Πs.t.
+GRADIENTSTEPS 64
+∃ ∈
+LEARNINGRATE 7.3E-4
+POLICYARCHITECTURE 256X2
+d
+m
+π∈
+a
+d
+x
+Π
+m
+f∈
+a
+F
+xE s∼dπ [f(s,π(cid:48)(a))
+−
+f(s,π E (a))]
+≤
+O((cid:15)) S
+T
+T
+R
+A
+A
+T
+I
+E
+N
+-
+I
+D
+NG
+EP
+T
+E
+I
+N
+M
+D
+E
+E
+S
+N
+T
+T
+EP
+E
+S
+XPLORATION T
+1
+R
+E
+U
+6
+E
+In words, this is saying that there exists a policy π(cid:48) that
+canmatchexpertmomentsupto(cid:15)onanystatevisitation Table5. ExperthyperparametersforAntBulletTask.
+distributiongeneratedbyapolicyinΠ. Ifweinsteadsolved
+theon-Qgamedirectlybyusingl(cid:48)(π), wewouldinstead
+i
+needthecondition: π(cid:48) Πs.t.
+∃ ∈ ENV. EXPERT BCPERFORMANCE
+m f∈ a F xE s∼d π(cid:48) [f(s,π(cid:48)(a)) − f(s,π E (a))] ≤ O((cid:15)) H A A N L T FCHEETAH 2 2 1 5 5 8 4 5 2 2 0 5 8 2 3 6
+This weaker condition is concomitant with a much more
+computationallyexpensiveoptimizationprocedure. Table6.Withenoughdata(25trajectories)and100kstepsofgradi-
+entdescent,behavioralcloningisabletosolvealltasksconsidered,
+replicatingtheresultsof(Spenceretal.2021). However,other
+C.ExperimentalSetup
+approachesareabletoperformbetterwhenthereislessdataavail-
+able.
+C.1.Expert
+WeusetheStableBaselines3(Raffinetal.2019)implemen-
+tationofPPO(Schulmanetal.2017)andSAC(Haarnoja
+etal.2018)totrainexpertsforeachenvironment,mostly HalfCheetahand20forAnt)for500kenvironmentsteps.
+usingthealreadytunedhyperparametersfrom(Raffin2020). For GAIL (Ho and Ermon 2016) and behavioral cloning
+Specifically,weusethemodificationsinTables4and5to (Pomerleau1989),weusetheimplementationproducedby
+theStableBaselinesDefaults. (Wang et al. 2020). We use the changes from the default
+valuesinTables6and7foralltasks.
+PARAMETER VALUE
+BUFFERSIZE 300000
+BATCHSIZE 256 PARAMETER VALUE
+γ 0.98
+τ 0.02
+ENTROPYWEIGHT 0
+TRAININGFREQ. 64
+L2WEIGHT 0
+GRADIENTSTEPS 64
+TRAININGTIMESTEPS 5E5
+LEARNINGRATE 7.3E-4
+POLICYARCHITECTURE 256X2
+Table7. LearnerhyperparametersforBehavioralCloning.
+STATE-DEPENDENTEXPLORATION TRUE
+TRAININGTIMESTEPS 1E6
+Table4.ExperthyperparametersforHalfCheetahBulletTask. ForSQIL(Reddyetal.2019),webuildacustomimplemen-
+tation on top of Stable Baselines with feedback from the
+authors. AsseeninTable9,weusethesimilarparameters
+C.2.Baselines forSACaswedidfortrainingtheexpert.
+For all learning algorithms, we perform 5 runs and use a We modify the open-sourced code for ValueDICE
+common architecture of 256 x 2 with ReLU activations. (Kostrikovetal.2019)tobeactuallyoff-policywithfeed-
+For each datapoint, we average the cumulative reward backfromtheauthors. Thepubliclyavailableversionofthe
+of 10 trajectories. For offline algorithms, we train on ValueDICEcodeuseson-policysamplestocomputearegu-
+5,10,15,20,25 expert trajectories with a maximum of larizationterm,evenwhenitisturnedoffintheflags. We
+{ }
+500kiterationsoftheoptimizationprocedure. Foronline releaseourversion.8 Weusethedefaulthyperparameters
+algorithms,wetrainonafixednumberoftrajectories(5for forallexperiments(andthus,trainfor500ksteps).
+
+OfMomentsandMatching
+PARAMETER VALUE
+NUMSTEPS 1024 2500
+EXPERTBATCHSIZE 32
+2000
+Table8. LearnerhyperparametersforGAIL. 1500
+1000
+PARAMETER VALUE
+γ 0.98 500
+τ 0.02
+TRAININGFREQ. 64 0
+GRADIENTSTEPS 64 0e5 1e5 2e5 3e5 4e5
+LEARNINGRATE LINEARSCHEDULEOF7.3E-4 EnvironmentSteps
+Table9. LearnerhyperparametersforSQIL.
+C.3.OurAlgorithms
+Inthissection,weuseboldtexttohighlightsensitivehy-
+perparameters. SimilarlytoSQIL,AdRILisbuiltontop
+oftheStableBaselinesimplementationofSAC.AdVILis
+writteninpurePyTorch. Weusethesamenetworkarchi-
+tecturechoicesasforthebaselines. ForAdRILweusethe
+hyperparametersinTable10acrossallexperiments.
+PARAMETER VALUE
+γ 0.98
+τ 0.02
+TRAININGFREQ. 64
+GRADIENTSTEPS 64
+LEARNINGRATE LINEARSCHEDULEOF7.3E-4
+f UPDATEFREQ. 1250
+Table10. LearnerhyperparametersforAdRIL.
+We note that AdRIL requires careful tuning of
+f Update Freq. for strong performance. To
+find the value specified, we ran trials with
+1250,2500,5000,12500,25000,50000 andselectedthe
+{ }
+one that achieved the most stable updates. In practice,
+we would recommend evaluating a trained policy on a
+validationsettosetthisparameter. Wealsonotebecause
+SACisanoff-policyalgorithm,wearefreetoinitializethe
+learnerbyaddingallexpertsamplestothereplaybufferat
+thestart,asisdoneforSQIL.
+WechangeoneparameterbetweenenvironmentsforAdRIL
+–forHalfCheetah,weperformstandardsamplingfromthe
+replaybufferwhileforAntwesampleanexperttrajectory
+with p = 1 and a learner trajectory otherwise, similar to
+2
+SQIL.Wefindthatforcertainenvironments,thismodifica-
+tioncansomewhatincreasethestabilityofupdateswhile
+forotherenvironmentsitcansignificantlyhamperlearner
+8https://github.com/gkswamy98/valuedice
+)π(J
+AntBulletEnv-v0@20ExpertDemos
+AdRILBalanced AdRIL πE
+Figure7.Acomparisonofbalancedvs.unbalancedsamplingfor
+AdRILontheAntEnvironment.Forcertaintasks,balancedsam-
+plingcanhelpwiththestabilityofupdates.
+performance.Werecommendtryingbothoptionsifpossible
+butdefaultingtostandardsampling.
+ForAdVIL,weusethehyperparametersinTable11across
+all tasks. Emperically, small learning rates, large batch
+PARAMETER VALUE
+η
+π
+8E-6
+η
+f
+8E-4
+BATCHSIZE 1024
+f GRADIENTTARGET 0.4
+f GRADIENTPENALTYWEIGHT 10
+πORTHOGONALREGULARIZATION 1E-4
+πMSEREGULARIZATIONWEIGHT 0.2
+NORMALIZESTATESWITHEXPERTDATA TRUE
+NORMALIZEACTIONSTO[-1,1] TRUE
+GRADIENTNORMCLIPPING [-40,40]
+Table11. LearnerhyperparametersforAdVIL.
+sizes,andregularizationofbothplayersarecriticaltostable
+convergence. WefindthatAdVILconvergessignificantly
+more quickly than ValueDICE, requiring only 50k steps
+forHalfCheetahand100kStepsforAntinsteadof500k
+steps for both tasks. However, we also find that running
+AdVILforlongerthantheseprescribedamountscanleadto
+acollapseofpolicyperformance.Fortunately,thiscaneasily
+becaughtbywatchingforsuddenandlargefluctuationsin
+policy loss after a long period of steady decreases. One
+canperformthisearly-stoppingcheckwithoutaccesstothe
+environment.
+D.On-QExperiments
+Weperformtwoexperimentstoteaseoutwhenoneshould
+applyDAeQuILoverDAgger. Wefirstpresentresultson
+arocket-landingtaskfromOpenAIGymwherebehavioral
+cloningbyitselfisabletonearlysolvethetask,ashasbeen
+
+OfMomentsandMatching
+previouslynoted(Spenceretal.2021). Tomakethetask
+morechallenging,wetruncatethelasttwodimensionsofthe
+stateforthepolicyclass,whichcorrespondstomaskingthe
+locationofthelegsofthelander. Weusetwo-layerneural
+networkswith64hiddenunitsasallourfunctionclasses,
+perform the optimization steps via ADAM with learning
+rate 3e 4, and sample 10 trajectories per update. Here,
+−
+we see DAeQuIL do around as well as DAgger (Fig. 8),
+with both algorithms quickly learning a policy of quality
+equivalenttothatoftheexpert. Welistthefullparameters
+ofthealgorithmsinTables12and13. Asintheprevious
+section,boldtexthighlightssensitivehyperparameters.
+200
+0
+200 −
+0 20 40 60 80
+ExpertDemos
+)π(J
+Shealsotriestodemonstrateawidevarietyofevasivema-
+neuversastohopefullyteachthedronetogeneralize. We
+simulatesuchanoperatorandvisualizethetrajectoriesin
+Fig. 4,left.
+Standardbehavioralcloningwithan(cid:96) losswouldfailatthis
+2
+taskbecauseitwouldattempttoreproducetheconditional
+meanaction,leadingthedronetoflystraightintothetree.
+Unfortunately,DAggerinheritsthisflaw,andistherefore
+pronetoproducingapolicythatcrashesintothefirsttreeit
+sees,asshowninFig. 4,center.
+For DAeQuIL, the operator leverages her knowledge of
+the problem and passes in two important moments: the
+LunarLander-v2 perceptionsystem’simminentcrashindicatorandtheabso-
+lutedifferencebetweenthecurrentandproposedheadings.
+Whenevertheformerison,thelatterisalargevalueunder
+theexpert’sdistributionastheyaretryingtoavoidthetree.
+So,thelearnerfiguresoutthatitshouldswerveoutofthe
+wayofthetree. ThisleadstopolicieslearnedviaDAeQuIL
+Expert DAgger DAeQuIL tobeabletoprogressmuchfurtherintotheforest,asseen
+inFig. 4,right.
+Usingthefinalpositionofexecutedtrajectoriesasthecu-
+Figure8.Asbehavioralcloningaloneisabletonearlymatchthe mulativereward,weseethefollowinglearningcurveswith
+expert,DAggerandDAeQuILperformaroundthesame. DAeQuILclearlyout-performingDAgger(Fig. 9).
+PARAMETER VALUE
+30
+BATCHSIZE 32
+GRADIENTSTEPSπUPDATE 3E3 20
+GRADIENTSTEPSf UPDATE 1E3
+f GRADIENTPENALTYTARGET 0
+10
+f GRADIENTPENALTYWEIGHT 5
+0
+0 20 40 60 80
+Table12.LearnerhyperparametersforDAeQuILonLunarLander- Num.Trajs
+v2.
+PARAMETER VALUE
+BATCHSIZE 32
+GRADIENTSTEPSπUPDATE 1E4
+Table13.LearnerhyperparametersforDAggeronLunarLander-
+v2.
+Wenextperformanexperimenttoshowhowcarefulcura-
+tionofmomentscanallowDAeQuILtosignificantlyout-
+performDAggeratsometasks. Consideranoperatortrying
+toteachadronetoflythroughaclutteredforestfilledwith
+trees. Theoperatorhasalreadytrainedaperceptionsystem
+thatprovidesstateinformationtothedroneaboutwhethera
+treeisinfrontofit. Becausetheoperatorisprimarilycon-
+cernedwithsafety,sheonlycaresaboutmakingitthrough
+theforest,notthelaterallocationofthedroneontheother
+side.
+)π(J
+ForestNavigation
+DAgger DAeQuIL
+Figure9.J(π) is the longitudinal distance into the forest the
+learnerisabletoprogress. Allexperimentsarerunonthefor-
+estlayoutshowninFig.4andstandarderrorsarecomputedacross
+10trials.
+We use the same function classes as the previous experi-
+ment but use a hidden size of 32 for the discriminator of
+DAeQuIL.WelistthefullsetofparametersinTables14
+and15.
+E.AdditionalMomentTypes
+E.1.AFourthMomentClass: Mixed-MomentValue
+WecouldinsteadpluginQ-momentstotherewardmoment
+payofffunctionU . Let and refertotheclassesof
+1
+F
+V
+F
+VE
+policyandexpertvaluefunctions. Asbefore, weassume
+bothoftheseclassesareclosedundernegationandinclude
+the true value and expert value functions. For notational
+convenience,weassumebothclassescontainfunctionswith
+
+OfMomentsandMatching
+PARAMETER VALUE The T in the second to last line comes from the scaling
+downofeitherthe( , )orthe( , )pairsbyT
+BATCHSIZE 32
+F
+Q
+F
+V
+F
+QE
+F
+VE
+GRADIENTSTEPSπUPDATE 2E3 tofitintothefunctionclass .
+F
+(cid:96) BC SCALE 5E-2 Lemma 10. Mixed Moment Value Lower Bound: There
+GRADIENTSTEPSf UPDATE 1E3
+existsanMDP,π ,andπ Ψ (cid:15) (U )suchthatJ(π )
+f GRADIENTPENALTYTARGET 0 E ← { } 1 E −
+f GRADIENTPENALTYWEIGHT 5 J(π) Ω((cid:15)T).
+≥
+Proof.Theproofoftherewardlowerboundholdsverbatim.
+Table14.LearnerhyperparametersforDAeQuILonForestNavi-
+gation.
+Theseboundsshowthatsolvingthisgame,whichmightbe
+morechallengingthanthereward-momentgame,appearsto
+PARAMETER VALUE
+offernopolicyperformancegains.However,intheimitation
+BATCHSIZE 32
+learningfromobservationalonesetting,whereonedoesnot
+GRADIENTSTEPSπUPDATE 5E3
+have access to action labels, reward-matching might be
+impossible, forcingonetouseanapproachsimilartothe
+Table15.LearnerhyperparametersforDAggeronForestNaviga- above. Thisisbecausevaluefunctionsarepurefunctions
+tion.
+of state, not actions. (Sun et al. 2019) give an efficient
+algorithmforthissetting.
+type signatures R, with the second argument
+S ×A →
+beingignored. StartingfromthePDL,wecanexpandas E.2.CombiningRewardandValueMoments
+follows:
+Forboththeoff-Qandon-Qsetups,onecanleveragethe
+standardexpansionofaQ-functionintoasumofrewards
+J(π ) J(π) toderiveaflexiblefamilyofalgorithmsthatallowonetoin-
+E
+(cid:88)T − cludeknowledgeofbothrewardandQmoments. Explicitly,
+= E [Qπ(s ,a ) E [Qπ(s ,a)]]
+t=1τ∼πE t t t −a∼π(st) t t fortheoff-Qcase:
+(cid:88)T
+= t=1τ∼ E πE [Qπ t (s t ,a t ) −a∼π E (st) [Qπ t (s t ,a)]] J(π E ) − J(π)
+T
+(cid:88)T
++ τ∼ E π [Qπ t (s t ,a t ) − Qπ t (s t ,a t )] = T 1 ( τ∼ E πE [ (cid:88) Qπ(s t ,a) − Qπ(s t ,a t )])
+= E [Qπ(s ,a )]] E [Qπ(s ,a )]] a∼π(st) t=1
+t=1τ∼πE t t t −τ∼π t t t 1 (cid:88) T (cid:88) T(cid:48)
++
+a∼ τ π ∼
+E
+( π st)
+[Qπ
+t
+(s
+t
+,a)]
+− a τ ∼ ∼ π
+E
+π (s E t)
+[Qπ
+t
+(s
+t
+,a)] =
+T
+(
+a∼ τ∼ π
+E
+( π s E t(cid:48))
+[
+t=1t(cid:48)=1
+r(s t(cid:48) ,a)
+−
+r(s t(cid:48) ,a t(cid:48))
+sup 2 (cid:88)T E [f(s ,a )] E [f(s ,a )] +Qπ T(cid:48) (s T(cid:48) ,a) − Qπ T(cid:48) (s T(cid:48) ,a T(cid:48))])
+Th
+≤
+e l
+f
+a
+∈
+s
+F
+t
+Q
+s
+∪
+te
+F
+p
+V
+follow
+t=
+s
+1
+fr
+τ
+o
+∼
+m
+π
+the
+t
+fac
+t
+t t
+−
+ha
+τ
+t
+∼
+s
+π
+u
+E
+p
+t
+f(a
+t
+) + ≤ g f
+m
+∈ ∈ F
+a
+F
+x
+Q r T
+1 (
+a τ ∼ ∼ π
+E
+π (s E t)
+[ (cid:88)
+t=
+T
+1t
+(cid:88)
+(cid:48)
+T
+=
+(cid:48)
+t
+f(s t(cid:48) ,a)
+−
+f(s t(cid:48) ,a t(cid:48))
+sup b∈B f(b) ≤ sup c∈A∪B 2f(c). Ananalogou a s ∈ b A oundfor +g(s T(cid:48) ,a) − g(s T(cid:48) ,a T(cid:48))]) (6)
+and canbeprovedbyexpandingthePDLinthe
+F re Q ve E rsedi F re V c E tion. Wecanusetheseexpansionstoprovide Passing such a payoff to our oracle with spanned by
+F
+boundsrelatedtothereward-momentbound: r /2 Q /2T wouldrecovertheoff-Qbounds.
+F ×F
+Lemma 9. Mixed Moment Value Upper Bound: If Thisexpansionbegsthequestionofwhenitisuseful. One
+F
+Q /2T and
+F
+V /2T spans
+F
+or
+F
+QE /2T and
+F
+VE /2T answerisastandardbias/variancetrade-offwithdifferent
+do,thenforallMDPs,π
+E
+,andπ Ψ (cid:15) (U
+1
+),J(π
+E
+) valuesofT(cid:48),ashasbeenexploredinTD-Gammon(Tesauro
+← { } −
+J(π) O((cid:15)T2). 1995). Wecanprovideanalternativeanswerbyconsider-
+≤
+Proof.Westartbyexpandingtheimitationgap: ingthelimitingcase–whentheQfunctionisdecomposed
+entirely into reward functions, the learner is required at
+J(π ) J(π)
+E
+− timestep t to match the sum of future reward moments.
+(cid:88)T
+sup 2 E [f(s t ,a t )] E [f(s t ,a t )] Anefficientalgorithmforsuchaproblemcanbederived
+≤ f∈FQ∪FV t=1τ∼π −τ∼πE
+as a natural extension of Policy Search by Dynamic Pro-
+(cid:88)T (cid:88)T
+sup2 E 2Tf(s t ,a t ) E 2Tf(s t ,a t )gramming (PSDP) (Bagnell et al. 2003), where, starting
+≤ f∈F τ∼π t=1 −τ∼πE t=1
+=4T2supU 1 (π,f) 4(cid:15)T2 fromt = T − 1,thelearnermatchesexpertmomentsone
+≤ timestepinthefuture,beforemovingonestepbackwardsin
+f∈F
+
+OfMomentsandMatching
+timealongtheexpert’strajectory. Whilethisapproachhas
+thesameperformancecharacteristicsasoff-Qalgorithms,
+matching the class of reward moments might be simpler
+forsometypesofproblems,likethosewithsparserewards.
+However,ithastheaddedcomplexityofproducinganon-
+stationarypolicy.
+Wecanperformananalogousexpansionfortheon-Qcase
+byutilizingthereversedirectionofthePDL:
+J(π ) J(π)
+E
+−
+T
+1 (cid:88)
+= ( E [ QπE(s ,a ) QπE(s ,a)])
+T τ∼π t t − t
+a∼πE(st) t=1
+T T(cid:48)
+1 (cid:88)(cid:88)
+=
+T
+(
+τ∼
+E
+π
+[ r(s t(cid:48) ,a t(cid:48))
+−
+r(s t(cid:48) ,a)
+a∼πE(s t(cid:48)) t=1t(cid:48)=1
++Qπ T E (cid:48) (s T(cid:48) ,a T(cid:48)) − Qπ T E (cid:48) (s T(cid:48) ,a)])
+T T(cid:48)
+1 (cid:88)(cid:88)
+≤
+m
+π∈
+i
+Π
+n
+g f ∈
+m
+∈ F
+a
+F Q
+x
+r E T
+(
+a∼π τ∼
+E
+E( π s t(cid:48))
+[
+t=1t(cid:48)=t
+f(s t(cid:48) ,a t(cid:48))
+−
+f(s t(cid:48) ,a)
++g(s T(cid:48) ,a T(cid:48)) g(s T(cid:48) ,a)]) (7)
+−
+Passing such a payoff to our oracle with spanned by
+F
+/2 /2T would recover the on-Q bounds. A
+F
+r
+× F
+QE
+backwards-in-timedynamic-programmingprocedureisnot
+possibleforthisexpansionbecauseoftheneedtosample
+trajectoriesfromthepolicyatprevioustimesteps.

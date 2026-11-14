@@ -1,0 +1,1237 @@
+Efﬁcient Probabilistic Performance Bounds for Inverse Reinforcement Learning
+Daniel S. Brown and Scott Niekum
+Department of Computer Science
+University of Texas at Austin
+{dsbrown,sniekum}@cs.utexas.edu
+Abstract
+In the ﬁeld of reinforcement learning there has been recent
+progress towards safety and high-conﬁdence bounds on pol-
+icy performance. However, to our knowledge, no practical
+methods exist for determining high-conﬁdence policy perfor-
+mance bounds in the inverse reinforcement learning setting—
+where the true reward function is unknown and only samples
+of expert behavior are given. We propose a sampling method
+based on Bayesian inverse reinforcement learning that uses
+demonstrations to determine practical high-conﬁdence upper
+bounds on theα-worst-case difference in expected return be-
+tween any evaluation policy and the optimal policy under the
+expert’s unknown reward function. We evaluate our proposed
+bound on both a standard grid navigation task and a simulated
+driving task and achieve tighter and more accurate bounds
+than a feature count-based baseline. We also give examples
+of how our proposed bound can be utilized to perform risk-
+aware policy selection and risk-aware policy improvement.
+Because our proposed bound requires several orders of mag-
+nitude fewer demonstrations than existing high-conﬁdence
+bounds, it is the ﬁrst practical method that allows agents that
+learn from demonstration to express conﬁdence in the quality
+of their learned policy.
+Introduction
+There is a growing interest in safety and risk-sensitive met-
+rics for machine learning and artiﬁcial intelligence sys-
+tems, especially for systems that interact with their envi-
+ronment (Garcıa and Fern ´andez 2015; Amodei et al. 2016;
+Thomas et al. 2017). Risk-aware approaches have been re-
+cently proposed and applied to many different problems in-
+cluding planning in Markov decision processes (Chow et al.
+2015), physical search problems (Brown et al. 2016), re-
+inforcement learning (Tamar, Glassner, and Mannor 2015;
+Garcıa and Fern´andez 2015), and imitation learning (Santara
+et al. 2017); however, to the best of our knowledge, no one
+has investigated how to obtain sample-efﬁcient, risk-aware
+conﬁdence bounds on the performance of a policy under an
+unknown reward function, as is the case when learning from
+demonstrations.
+Learning from demonstration (LfD) is a popular method
+to learn a skill or policy by simply observing demonstrations
+from an expert (Argall et al. 2009). One popular variant of
+LfD is Inverse Reinforcement Learning (IRL) (Ng and Rus-
+sell 2000) where the goal is to infer a reward function that
+explains the demonstrated behavior. LfD techniques based
+on IRL have potential applications in many settings such
+as manufacturing, home and hospital care, and autonomous
+driving. In these types of real-world settings it is important,
+and perhaps critical, to provide performance bounds on an
+agent’s learned policy. For example, consider a hospital as-
+sistant robot that has learned from demonstrations how to
+lift a patient out of bed. Before deploying this learned pol-
+icy, we would want to provide a high-conﬁdence bound on
+the difference in performance between the robot’s learned
+policy and the optimal policy under the expert’s reward. If
+this bound on policy loss is too high, then the robot could re-
+quest additional demonstrations until, with high conﬁdence,
+its policy loss with respect to the optimal policy is within
+some allowable error margin.
+We propose a general method for obtaining high-
+conﬁdence performance bounds in the inverse reinforce-
+ment learning setting—where the true reward function is un-
+known and only samples of expert behavior are given. Given
+demonstrated trajectories of a task, our goal is to allow an
+agent to bound the difference in expected return between the
+agent’s own policy and the optimal policy for the task, under
+the expert’s unknown reward function. Because the prob-
+lem of Inverse Reinforcement Learning is ill-posed (there
+are an inﬁnite number of reward functions that result in the
+same optimal behavior), we seek a risk-sensitive bound on
+this performance difference that takes into account the un-
+certainty in the posterior distribution over reward functions,
+conditioned on the demonstrations.
+We perform Markov chain Monte Carlo sampling using
+Bayesian Inverse Reinforcement Learning (Ramachandran
+and Amir 2007) to sample likely reward functions given the
+demonstrations. Using these sampled reward functions, we
+compute samples of the expected return difference between
+the optimal policy under the expert’s reward function and
+the agent’s policy. These samples are then used to calculate
+a (1 −δ) probabilistic upper bound on theα-worst-case pol-
+icy loss. We obtain this bound without knowing the expert’s
+policy or true reward function.
+Our main contributions are (1) we formalize the prob-
+lem of high-conﬁdence policy evaluation in the inverse re-
+inforcement learning domain; (2) we present the ﬁrst practi-
+cal method for obtaining high-conﬁdence bounds on the α-
+worst-case difference in expected return between any eval-
+arXiv:1707.00724v5  [cs.AI]  23 Jun 2018
+uation policy and the optimal policy under the expert’s un-
+known reward function; (3) we evaluate our proposed bound
+on standard grid navigation and simulated driving tasks and
+demonstrate a signiﬁcant improvement over existing sta-
+tistical bounds and an empirical baseline based on feature
+counts; and (4) we give examples of how our proposed
+bound enables risk-aware policy ranking and risk-aware pol-
+icy improvement, given only demonstrations of a task.
+Preliminaries
+Markov decision processes
+A Markov decision process (MDP) is deﬁned as a tuple
+⟨S,A,T,R,γ,S 0⟩ whereS is the set of states, A is the set
+of actions,T :S ×A ×S → [0, 1] is the transition function,
+R :S → R is the reward function,γ ∈ [0, 1) is the discount
+factor, andS0 is the initial state distribution.
+A policyπ is a mapping from states to a probability dis-
+tribution over actions. The value of a policy π under re-
+ward function R is the expected return of that policy and
+is denoted as Vπ
+R = Es0∼S0 [∑∞
+t=0γtR(st)|π]. The value
+of executing policy π starting at state s ∈ S is deﬁned as
+Vπ
+R (s) = E[∑∞
+t=0γtR(st)|π,s 0 =s]. Given a reward func-
+tionR, the Q-value of a state-action pair (s,a ) is deﬁned as
+Qπ
+R(s,a ) = R(s) +γ∑
+s′∈ST (s,a,s′)Vπ
+R (s′). We denote
+V∗
+R = maxπVπ
+R andQ∗
+R(s,a ) = maxπQπ
+R(s,a ).
+As is common in the literature (Abbeel and Ng 2004;
+Ziebart et al. 2008), we assume that the reward function
+can be expressed as a linear combination of features, so that
+R(s) = wTφ(s) wherew ∈ Rk is the k-dimensional vector
+of feature weights. Thus, we can write the value of a policy
+asVπ
+R = Es0∼S0 [∑∞
+t=0γtwTφ(st)|π] = wTµ(π), where
+µ(π) = Es0∼S0 [∑∞
+t=0γtφ(st)|π] are the expected feature
+counts. Note that this does not affect the expressiveness of
+the reward function since φ can be a non-linear function.
+Givenφ, the reward function is fully speciﬁed by the feature
+weightsw. Thus, we refer to the feature weights w and the
+reward functionR interchangeably.
+Bayesian inverse reinforcement learning
+In IRL we are given an MDP without a reward function,
+denoted MDP \R. Given a set of demonstrations, D =
+{(s1,a 1),..., (sm,am)}, consisting of state-action pairs,
+the IRL problem is to recover the reward function, R∗, of
+the demonstrator. Because this problem is ill-posed, IRL al-
+gorithms use a variety of heuristics and simplifying assump-
+tions to ﬁnd an estimate ofR∗ (Gao et al. 2012).
+Bayesian IRL (BIRL) (Ramachandran and Amir 2007)
+seeks to estimate the posterior over reward functions given
+demonstrations, P (R|D) ∝ P (D|R)P (R). BIRL makes
+the assumption that the demonstrator is following a softmax
+policy, resulting in the likelihood function
+P (D|R) =
+∏
+(s,a)∈D
+P ((s,a )|R) =
+∏
+(s,a)∈D
+ecQ∗
+R(s,a)
+∑
+b∈AecQ∗
+R(s,b)
+(1)
+whereQ∗
+R(s,a ) is the optimal Q-value function for reward
+R, and c is a parameter representing the conﬁdence in the
+demonstrator’s optimality. Equation 1 gives greater likeli-
+hood to rewards for which the actions taken by the expert
+have higher Q-values than the alternative actions.
+The softmax distribution over actions is commonly
+used as a likelihood function in IRL (Babes et al. 2011;
+Levine, Popovic, and Koltun 2011; Michini and How 2012a;
+Rothkopf and Ballard 2013) and has been empirically shown
+to be an effective model of human behavior, enabling ac-
+curate learning from human demonstrations (Lopes, Melo,
+and Montesano 2007; Kim and Pineau 2016) and predic-
+tion of human actions (Baker, Saxe, and Tenenbaum 2009;
+Karasev et al. 2016).
+The BIRL algorithm uses Markov chain Monte Carlo
+(MCMC) sampling to sample from the posterior P (R|D).
+Feature weights are sampled according to a proposal distri-
+bution, and for each sample the MDP is solved to obtain
+the sample’s likelihood and determine the transition proba-
+bilities within the Markov chain. For each new sample, the
+resulting MDP can typically be quickly solved by starting
+with the policy from the previous MDP and using only a few
+steps of policy iteration (Ramachandran and Amir 2007). An
+estimate of the expert’s reward function can be found by av-
+eraging the feature weights in the chain to obtain the mean
+reward function (Ramachandran and Amir 2007) or by using
+the maximum a posteriori (MAP) estimate (Choi and Kim
+2011). Some of the advantages of BIRL, compared to many
+other IRL algorithms, are (1) it ﬁnds a distribution over
+likely reward functions, (2) D can contain partial demon-
+strations or even non-contiguous state action pairs, and (3) it
+works with sub-optimal demonstrations.
+The choice of the prior allows domain knowledge to be
+inserted into the IRL algorithm. Ramachandran et al. (2007)
+give several possibilities such as a uniform, Gaussian, or
+Beta prior. For the remainder of this paper we assume the
+prior is uniform. Evaluating the effects of alternative priors
+is left to future work.
+Problem Deﬁnition
+We assume that we are given an MDP\R and samplesD =
+{(s1,a 1),..., (sm,am)|(si,ai) ∼ πdemo} of state-action
+pairs from a demonstrator’s policyπdemo. We make the com-
+mon assumption (Abbeel and Ng 2004; Ramachandran and
+Amir 2007) that the demonstrator attempts to maximize to-
+tal return under the reward R∗ by executing a possibly sub-
+optimal, stationary policyπdemo. Given any evaluation pol-
+icyπeval, we are interested in the following general problem:
+High-conﬁdence policy evaluation for LfD: Given an
+MDP\R, an evaluation policyπeval, and a set of demonstra-
+tions,D, ﬁnd a high-conﬁdence upper bound on the policy
+loss incurred by using πeval in place of π∗, where π∗ is the
+optimal policy for the demonstrator’s reward function,R∗.
+We deﬁne policy loss using theExpected Value Difference
+(EVD) ofπeval under the true rewardR∗, deﬁned as
+EVD(πeval,R∗) = V∗
+R∗ −Vπeval
+R∗ . (2)
+We use EVD because it is a natural way to measure the
+performance difference between two policies and it is a
+common metric for evaluating IRL algorithms (Ramachan-
+dran and Amir 2007; Levine, Popovic, and Koltun 2011;
+Choi and Kim 2011; Wulfmeier, Ondruska, and Posner
+2015). Note that the evaluation policy can be any policy, in-
+cluding a hand-tuned policy or a policy learned through rein-
+forcement learning on a different task with a known reward
+function; however, the most natural form of the evaluation
+policy is a policy learned from the demonstrations,D.
+We seek to bound the difference in expected return be-
+tween the evaluation policy πeval and π∗, the policy that
+is optimal with respect to the demonstrator’s reward R∗.
+However, because an optimal policy is invariant to any non-
+negative scaling of the reward function, bounding EVD is
+ill-posed, as we can multiply the feature weights w by
+any c > 0 to scale EVD to be anywhere in the range
+[0, ∞). To avoid this scaling issue we make the common
+assumption that ∥w∥1 = 1 (Syed and Schapire 2008;
+Pirotta and Restelli 2016). Note, that this assumption only
+eliminates the trivial all-zero reward function as a poten-
+tial solution—all other reward functions can be appropri-
+ately normalized. While setting ∥w∥1 = 1 eliminates the
+invariance to scaling factors and bounds the magnitude of
+the EVD, there can still be inﬁnitely many rewards that in-
+duce any optimal policy, resulting in inﬁnitely many possible
+values of EVD (πeval,R∗). Thus, to obtain an upper bound
+on EVD(πeval,R∗) we need to address this uncertainty.
+As we show in the following section, one way to ad-
+dress this uncertainty over the demonstrator’s true reward
+is to compute an absolute worst-case policy loss bound us-
+ing feature counts. However, as we show in the evaluation
+section, this type of worst-case bound is sensitive to adver-
+sarial reward functions that are highly unlikely given the
+demonstrations, often resulting in loose bounds. Thus, rather
+than focusing on absolute worst-case, we focus on comput-
+ing a probabilistic upper bound on theα-worst-case value of
+EVD(πeval,R ), whereR ∼P (R|D).
+Theα-worst-case value of a random variable is often re-
+ferred to in ﬁnance as the α-Value at Risk (Jorion 1997).
+We use the notation of Tamar et al. (Tamar, Glassner, and
+Mannor 2015) and formally deﬁne theα-Value-at-Risk of a
+random variableZ as
+να(Z) = F−1
+Z (α) = inf {z :FZ(z) ≥α} (3)
+whereα ∈ (0, 1) is the quantile level andFZ(z) = Pr (Z ≤
+z) is the cumulative distribution function ofZ.
+The speciﬁc problem that we address is the following:
+Risk-aware policy evaluation for LfD: Given an
+MDP\R, any evaluation policy πeval, and a set of demon-
+strations, D, ﬁnd a (1 − δ) conﬁdence upper bound on
+να(EVD(πeval,R )), whereR ∼P (R|D).
+Note that α deﬁnes the sensitivity to risk, while (1 −δ)
+represents our conﬁdence in our estimate of the α-VaR.
+Thus, while (1 −δ) is typically always high (e.g., 0.95), α
+can take on a range of values depending on the possibility
+of catastrophic failure in the domain and the risk-aversion of
+the end-user. In practice,α ≥ 0.9 is commonly used for VaR
+applications (Jorion 1997).
+Worst-Case Bound
+Before we give the full details of our approach, we ﬁrst de-
+rive a simple worst-case bound based on feature counts that
+we use as a baseline. As a reminder, we use the notation
+µ(π) = Es0∼S0 [∑∞
+t=0γtφ(st)|π] to represent the expected
+feature counts of policyπ.
+Given any evaluation policyπeval, Abbeel and Ng (2004)
+showed that if we assume φ(s) : S → [0, 1]k, ∥w∥1 ≤ 1,
+and know the demonstrator’s expected feature counts µ∗ =
+µ(πdemo), then ∥µ∗ −µ(πeval)∥2 ≤ϵ implies that
+Vπdemo
+R −Vπeval
+R =wT (µ∗ −µ(πeval)) ≤ϵ
+for any reward functionR(s) = wTφ(s). Ifπdemo is optimal
+with respect to the demonstrator’s reward function,R∗, then
+wT (µ∗ −µ(πeval)) = EVD(πeval,R∗) ≤ϵ
+and ∥µ∗ − µ(πeval)∥2 gives an upper bound on
+EVD(πeval,R∗).
+We now derive an even tighter bound. First, note that the
+worst-case policy loss is the objective value of the following
+maximization problem
+maxw wT (µ∗ −µ(πeval)) (4)
+subject to ∥w∥1 = 1. (5)
+The solution is to put all of our budget forw on the feature
+with maximal feature count difference, giving the solution
+∥µ∗ −µ(πeval)∥∞. Because the two-norm is always lower
+bounded by the inﬁnity-norm, this bound will be tighter than
+the bound proposed by Abbeel and Ng (2004).
+Note that in practice we do not know µ∗, but we can use
+demonstrated trajectories to estimate of the demonstrator’s
+expected feature counts as
+ˆµ∗ = 1
+|D|
+|D|∑
+i=1
+∞∑
+t=0
+γtφ(s(i)
+t ), (6)
+wherei indexes over the trajectories andt over the state se-
+quence contained in each demonstrated trajectory. We deﬁne
+the empirical worst-case feature count bound as
+WFCB(πeval,D ) = ∥ˆµ∗ −µ(πeval)∥∞. (7)
+Note that for this bound to be a guaranteed upper bound
+on EVD(πeval,R∗),πdemo must be optimal and the empiri-
+cal estimate of the expert’s feature counts, ˆµ∗, may require
+a large number of demonstrations to converge toµ∗ (Abbeel
+and Ng 2004; Syed and Schapire 2008). Other limitations of
+this bound are that it does not work with partial demonstra-
+tions and that it is based on an adversarial reward function
+that may be extremely unlikely given the demonstrations.
+EVD Value-at-Risk Bound
+The worst-case feature count bound described in the previ-
+ous section only requires sampled trajectories from the ex-
+pert, but completely ignores the structure of the problem and
+the actions taken by the demonstrator—giving a worst-case
+bound that will likely be overly pessimistic. Our goal is to
+obtain a high-conﬁdence probabilistic worst-case bound that
+focuses on likely reward functions given the demonstrations.
+We seek a probabilistic conﬁdence bound on theα-Value
+at Risk of the EVD(πeval,R∗) for any given evaluation pol-
+icyπeval. We note that using the EVD rather than a standard
+feature count bound, as discussed in the previous section,
+is desirable for two main reasons. The ﬁrst reason is that it
+works well with partial, noisy demonstrations. This is be-
+cause EVD compares the evaluation policy against the opti-
+mal policy for rewardR, not the actual states visited by the
+potentially sub-optimal demonstrator. Second, the EVD ex-
+plicitly takes into account the initial state distribution. Thus,
+EVD measures the generalizability error of an evaluation
+policy by evaluating the expected return over all states with
+support under S0, even if demonstrations have only been
+sampled from a small number of possible initial states.
+To bound the α-quantile worst-case EVD (πeval,R∗) we
+use samples from the posterior P (R|D). Thus, we seek
+to calculate να(Z) where Z = EVD (πeval,R ) for R ∼
+P (R|D). As motivated in the Problem Deﬁnition, we as-
+sume ∥w∥1 = 1 . Thus, to ﬁndP (R|D) we use a modiﬁed
+version of the BIRL Policy Walk Algorithm (Ramachandran
+and Amir 2007) that ensures that our proposal samples ofw
+during MCMC stay on the L1-norm unit ball. Details are
+given in the Appendix. Using MCMC, we generate a se-
+quence of sampled rewards R = {R : R ∼ P (R|D)}
+from the posterior distribution over reward functions given
+the demonstrations. For each sampleRi ∈R we then calcu-
+late
+Zi = EVD(πeval,Ri) = V∗
+Ri −Vπeval
+Ri (8)
+giving us samples from the posterior distribution over ex-
+pected value differences.
+To obtain a point estimate of α-VaR we can sort the re-
+sulting samples of Z in ascending order to obtain the or-
+der statistics Y , and then take the α-quantile. However,
+this does not take into account the number of samples or
+our conﬁdence in this point estimate. Instead of using a
+point estimate, we compute a single-sided (1 − δ) conﬁ-
+dence bound on theα-VaR. Given a sampleZi, we have that
+P (Zi < να(Z)) = α. Thus, for any order statistic Yj, we
+can use the normal approximation of the binomial distribu-
+tion to obtain
+P (να(Z) ≤Yj) =
+j∑
+i=1
+(N
+i
+)
+αi(1 −α)N−i (9)
+≈ FN
+(
+j + 1
+2 |Nα,Nα (1 −α)
+)
+.
+where FZ is the CDF of the normal distribution with µ =
+Nα andσ2 =Nα (1 −α) and 1/2 is added to the indexj as
+a continuity correction (Hollander and Wolfe 1999). To ob-
+tain the index k of the order statistic such that P (να(Z) ≤
+Yk) ≥ (1 −δ) we invert Equation 9 using the inverse of the
+standard normal CDF, F−1
+N , to get k = ⌈Nα +F−1
+N (1 −
+δ)
+√
+Nα (1 −α) − 1
+2 ⌉. Our full approach is summarized in
+Algorithm 1. The algorithm has three hyperparameters:c de-
+ﬁnes the conﬁdence in the optimality of the demonstrations,
+α deﬁnes the risk-sensitivity, and(1 −δ) represents the de-
+sired conﬁdence level on the estimate of theα-VaR.
+Algorithm 1 (1 −δ) Conﬁdence Bound on theα-Value-at-
+Risk
+1: input: MDP\R,πeval,D,c,α,δ
+2: R ← BIRL(MDP\R,D,c) ⊿ sample from posterior
+using L1-unit norm walk
+3: forRi ∈ R do
+4: Zi =V∗
+Ri −Vπeval
+Ri ⊿ compute policy loss
+5: Y = sort(Z) ⊿ sort into ascending order statistics
+6: k = ⌈Nα +F−1
+N (1 −δ)
+√
+Nα (1 −α) − 1
+2 ⌉⊿ index of
+(1 −δ) conﬁdence bound onα-VaR
+7: returnYk
+(a) Grid world naviga-
+tion
+(b) Driving simulation
+Figure 1: (a) Example of random grid world navigation task
+with colors representing random features and initial states
+denoted by stars. (b) Snapshot of driving simulation. Agent
+must learn to safely drive blue car through trafﬁc.
+The advantages of our approach are as follows: (1) our
+proposed bound takes full advantage of all of the informa-
+tion contained in the transition dynamics and demonstra-
+tions to focus on reward functions that are likely given the
+demonstrations, (2) it does not require optimal demonstra-
+tions, (3) it inherits from BIRL the ability to work with par-
+tial demonstrations, even disjoint state-action pairs, and (4)
+it allows for domain knowledge in the form of a prior.
+Empirical results
+For our proposed conﬁdence bound to be useful, it needs
+to meet several criteria: (1) the upper bound should be ac-
+curate with high-conﬁdence (rarely underestimating the true
+expected value difference), (2) the bound should be tighter
+than the worst-case bound derived above, and (3) the pre-
+vious two criteria should be true even when given a small
+number of demonstrations. We use both a standard grid
+world navigation task (Abbeel and Ng 2004; Ramachandran
+and Amir 2007; Choi and Kim 2011) and a simulated driv-
+ing task (Abbeel and Ng 2004; Syed and Schapire 2008;
+Cohn, Durfee, and Singh 2011) to validate that our proposed
+bound satisﬁes these criteria. Examples of these tasks are
+shown in Figure 1. We compare our high-conﬁdenceα-VaR
+bound with the worst-case feature count bound (WFCB) de-
+ﬁned in Equation 7. All results for α-VaR bounds are re-
+ported as 95% conﬁdence bounds (δ = 0.05).
+Grid world navigation task
+We ﬁrst empirically evaluate our approach on a suite of
+9x9 grid world navigation tasks where the cost of traveling
+on different terrains is unknown and must be inferred from
+demonstrations. The available actions are up, down, left and
+right. Transitions are noisy with an 70% chance of moving in
+the desired direction and 30% chance of going in one of the
+directions perpendicular to the chosen direction. There are 8
+binary features with one feature active per grid cell. To show
+that our results are not an artifact of a speciﬁc reward func-
+tion, we evaluate our method over many random grid worlds,
+each with a randomly chosen ground truth reward. We use
+γ = 0.9 and an initial state distribution S0 that is uniform
+over 9 different states spread across the grid as shown in
+Figure 1(a). When generating M demonstrations we select
+the initial states in a round-robin fashion from the support of
+S0. However, when measuring accuracy and bound errors,
+we compare with the true expected value difference over the
+full initial state distribution.
+Inﬁnite horizon grid navigation Our ﬁrst task is an in-
+ﬁnite horizon grid world navigation task with no terminal
+states. To evaluate different bounding methods we generated
+200 random 9x9 worlds with random features each grid cell.
+For each world we generated a random feature weight vector
+w from the L1-unit norm ball. To generate demonstrations
+we solve the MDP using the random ground truth reward to
+ﬁnd the optimal policy and use this policy to generate tra-
+jectories of length 100. We set the evaluation policy to be
+the optimal policy under the MAP reward function found
+using BIRL. Because the demonstrations in this experiment
+are perfect, we set the BIRL conﬁdence parameter to a large
+value (c = 100).
+Figure 2(a) shows the accuracy of each bound where
+WFCB is the worst-case feature count bound, and VaR X is
+the X/100 quantile Value at Risk bound. The accuracy is the
+proportion of trials where the upper bound is greater than the
+ground truth expected value difference over the 200 random
+grid worlds. As expected, the WFCB always gives an upper
+bound on the true performance difference between the opti-
+mal policy and the evaluation policy. The bounds onα-VaR
+are also highly accurate.
+Because always predicting a high upper bound will result
+in high accuracy, we also measured the tightness of the the
+upper bounds. Figure 2(b) shows the average bound error
+over the 200 random navigation tasks. We deﬁne the bound
+error for an upper boundb as
+error(b) = b − EVD(πeval,R∗) (10)
+whereR∗ is the generated ground truth reward. We see that
+the bounds on the α-VaR are much tighter than the worst-
+case feature count bound, converging after only a small num-
+ber of demonstrations.
+Noisy demonstrations As mentioned previously, BIRL
+uses a conﬁdence parameter, c, that represents the opti-
+mality of the demonstrations. When c = 0 , the demon-
+strations are assumed to come from a completely random
+policy, and c = ∞ means that the demonstrations come
+from a perfectly optimal policy. Prior work used values of
+c between 25 and 500 when demonstrations are generated
+from an expert policy (Lopes, Melo, and Montesano 2009;
+Cohn, Durfee, and Singh 2011; Michini and How 2012b). To
+investigate the effect ofc on our bound we generated noisy
+(a) Accuracy
+(b) Average Bound Error
+Figure 2: Results for inﬁnite horizon grid navigation task.
+Accuracy and average error for bounds based on feature
+counts (WFCB) compared with 99, 95, and 90 percentiles
+for the VaR bound. Accuracy and averages are computed
+over 200 replicates
+demonstrations where at step there is an 80% chance of tak-
+ing an optimal action and a 20% chance of taking a random
+action. The resulting accuracy and bound error for several
+choices ofc are shown in Figure 3.
+Adjusting c for noisy demonstrations has a clear effect
+on the accuracy and bound error. The bound error (Equa-
+tion 10) decreases as c increases, meaning the bounds be-
+come tighter; however, whenc = 50 the VaR bounds often
+underestimate the true expected value difference between
+the expert’s policy and the evaluation policy, resulting in
+error(b) < 0 and lower accuracy. We see that values of c
+in the range (1, 10] result in highly accuracy bounds that are
+tighter than the worst-case feature count bound. However,
+for c = 50 , we see that BIRL overﬁts to the noise in the
+demonstrations by assuming that the demonstrations are op-
+timal. Tuning the conﬁdence parameter, c, for a particular
+demonstrator and task is left for future work.
+Evaluation policy In the previous examples we have used
+the MAP reward obtained from BIRL to create the eval-
+uation policy; however, unlike previous theoretical conﬁ-
+dence bounds, our method is applicable to any evaluation
+policy. We investigated the sensitivity of our bound over a
+(a) Accuracy
+(b) Average Bound Error
+Figure 3: Sensitivity to the conﬁdence c for noisy demon-
+strations in the grid navigation task. The demonstrator has a
+20% chance of taking a random action in each state. Accu-
+racy and average error for bounds based on feature counts
+(WFCB) compared with 0.95-VaR bound. Accuracy and av-
+erages are computed over 200 replicates.
+range of different evaluation policies and found that the VaR
+bounds consistently outperforms the baseline WFCB, pro-
+viding bounds that are often four times tighter while main-
+taining high accuracy (see the Appendix for details).
+To demonstrate the ability of our method to work with
+evaluation policies derived from other IRL algorithms, and
+to compare against existing high-conﬁdence bounds for IRL,
+we used the Projection algorithm proposed by Abbeel and
+Ng (Abbeel and Ng 2004) as an evaluation policy. Abbeel
+and Ng provide high-conﬁdence bounds on the number of
+demonstrations needed for their algorithm to guarantee per-
+formance within ϵ of the demonstrator. A tighter sample
+bound for feature count-based methods was later derived by
+Syed and Schapire (2008) that also holds for the Projection
+algorithm. We inverted the bound of Syed and Schapire to
+obtain a (1 −δ) conﬁdence bound on the expected value
+difference given a ﬁxed number of demonstrations (see the
+Appendix for details).
+We then repeated the inﬁnite horizon grid navigation ex-
+periment described above, using the policy found by the Pro-
+jection algorithm as our evaluation policy. We compare the
+average bound error for our proposed VaR bounds with the
+Syed and Schapire error bound for the Projection algorithm
+in Table 1. Our empirical VaR bounds are two to three or-
+ders of magnitude tighter than the Hoeffding style bound
+which theoretically requires 23,146 demonstrations to guar-
+antee the true EVD is within the 0.95-VaR bound found by
+our method using only a single demonstration.
+Driving task
+We now provide an example that more closely matches a
+real-world learning from demonstration task. Rather than
+evaluate our method on an ad hoc “true” reward function,
+we examine how the VaR bound can be used to rank and
+select an appropriate policy from a set of existing policies.
+For this task we designed a driving simulator based on pre-
+vious benchmarks (Abbeel and Ng 2004; Cohn, Durfee, and
+Singh 2011). Figure 1(b) shows a snapshot of the simulator.
+The agent (blue) is in charge of driving safely down a high-
+way and has three actions: switch lanes left, switch lanes
+right, or stay in current lane. The agent is traveling faster
+than trafﬁc and must change lanes to avoid other cars which
+randomly appear at the top of the screen. There are three
+highway lanes where the car is supposed to drive, but it can
+also drive off-road on the right or left of the highway.
+The state space is made up of 12 binary features: 5 fea-
+tures for each of the possible lanes, including the off-road
+lanes, 3 features telling the agent whether it is currently in
+collision, tailgating, or trailing another car, and 2 features
+for each adjacent lane, indicating whether the car will be
+in collision or tailgating if the car changes lanes. The re-
+ward is assumed to be a linear combination of features,
+R(s) = wTφ(s), where φ(s) is a 6-dimensional binary
+feature vector that indicates the agent’s current lane and
+whether it is in collision with another car. The discount fac-
+tor,γ, was set to 0.9.
+The goal of this experiment is to evaluate the ability of
+our probabilistic performance bound to correctly rank dif-
+ferent policies, given a single demonstration of safe driving.
+We constructed three different evaluation policies: (1)right-
+safe: a policy that avoids hitting cars and driving off-road,
+but prefers driving on the right lane of the highway, (2) on-
+road: a policy that avoids driving off-road, but pays no at-
+tention to other cars, and changes lanes randomly (3) nasty:
+a policy that avoids going off-road, but actively tries to hit
+cars. We then generated a single demonstration of collision-
+free driving, consisting of 100 consecutive state-action pairs.
+The demonstration changed lanes randomly while avoid-
+ing collisions and avoiding driving off-road. The evaluation
+policies and demonstration were created using Q-learning
+and hand-crafted reward functions that resulted in the de-
+sired behaviors.
+Because the driving task is model-free we used Q-learning
+to calculate the Q-values used in the likelihood calculations
+of BIRL. We then calculated a 95% conﬁdence bound on the
+0.95-VaR for each evaluation policy. We also computed the
+worst-case feature count bounds for comparison. The results
+are shown in Table 2.
+The VaR bound uses the demonstration to focus on re-
+ward functions that are likely given the demonstrated state-
+action pairs. This results in correctly ranking the evaluation
+policies. The worst-case feature count bound ignores like-
+lihood and assumes a worst-case reward function that pe-
+nalizes the largest discrepancy between the empirical fea-
+Number of demonstrations Average Accuracy
+1 5 9 · · · 23,146
+0.95-VaR EVD Bound 0.9372 0.2532 0.1328 - 0.98
+0.99-VaR EVD Bound 1.1428 0.2937 0.1535 - 1.0
+EVD Bound (Syed and Schapire 2008) 142.59 63.77 47.53 0.9372 1.0
+Table 1: Comparison of 95% conﬁdence α-VaR bounds with a 95% conﬁdence Hoeffding-style bound (Syed and Schapire
+2008). Both bounds use the Projection algorithm (Abbeel and Ng 2004) to obtain the evaluation policy. Results are averaged
+over 200 random navigation tasks.
+Ranking (EVD upper bound)
+πeval Collisions True WFCB 0.95-VaR
+right-safe 0 1 3 (5.51) 1 (0.85)
+on-road 13.65 2 1 (1.93) 2 (1.09)
+nasty 42.75 3 2 (4.11) 3 (2.44)
+Table 2: Policy rankings based on upper bounds on policy
+loss for three different evaluation policies in the driving do-
+main when given a single demonstration of safe driving. Re-
+sults are averaged over 20 replicates.
+ture counts of the demonstration and the expected feature
+counts of the evaluation policies. Because the collision fea-
+ture is less frequently active than the lane features, both on-
+road and nasty appear safer than right-safe because their
+average state-occupancies more closely align with the state-
+occupancies of the demonstration.
+High-conﬁdence policy improvement
+The previous section showed how we can use risk-sensitive
+policy evaluation to choose between multiple evaluation
+policies. We now take this a step further and give an ex-
+ample that uses risk-sensitive policy evaluation to iteratively
+reduce the VaR of a policy learned from demonstrations.
+To highlight the potential of safe policy improvement, we
+consider the simple navigation task shown in Figure 4. The
+task has a single terminal in the center and two reward fea-
+tures (white and red). The agent is given a single demonstra-
+tion from one starting state and must generalize this demon-
+stration to a second starting state (both marked with circles).
+Note that the demonstration shows that the red feature is less
+desirable than the white feature, but the true magnitudes of
+the feature weights are left uncertain.
+We implemented a simple risk-sensitive policy improve-
+ment hill climbing algorithm. We initialized the hill climb-
+ing algorithm with the maximum likelihood policy found
+using BIRL with a uniform prior. For each step of the hill-
+climbing algorithm, we examined the impact on the 0.99-
+VaR of changing the action taken by the policy in a single
+state, and chose the change that resulted in the largest de-
+crease in 0.99-VaR over all single state changes. We contin-
+ued this process until no reductions in the 0.99-VaR could be
+found. The resulting risk-aware policy seeks to minimize the
+0.99-VaR by avoiding the red feature, whereas the maximum
+likelihood reward leads to a less conservative policy, result-
+MDP\R Demo Min VaR policy MLE policy
+Figure 4: Given one demonstration, optimizing the VaR
+bound results in a risk-aware policy that hedges against the
+red cells being much worse than the white. The maximum
+likelihood reward assumes that red is only marginally worse
+than white.
+ing in a higher potential risk. The learned policies are shown
+in Figure 4. In the future, more complex policy adaptation
+schemes such as ﬁnite difference methods or black-box op-
+timization techniques (e.g. CMA-ES (Hansen 2006)) could
+also be used to approximate the gradient of the α-VaR with
+respect to a parameterized policyπ.
+Related work
+Many different methods exist for learning from demonstra-
+tion through inverse reinforcement learning (Argall et al.
+2009; Gao et al. 2012). However, few of them give guar-
+antees on performance. Abbeel and Ng (2004) and Syed and
+Schapire (2008) give probabilistic Hoeffding-style bounds
+on how many demonstrations their algorithms require to
+guarantee a policy with expected return within epsilon of
+the expected return of the demonstrator’s policy. However,
+as shown in Table 1, these theoretical bounds are too loose
+to be useful in practice and are customized for their spe-
+ciﬁc IRL algorithms. To our knowledge, we provide the ﬁrst
+sample-efﬁcient, high-conﬁdence bound on the policy loss
+of any evaluation policy with respect to the optimal policy
+under the demonstrator’s true reward function.
+Safety has been extensively studied within the reinforce-
+ment learning community (see Garcia et al. (2015) for a sur-
+vey). These approaches typically either focus on safe explo-
+ration or on optimizing an objective other than expected re-
+turn. Recently, alternative objectives based on ﬁnancial mea-
+sures of risk such as VaR and Conditional VaR have been
+shown to provide tractable and useful risk-sensitive mea-
+sures of performance for MDPs (Tamar, Glassner, and Man-
+nor 2015; Chow et al. 2015). Santara et al. (2017) propose an
+algorithm to minimize conditional VaR for generative adver-
+sarial imitation learning, but do not provide bounds on the
+safety of the learned policy. Our work complements prior
+research on safety in reinforcement learning and imitation
+learning by showing how risk-sensitive metrics can be ap-
+plied to IRL to obtain high-conﬁdence performance bounds.
+Additional work on safety in MDPs has focused on ob-
+taining high-conﬁdence bounds on the performance of a pol-
+icy before that policy is deployed (Thomas, Theocharous,
+and Ghavamzadeh 2015b; Hanna, Stone, and Niekum 2017),
+as well as methods for high-conﬁdence policy improve-
+ment (Thomas, Theocharous, and Ghavamzadeh 2015a).
+Our work draws inspiration from these previous approaches;
+however, we provide bounds on policy performance that are
+applicable when learning from demonstrations, i.e., when
+the rewards are not observed.
+Discussion and Future Work
+Due to space and time constraints we did not explore the
+full range of possible instantiations of a risk-sensitive perfor-
+mance bound for learning from demonstration through IRL.
+In this section we discuss design choices, limitations of our
+approach, and avenues for future research.
+We decided to measure policy loss using EVD as it is a
+commonly used IRL metric; however, this is not the only
+measure of performance that can be used in our approach.
+Because our method estimates the posterior distribution over
+reward functions, any risk measure or loss that is a function
+of a reward function and a policy can be inserted into our
+framework in place of EVD.
+We used VaR because it well known and widely used,
+easy to implement using Monte-Carlo samples, and is a
+probabilistic analogue to the WFCB. However, our pro-
+posed methodology can be extended to use other risk mea-
+sure that can be computed from samples of a distribu-
+tion. Alternative risk measures such as Conditional Value-at-
+Risk (Rockafellar and Uryasev 2000), entropic risk measure
+(F¨ollmer and Knispel 2011), or semideviations (Ogryczak
+and Ruszczy´nski 1999) could replace VaR in our framework.
+Recently, methods have been proposed that explicitly opti-
+mize the Conditional VaR of a policy (Tamar, Glassner, and
+Mannor 2015; Santara et al. 2017). Future work should ex-
+amine whether these approaches can be combined with our
+work on risk-aware policy improvement for IRL.
+Because our bound is based on Bayesian IRL, our method
+is designed to work with partial demonstrations and allows
+insertion of domain knowledge as a prior over reward func-
+tions. Choi and Kim (2011) have shown that many stan-
+dard IRL algorithms can be transformed into an equivalent
+Bayesian IRL algorithm by selecting the appropriate likeli-
+hood and prior. Thus, our proposed performance bound can
+be easily extended to use alternative likelihoods and priors
+that match different assumptions and preferences found in
+the IRL literature.
+One of the main drawbacks of our proposed framework
+is that it requires running MCMC, which repeatedly sam-
+ples rewards and then solves for Q∗
+R(s,a ) andV∗
+R in order
+to calculate the BIRL likelihood and to compute samples
+of EVD(πeval,R∗). Future work should investigate whether
+IRL methods based on policy gradients (Pirotta and Restelli
+2016; Ho, Gupta, and Ermon 2016) or other IRL algorithms
+that do not require repeatedly solving an MDP (Boular-
+ias, Kober, and Peters 2011; Kalakrishnan et al. 2013;
+Finn, Levine, and Abbeel 2016) can be used to sample from
+the posterior distribution over reward functions.
+Our method also relies on an appropriate range for the
+conﬁdence parameterc in the BIRL algorithm, which deter-
+mines how much we trust the demonstrations. Recently, an
+Expectation Maximization approach has been used to learn
+this parameter from a large number of demonstrations of
+differing quality (Zheng, Liu, and Ni 2014). Future work
+should investigate whether a similar approach can be used
+to learn an appropriate value for c when there are possibly
+only a small number of demonstrations of similar quality.
+Conclusion
+In this work we have formalized and addressed the prob-
+lem of risk-aware high-conﬁdence policy evaluation with an
+unknown reward function. To our knowledge, we present
+the ﬁrst general framework for obtaining practical high-
+conﬁdence bounds on the performance difference between
+an evaluation policy and the optimal policy for a demon-
+strator’s true unknown reward. We also give examples of
+how our high-conﬁdence performance bound can be used
+to perform risk-aware policy selection and risk-aware policy
+improvement. Our proposed algorithms are evaluated on a
+standard grid navigation task and driving simulation.
+Our results demonstrate that our proposed bound is a
+signiﬁcant improvement over a baseline based on feature
+counts—providing accurate, tight bounds even for small
+numbers of demonstrations. Additionally, our empirical re-
+sults show orders of magnitude improvement in sample ef-
+ﬁciency over competing conﬁdence bounds (Abbeel and Ng
+2004; Syed and Schapire 2008). As a result, this is the ﬁrst
+approach that allows agents that learn from demonstrations
+to express conﬁdence in the performance of their learned
+policy, based on limited demonstration data. We believe the
+techniques proposed in this paper provide a starting point
+for developing autonomous agents that can safely and efﬁ-
+ciently learn from human demonstrations in risk-sensitive,
+real-world environments.
+Acknowledgments
+This work has taken place in the Personal Autonomous
+Robotics Lab (PeARL) at The University of Texas at Austin.
+PeARL research is supported in part by the NSF (IIS-
+1638107, IIS-1617639, IIS- 1724157).
+References
+Abbeel, P., and Ng, A. Y . 2004. Apprenticeship learning via inverse
+reinforcement learning. In Proceedings of the 21st international
+conference on Machine learning.
+Amodei, D.; Olah, C.; Steinhardt, J.; Christiano, P.; Schulman, J.;
+and Man´e, D. 2016. Concrete problems in ai safety. arXiv preprint
+arXiv:1606.06565.
+Argall, B. D.; Chernova, S.; Veloso, M.; and Browning, B. 2009.
+A survey of robot learning from demonstration. Robotics and au-
+tonomous systems 57(5):469–483.
+Babes, M.; Marivate, V .; Subramanian, K.; and Littman, M. L.
+2011. Apprenticeship learning about multiple intentions. In Pro-
+ceedings of the 28th International Conference on Machine Learn-
+ing.
+Baker, C. L.; Saxe, R.; and Tenenbaum, J. B. 2009. Action under-
+standing as inverse planning. Cognition 113(3):329–349.
+Barthe, F.; Gu´edon, O.; Mendelson, S.; Naor, A.; et al. 2005. A
+probabilistic approach to the geometry of the ℓn
+p -ball. The Annals
+of Probability 33(2):480–513.
+Bishop, C. M. 2006. Pattern recognition and machine learning .
+springer.
+Boularias, A.; Kober, J.; and Peters, J. 2011. Relative entropy
+inverse reinforcement learning. In Proceedings of the Fourteenth
+International Conference on Artiﬁcial Intelligence and Statistics.
+Brown, D. S., and Niekum, S. 2017. Efﬁcient probabilistic perfor-
+mance bounds for inverse reinforcement learning. arXiv preprint
+arXiv:1707.00724 (Full paper).
+Brown, D. S.; Hudack, J.; Gemelli, N.; and Banerjee, B. 2016.
+Exact and heuristic algorithms for risk-aware stochastic physical
+search. Computational Intelligence.
+Choi, J., and Kim, K.-E. 2011. Map inference for bayesian in-
+verse reinforcement learning. In Advances in Neural Information
+Processing Systems.
+Chow, Y .; Tamar, A.; Mannor, S.; and Pavone, M. 2015. Risk-
+sensitive and robust decision-making: a cvar optimization ap-
+proach. In Advances in Neural Information Processing Systems.
+Cohn, R.; Durfee, E.; and Singh, S. 2011. Comparing action-query
+strategies in semi-autonomous agents. In The 10th International
+Conference on Autonomous Agents and Multiagent Systems.
+Finn, C.; Levine, S.; and Abbeel, P. 2016. Guided cost learning:
+Deep inverse optimal control via policy optimization. In Interna-
+tional Conference on Machine Learning.
+F¨ollmer, H., and Knispel, T. 2011. Entropic risk measures: Coher-
+ence vs. convexity, model ambiguity and robust large deviations.
+Stochastics and Dynamics 11(02n03):333–351.
+Gao, Y .; Peters, J.; Tsourdos, A.; Zhifei, S.; and Meng Joo, E. 2012.
+A survey of inverse reinforcement learning techniques. Interna-
+tional Journal of Intelligent Computing and Cybernetics5(3):293–
+311.
+Garcıa, J., and Fern ´andez, F. 2015. A comprehensive survey on
+safe reinforcement learning. Journal of Machine Learning Re-
+search 16(1):1437–1480.
+Hanna, J. P.; Stone, P.; and Niekum, S. 2017. Bootstrapping with
+models: Conﬁdence intervals for off-policy evaluation. InProceed-
+ings of the 16th Conference on Autonomous Agents and Multiagent
+Systems.
+Hansen, N. 2006. The cma evolution strategy: a comparing review.
+Towards a new evolutionary computation75–102.
+Ho, J.; Gupta, J.; and Ermon, S. 2016. Model-free imitation learn-
+ing with policy optimization. In International Conference on Ma-
+chine Learning, 2760–2769.
+Hollander, M., and Wolfe, D. A. 1999. Nonparametric Statistical
+Methods: By Myles Hollander, Douglas A. Wolfe. J. Wiley.
+Jorion, P. 1997. Value at risk. McGraw-Hill, New York.
+Kalakrishnan, M.; Pastor, P.; Righetti, L.; and Schaal, S. 2013.
+Learning objective functions for manipulation. In IEEE Interna-
+tional Conference on Robotics and Automation, 1331–1336.
+Karasev, V .; Ayvaci, A.; Heisele, B.; and Soatto, S. 2016. Intent-
+aware long-term prediction of pedestrian motion. In IEEE Interna-
+tional Conference on Robotics and Automation, 2543–2549.
+Kim, B., and Pineau, J. 2016. Socially adaptive path planning in
+human environments using inverse reinforcement learning. Inter-
+national Journal of Social Robotics 8(1):51–66.
+Levine, S.; Popovic, Z.; and Koltun, V . 2011. Nonlinear inverse
+reinforcement learning with gaussian processes. In Advances in
+Neural Information Processing Systems.
+Lopes, M.; Melo, F. S.; and Montesano, L. 2007. Affordance-based
+imitation learning in robots. InIEEE/RSJ International Conference
+on Intelligent Robots and Systems, 1015–1021.
+Lopes, M.; Melo, F.; and Montesano, L. 2009. Active learning for
+reward estimation in inverse reinforcement learning. InJoint Euro-
+pean Conference on Machine Learning and Knowledge Discovery
+in Databases.
+Michini, B., and How, J. P. 2012a. Bayesian nonparametric inverse
+reinforcement learning. In Joint European Conference on Machine
+Learning and Knowledge Discovery in Databases.
+Michini, B., and How, J. P. 2012b. Improving the efﬁciency of
+bayesian inverse reinforcement learning. In IEEE International
+Conference on Robotics and Automation, 3651–3656.
+Ng, A. Y ., and Russell, S. J. 2000. Algorithms for inverse reinforce-
+ment learning. In Proceedings of the International Conference on
+Machine Learning, 663–670.
+Ogryczak, W., and Ruszczy´nski, A. 1999. From stochastic domi-
+nance to mean-risk models: Semideviations as risk measures. Eu-
+ropean Journal of Operational Research116(1):33–50.
+Pirotta, M., and Restelli, M. 2016. Inverse reinforcement learning
+through policy gradient minimization. In Proceedings of the AAAI
+Conference on Artiﬁcial Intelligence, 1993–1999.
+Ramachandran, D., and Amir, E. 2007. Bayesian inverse rein-
+forcement learning. In Proceedings of the 20th International Joint
+Conference on Artiﬁcal intelligence, 2586–2591.
+Rockafellar, R. T., and Uryasev, S. 2000. Optimization of condi-
+tional value-at-risk. Journal of risk 2:21–42.
+Rothkopf, C. A., and Ballard, D. H. 2013. Modular inverse rein-
+forcement learning for visuomotor behavior. Biological cybernet-
+ics 107(4):477–490.
+Santara, A.; Naik, A.; Ravindran, B.; Das, D.; Mudigere, D.; Avan-
+cha, S.; and Kaul, B. 2017. Rail: Risk-averse imitation learning.
+arXiv preprint arXiv:1707.06658.
+Syed, U., and Schapire, R. E. 2008. A game-theoretic approach
+to apprenticeship learning. In Advances in neural information pro-
+cessing systems, 1449–1456.
+Tamar, A.; Glassner, Y .; and Mannor, S. 2015. Optimizing the cvar
+via sampling. InProceedings of the Twenty-Ninth AAAI Conference
+on Artiﬁcial Intelligence, 2993–2999.
+Thomas, P. S.; da Silva, B. C.; Barto, A. G.; and Brunskill, E. 2017.
+On ensuring that intelligent machines are well-behaved. arXiv
+preprint arXiv:1708.05448.
+Thomas, P.; Theocharous, G.; and Ghavamzadeh, M. 2015a. High
+conﬁdence policy improvement. In Proceedings of the 32nd Inter-
+national Conference on Machine Learning, 2380–2388.
+Thomas, P. S.; Theocharous, G.; and Ghavamzadeh, M. 2015b.
+High-conﬁdence off-policy evaluation. InProceedings of the AAAI
+Conference on Artiﬁcial Intelligence, 3000–3006.
+Weisstein, E. 2017. Ball point picking. From MathWorld–
+A Wolfram Web Resource. http://mathworld. wolfram.
+com/BallPointPicking. html.
+Wulfmeier, M.; Ondruska, P.; and Posner, I. 2015. Maxi-
+mum entropy deep inverse reinforcement learning. arXiv preprint
+arXiv:1507.04888.
+Zheng, J.; Liu, S.; and Ni, L. M. 2014. Robust bayesian inverse
+reinforcement learning with sparse behavior noise. In Proceedings
+of the AAAI Conference on Artiﬁcial Intelligence, 2198–2205.
+Ziebart, B. D.; Maas, A. L.; Bagnell, J. A.; and Dey, A. K. 2008.
+Maximum entropy inverse reinforcement learning. In Proceedings
+of the 23rd AAAI Conference on Artiﬁcial Intelligence, 1433–1438.
+Appendix
+Uniform sampling from L1-unit ball
+We derive an algorithm that correctly samples uniformly form the
+L1-norm unit ball. Our method is a special case of the result by
+Barthe et al. (Barthe et al. 2005) as detailed in Weisstein (Weis-
+stein 2017). The general result states that if we wish to sample an
+element from the L-p ball in d-dimensional space, then we should
+pickX1,...,X d independently from the pdf
+Pp(x) = exp(−|x|p)
+2Γ(1 +p−1) (11)
+wherep is the desired p-norm and Γ is the gamma function. Then
+we drawY from an exponential distribution with mean 1 and our
+resulting sample from theLp norm ball is
+(X1,...,X n)
+(Y + ∑n
+i=1|Xi|p)1/p (12)
+We wish to sample from the L1-norm boundary, i.e. where the
+L1-norm is equal to 1. Thus we havep = 1 andY = 0 above. This
+means that we need to sample d numbers independently from the
+following pdf
+P1(x) = exp(−|x|)
+2Γ(2) = exp(−|x|)
+2 . (13)
+We can sample from this distribution using the inverse CDF
+sampling method (c.f. Bishop (Bishop 2006)). To draw samples
+from this distribution we must compute the inverse of the indeﬁ-
+nite integral
+z =h(x) =
+∫ x
+−∞
+exp(−|ˆx|)
+2 dˆx (14)
+Note that the desired distribution,P1(x), is a peaked distribution
+centered at zero, so half of the probability mass will be less than
+zero and half will be greater than zero. We can thus break-up our
+inverse of the CDF into two cases.
+Case 1: If our random uniform sample z∈ [0, 1/2], then our
+resultingx should be non-positive. In this case we can writeP1(x)
+as
+P−
+1 (x) = exp(x)
+2 (15)
+We can now easily solve forf(z) =h−1(z) where
+z =h(x) = 1
+2
+∫ x
+−∞
+exp(ˆx)dˆx. (16)
+Solving the integral and inverting gives
+x = ln(2z). (17)
+Case 2:z∈ [1/2, 1]. In this case, x, our resulting sample from
+P1(x) should be non-negative. Thus, we can writeP1(x) as
+P +
+1 (x) = exp(−x)
+2 (18)
+We can now solve forf(z) =h−1(z) where this time
+z =h(x) = 1
+2
+∫ x
+−∞
+exp(−ˆx) (19)
+= 1
+2 + 1
+2
+∫ x
+0
+exp(−ˆx)dˆx. (20)
+Solving the and inverting gives
+x =− ln(2− 2z). (21)
+In summary, to sample from P1(x) = exp(−|x|)
+2 we ﬁrst draw
+z∼ [0, 1]. Then we return
+x =
+{
+ln(2z), forz <1/2
+− ln(2− 2z), otherwise (22)
+Using d samples from P1(x) and then normalize the result-
+ing sample gives us a way to uniformly sample the L1-norm unit
+sphere. This method summarized in Algorithm 2 for uniformly
+sampling from the L1 unit sphere.
+Algorithm 2 L1-Norm Unit Ball Sampling in Rd
+1: input:d ⊿ number of dimensions
+2: fori = 1 : d do
+3: z ∼U (0, 1)
+4: ifz ≤ 0.5 then
+5: Xi = ln(2z)
+6: else
+7: Xi = − ln(2 − 2z)
+8: X ← (X1,...,X d)/∑d
+i=1 |Xi|
+9: return X
+MCMC implementation details
+Our MCMC implementation of BIRL ensures that each proposal
+step remains on the L1-norm unit ball. We use Algorithm 3 to gen-
+erate a proposal by taking a small step along each pair of axis while
+staying on the L1-norm unit ball. For each pair of axis we use Al-
+gorithm 4 to step along the manifold deﬁned by the two axis.
+In all of our grid world experiments we use stepSize = 0.01 for
+the L1-Norm Unit Ball Walk described in Algorithm 3. We run
+MCMC for 10000 steps using a burn-in of 100 samples and only
+using every 20th sample to avoid autocorrelation effects.
+We found that the BIRL likelihood can be sensitive to data im-
+balance if the demonstrations contain some state-action pairs much
+more frequently than others. To ameliorate this problem, we re-
+move duplicate state-action pairs from the demonstrations.
+Sensitivity to evaluation policy
+In this section we investigate how the bound on VaR is affected by
+the choice of evaluation policy. We ran an experiment where we
+varied the optimality of the evaluation policy. As in our previous
+experiments, used a 9x9 grid world and we generated 200 MDPs
+with random features and feature weights for evaluation. The evalu-
+ation policy was chosen by taking the optimal policy obtained from
+the ground truth reward and selecting X states at random without
+replacement and changing the policy at those X states so that it
+takes a non-optimal action. All demonstrations were optimal so we
+computed the VaR bounds usingc = 100.
+The results for X = 0, 2, 4, 8, 16, 32, 64 after one demonstra-
+tion are shown in Figure 5 and the results after nine demonstrations
+Algorithm 3 L1-Norm Unit Ball Walk
+1: input:w ∈ Rd, stepSize ⊿ initial weight vector
+2: for each pair of dimensions (i,j ) : i,j = 1,...,d do
+3: direction ← random(’clockwise’, ’counterclock-
+wise’)
+4: ifw[i] is not 0 orw[j] is not 0 then
+5: w[i],w [j] ← L1ManifoldStep(w[i],w[j], direc-
+tion,η)
+6: returnw
+(a) Accuracy after one demonstration
+(b) Average bound error after one
+demonstrations
+Figure 5: Sensitivity for bounding the performance of a
+range of evaluation policies given 1 optimal demonstration.
+Results are averaged over 200 grid navigation task with
+no terminal states. Accuracy and average error for WFCB
+bounds versus bounds on the 0.99-, 0.95-, and 0.90-VaR.
+are shown in Figure 6. When the evaluation matches the optimal
+policy under the true reward (X = 0 ) all bound methods always
+gave true upper bounds on the EVD. When only one demonstration
+is given, there is a large bound error for all methods, with WFCB
+giving an error bound 4 times higher than the worst VaR bound
+error. AsX is increased, the evaluation policy becomes more dis-
+similar to the optimal policy. This results in a drop in accuracy for
+all bounds except for the extremely conservative 0.99-VaR bound.
+When 9 demonstrations are given, the VaR bounds are much tighter
+with almost zero error for evaluation bounds close to optimal. The
+accuracy tends to drop as the number of errors increases, but still
+remains above 95% even for a policy that differs from the optimal
+policy in over 75% of the states.
+Using the Projection algorithm to obtain evaluation
+policy
+Abbeel and Ng (2004) give sample efﬁciency bounds for the num-
+ber of demonstrations required to get withinϵ of an experts perfor-
+(a) Accuracy after nine demonstrations
+(b) Average bound error after nine
+demonstrations
+Figure 6: Sensitivity for bounding the performance of a
+range of evaluation policies given 9 optimal demonstrations.
+Results are averaged over 200 grid navigation task with
+no terminal states. Accuracy and average error for WFCB
+bounds versus bounds on the 0.99-, 0.95-, and 0.90-VaR.
+mance. We summarize their result as the following theorem.
+Theorem 1. (Abbeel and Ng 2004) To obtain a policy ˆπ such that
+with probability (1−δ)
+ϵ≥|V ˆπ(R∗)−Vπ∗
+(R∗)| (23)
+it sufﬁces to have
+m≥ 2k
+(ϵ(1−γ))2 log 2k
+δ . (24)
+Often we are simply given a ﬁxed set of demonstrations and
+wish to know how far from optimal performance our learn policy
+is. Using a similar proof we obtained the following corollary for a
+ﬁxed number of demonstrations and a desired conﬁdence level,δ.
+Corollary 1. Given a conﬁdence level δ, and m demonstrations,
+with probability (1−δ) we have that|Vπ∗
+(R∗)−V ˆπ(R∗)|≤ ϵ,
+where
+ϵ≤ 1
+1−γ
+√
+2k
+m log 2k
+δ (25)
+wherek is the number of features and γ is the discount factor of
+the underlying MDP .
+Syed and Schapire (2008) proved an even tighter bound that
+holds for the Projection algorithm as well as their Multiplicative
+Weights Algorithm. We summarize their result as the following
+theorem.
+Theorem 2. (Syed and Schapire 2008) To obtain a policy ˆπ such
+that with probability (1−δ)
+ϵ≥|V ˆπ(R∗)−Vπ∗
+(R∗)| (26)
+it sufﬁces to have
+m≥ 2
+(ϵ
+3(1−γ))2 log 2k
+δ . (27)
+We inverted this inequality to obtain the following corollary
+which is used as a benchmark in our paper.
+Corollary 2. Given a conﬁdence level δ, and m demonstrations,
+with probability (1−δ) we have that|Vπ∗
+(R∗)−V ˆπ(R∗)|≤ ϵ,
+where
+ϵ≤ 3
+1−γ
+√
+2
+m log 2k
+δ (28)
+wherek is the number of features and γ is the discount factor of
+the underlying MDP .
+Algorithm 4 L1ManifoldStep
+1: input:w1,w 2 ∈ R, direction∈ {clockwise, counterclockwise}, stepSize ∈ R
+2: slack = w1 + w2
+3: clockwisePos = [”+ +”,”+ -”,”- -”,”- +”]
+4: clockwiseDir = [+1,-1,+1,-1]
+5: counterclockwisePos = [”+ +”,”- +”,”- -”,”+ -”]
+6: counterclockwiseDir = [-1,+1,-1,+1]
+7: sign1 = (w1 ≥ 0) ⊿ ﬁnd starting quadrant
+8: sign2 = (w2 ≥ 0)
+9: if sign1 and sign2 then
+10: cyclePos = ”+ +”
+11: else if sign1 and not sign2 then
+12: cyclePos = ”+ -”;
+13: else if not sign1 and sign2 then
+14: cyclePos = ”- +”
+15: else
+16: cyclePos = ”- -”
+17: if direction is ”clockwise” then ⊿ ﬁnd direction to change magnitude of w1
+18: cycleIndx = clockwisePos.indexOf(cyclePos)
+19: else
+20: cycleIndx = counterclockwisePos.indexOf(cyclePos)
+21: stepRemaining = stepSize
+22: while stepRemaining> 0 do ⊿ step along 1-D manifold of L1-unit ball in 2-D
+23: if direction is ”clockwise” then
+24: cycleDir = clockwiseDir[cycleIndx]
+25: else
+26: cycleDir = counterclockwiseDir[cycleIndx]
+27: maxStep = stepRemaining
+28: if cycleDir is 1 and (|w1| + cycleDir * stepRemaining)> slack then
+29: maxStep = slack - |w1|
+30: cycleIndx = mod(cycleIndx + 1, 4)
+31: else if cycleDir is -1 and (|w1| + cycleDir * stepRemaining)< 0 then
+32: maxStep = |w1|
+33: cycleIndx = mod(cycleIndx + 1, 4)
+34: w1 = |w1| + cycleDir * maxStep
+35: w2 = |w2| - cycleDir * maxStep
+36: stepRemaining = stepRemaining - maxStep
+37: if randDir is ”clockwise” then ⊿ determine correct signs based on ﬁnal quadrant
+38: cyclePos = clockwisePos[cycleIndx]
+39: else
+40: cyclePos = counterclockwisePos[cycleIndx]
+41: if cyclePos is ”- +” then
+42: w1 = -w1
+43: else if cyclePos is ”+ -” then
+44: w2 = -w2
+45: else if cyclePos is ”- -” then
+46: w1 = -w1
+47: w2 = -w2
+48: returnw1,w2

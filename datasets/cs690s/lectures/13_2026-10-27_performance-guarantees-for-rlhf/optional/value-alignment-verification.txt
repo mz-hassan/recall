@@ -1,0 +1,2033 @@
+--- PDF page 1 ---
+Value Alignment Veriﬁcation
+Daniel S. Brown * 1 Jordan Schneider * 2 Anca Dragan 1 Scott Niekum 2
+Abstract
+As humans interact with autonomous agents to
+perform increasingly complicated, potentially
+risky tasks, it is important to be able to efﬁciently
+evaluate an agent’s performance and correctness.
+In this paper we formalize and theoretically an-
+alyze the problem of efﬁcient value alignment
+veriﬁcation: how to efﬁciently test whether the
+behavior of another agent is aligned with a hu-
+man’s values. The goal is to construct a kind of
+“driver’s test” that a human can give to any agent
+which will verify value alignment via a minimal
+number of queries. We study alignment veriﬁca-
+tion problems with both idealized humans that
+have an explicit reward function as well as prob-
+lems where they have implicit values. We analyze
+veriﬁcation of exact value alignment for rational
+agents and propose and analyze heuristic and ap-
+proximate value alignment veriﬁcation tests in a
+wide range of gridworlds and a continuous au-
+tonomous driving domain. Finally, we prove that
+there exist sufﬁcient conditions such that we can
+verify exact and approximate alignment across an
+inﬁnite set of test environments via a constant-
+query-complexity alignment test.
+1. Introduction
+If we desire autonomous agents that can interact with and
+assist humans and other agents in performing complex, risky
+tasks, then it is important that humans can verify that these
+agents’ policies are aligned with what is expected and de-
+sired. This alignment is often termed value alignment and is
+deﬁned in the Asilomar AI Principles1 as follows: "Highly
+autonomous AI systems should be designed so that their
+goals and behaviors can be assured to align with human
+values throughout their operation." In this paper, we pro-
+*Equal contribution 1University of California, Berkeley,
+USA 2University of Texas at Austin, USA. Correspondence
+to: Daniel Brown <dsbrown@berkeley.edu>, Jordan Schneider
+<joschnei@cs.utexas.edu>.
+Proceedings of the 38 th International Conference on Machine
+Learning, PMLR 139, 2021. Copyright 2021 by the author(s).
+1https://futureoflife.org/ai-principles/
+vide a theoretical analysis of the problem of efﬁcient value
+alignment veriﬁcation: how to efﬁciently test whether a
+robot is aligned with a human’s values.
+Existing work on value alignment often focuses on qualita-
+tive evaluation of trust (Huang et al., 2018) or asymptotic
+alignment of an agent’s performance via interactions and ac-
+tive learning (Hadﬁeld-Menell et al., 2016; Christiano et al.,
+2017; Sadigh et al., 2017). By contrast, our work analyzes
+the difﬁculty of efﬁciently evaluating another agent’s cor-
+rectness by formally deﬁning value alignment and seeking
+efﬁcient tests for value alignment veriﬁcation that are appli-
+cable when two or more agents already have learned a policy
+or reward function and want to efﬁciently test compatibility.
+To the best of our knowledge, we are the ﬁrst to deﬁne and
+analyze the problem of value alignment veriﬁcation. In par-
+ticular, we propose exact, approximate, and heuristic tests
+that one agent can use to quickly and efﬁciently verify value
+alignment with another agent.
+As depicted in Figure 1, the goal of value alignment veriﬁ-
+cation is to construct a kind of “driver’s test” that a human
+can give to any agent which will verify value alignment and
+consists of only a small number of queries. We deﬁne values
+in the reinforcement learning sense, i.e., with respect to a re-
+ward function: a robot is exactly value aligned with a human
+if the robot’s policy is optimal under the human’s reward
+function. The two agents in a value alignment veriﬁcation
+problem (human and robot) may have different communica-
+tion mechanisms and different value introspection abilities.
+Thus, the way we analyze value alignment veriﬁcation will
+depend on whether the human’s and robot’s access to their
+values is explicit, e.g., able to write down a value function or
+reward function or implicit, e.g., able to answer preference
+queries or sample actions from a policy. The most general
+version of value alignment veriﬁcation involves a human
+with implicit values who seeks to verify the value alignment
+of a robot with implicit values, e.g. a black-box policy. This
+setting motivates our work; however, it is challenging and
+we postpone many questions for future research.
+We follow a ground-up approach where we analyze the dif-
+ﬁculty of value alignment veriﬁcation starting in the most
+idealized setting, and then gradually relax our assumptions.
+We ﬁrst analyze sufﬁcient conditions under which efﬁcient
+exact value alignment veriﬁcation is possible in theexplicit
+arXiv:2012.01557v2  [cs.LG]  11 Jun 2021
+
+--- PDF page 2 ---
+Value Alignment Veriﬁcation
+human, explicit robot setting, where an idealized human
+tester knows their reward function and so does the robot.
+When the robot is rational with respect to a reward func-
+tion that is a linear combination of known features, we
+show that it is possible to provably verify the alignment of
+any rational explicit robot via a succinct test consisting of
+either reward queries, value queries, or trajectory prefer-
+ence queries. We next consider the explicit human, implicit
+robot setting, where an idealized human knows their reward
+function, but seeks to efﬁciently verify the alignment of a
+black-box policy via action queries. We study heuristics for
+generating value alignment veriﬁcation tests in this setting
+and compare their performance on a range of gridworlds.
+Finally, in Section 4.5 we study the most general setting of
+implicit human, implicit robot. We propose an algorithm
+for approximate value alignment veriﬁcation in continuous
+state and action spaces and provide empirical results in a
+continuous autonomous driving domain where the human
+can only query the robot for preferences over trajectories.
+We conclude with a brief discussion of the challenge of
+designing value alignment veriﬁcation tests that generalize
+across multiple MDPs. Somewhat surprisingly, we provide
+initial theory demonstrating that if the human can create the
+test environment for the robot, then exact and approximate
+value alignment across an inﬁnite family of MDPs can be
+veriﬁed by observing the robot’s policy in only two carefully
+constructed test environments.
+Source code and videos are available athttps://sites.
+google.com/view/icml-vav.
+2. Related work
+Value Alignment: Most work on value alignment focuses
+on how to iteratively train a learning agent such that its
+ﬁnal behavior is aligned with a user’s intentions (Leike
+et al., 2018; Russell et al., 2015; Amodei et al., 2016).
+One example is cooperative inverse reinforcement learn-
+ing (CIRL) (Hadﬁeld-Menell et al., 2016; Fisac et al., 2020;
+Shah et al., 2020), which formulates value alignment as
+a game between a human and a robot, where both try to
+maximize a shared reward function that is only known by
+the human. CIRL and other research on value alignment
+focus on ensuring the learning agent asymptotically con-
+verges to the same values as the human teacher, but do not
+provide a way to check whether value alignment has been
+achieved. By contrast, we are interested in value alignment
+veriﬁcation. Rather than assuming a cooperative setting, we
+assume the robot being tested has already learned a policy
+or reward function and the human wants to efﬁciently verify
+whether the robot is value aligned.
+Reward Learning: Inverse reinforcement learning
+(IRL) (Ng & Russell, 2000; Abbeel & Ng, 2004; Arora
+& Doshi, 2018) and active preference learning (Wirth
+et al., 2017; Christiano et al., 2017; Bıyık et al., 2019)
+algorithms aim to determine the reward function of a
+human via ofﬂine demonstrations or online queries. In
+contrast, value alignment veriﬁcation only seeks to answer
+the question of whether two agents are aligned, without
+concern for the exact reward function of the robot. In
+Section 6 we prove that value alignment veriﬁcation can
+be performed in a constant number of queries whereas
+active reward learning requires a logarithmic number of
+queries (Amin & Singh, 2016; Amin et al., 2017). In cases
+where the human has implicit values, active reward learning
+can be used to infer the reward function of the human
+tester, and then this inferred reward function can be used to
+automatically generate a high-conﬁdence value alignment
+test. While active reward learning may be a subcomponent
+of value alignment veriﬁcation, it focuses on customizing
+reward inference queries for a single agent, whereas value
+alignment veriﬁcation seeks to design a single alignment
+test that works for all agents.
+Machine Teaching: In machine teaching (Zhu et al.,
+2018), a teacher seeks to optimize a minimal set of train-
+ing data such that a student (running a particular learning
+algorithm) learns a desired set of model parameters. Value
+alignment veriﬁcation can be seen as a form of machinetest-
+ing rather than teaching—machine teaching algorithms typi-
+cally search for a minimal set of training data that will teach
+a learner a speciﬁc model, whereas we seek a minimal set of
+questions that will allow a tester to verify whether another
+agent’s learned model is correct. Thus, in machine teaching,
+the teacher provides examples and their answers, but in ma-
+chine testing the tester provides examples and then queries
+the testee for the answer. While machine teaching has been
+applied to sequential decision making domains (Cakmak &
+Lopes, 2012; Huang et al., 2017; Brown & Niekum, 2019),
+we are not aware of any work that considers the problem of
+value alignment veriﬁcation.
+Policy Evaluation Policy evaluation (Sutton & Barto,
+1998) aims to answer the question, "How much return would
+another agent achieve according to my values?" By focus-
+ing on the simpler decision problem, "Is the robot value
+aligned with the human?", we seek tests that are much more
+sample-efﬁcient than running a full policy evaluation. Off-
+Policy Evaluation (OPE) seeks to perform policy evaluation
+without executing the testee’s policy (Precup, 2000; Thomas
+et al., 2015; Hanna et al., 2017). However, OPE is often
+sample-inefﬁcient, provides high-variance estimates, and
+typically assumes explicit access to the tester’s reward func-
+tion, and the tester and testee policies. Value alignment
+veriﬁcation is applicable in settings where the policies and
+reward functions of both agents may be implicit and only
+accessible indirectly.
+
+--- PDF page 3 ---
+Value Alignment Veriﬁcation
+Human 
+Tester
+Test Generator
+Reward Fn. 
+or
+Preferences
+Alignment Test Agents to be verified
+Verification
+Figure 1. The tester provides a reward function either explicitly or implicitly to a test generation algorithm which distills the human’s
+values into a succinct alignment test. This single test is used to efﬁciently verify the value alignment of any agent.
+3. Notation
+We adopt notation proposed by Amin et al. (Amin et al.,
+2017) where a Markov Decision Process (MDP) M con-
+sists of an environment E = (S,A,P,S 0,γ ) and a re-
+ward function R : S → R. An environment E, con-
+sists of a set of states S, a set of actions A, a transi-
+tion function P :S×A×S → [0, 1] from state-action
+pairs to a distribution over next states, a discount factor
+γ∈ [0, 1), and a distribution over initial states S0. A pol-
+icy π : S×A → [0, 1] is a mapping from states to a
+distribution over actions. The state and state-action values
+of a policy π are Vπ
+R (s) = Eπ[∑∞
+t=0γtR(st)| s0 = s]
+andQπ
+R(s,a ) = Eπ[∑∞
+t=0γtR(st)| s0 = s,a 0 = a] for
+s∈S anda∈A . We denote V∗
+R(s) = maxπVπ
+R (s) and
+Q∗
+R(s,a ) = maxπQπ
+R(s,a ). The expected value of a pol-
+icy is denoted byVπ
+R = Es∈S0[Vπ
+R (s)].
+We assume that the arg max operator returns a set, i.e.,
+arg maxxf(x) := {x | f(y) ≤ f(x),∀y}. We let
+π∗
+R∈ arg maxπVπ
+R denote an optimal policy under reward
+functionR. We also letAR(s) = arg maxa′∈AQ∗
+R(s,a′)
+denote the set of all optimal actions at states under reward
+functionR. Thus,AR(s) ={a∈A| π∗
+R(a|s)> 0}
+As is common (Ziebart et al., 2008; Barreto et al., 2017;
+Brown et al., 2020), we assume that the reward function is
+linear under featuresφ :S↦→ Rk, so thatR(s) = wTφ(s),
+where w ∈ Rk. Thus, we use R and w interchange-
+ably. Note that this assumption of a linear reward func-
+tion is not restrictive as these features can be arbitrarily
+complex nonlinear functions of the state and could be ob-
+tained via unsupervised learning from raw state observa-
+tions (Laskin et al., 2020; Brown et al., 2020). Given
+thatR(s) = wTφ(s), the state-action value function can
+be written in terms of discounted expectations over fea-
+tures (Abbeel & Ng, 2004):Qπ
+R(s,a ) = wT Φ(s,a)
+π , where
+Φ(s,a)
+π = Eπ[∑∞
+t=0γtφ(st)|s0 =s,a 0 =a].
+4. Value Alignment Veriﬁcation
+In this section we ﬁrst explicitly deﬁne value alignment
+and value alignment veriﬁcation. Next, we discuss how
+assuming rationality of the robot enables efﬁcient provable
+value alignment veriﬁcation. We then examine how to per-
+form (approximate) value alignment veriﬁcation in tabular
+MDPs under different forms of test queries, including re-
+ward, value, preference, and action queries. We conclude
+this section by presenting a method for approximate value
+alignment veriﬁcation when the tester is a human with im-
+plicit values and the state and action spaces are continuous.
+We ﬁrst formalize value alignment. Consider two agents: a
+human and a robot. We will assume that the human has a
+(possibly implicit) reward function that provides the ground
+truth for determining value alignment veriﬁcation of the
+robot. We deﬁne (approximate) value alignment as follows:
+Deﬁnition 1. Given reward functionR, policyπ′ isϵ-value
+aligned in environmentE if and only if
+V∗
+R(s)−Vπ′
+R (s)≤ϵ,∀s∈S . (1)
+Exact value alignment is achieved whenϵ = 0.
+We are interested in efﬁcient value alignment veriﬁcation
+where we can correctly classify agents as aligned or mis-
+aligned within certain error tolerances while keeping the
+total test size small. Formally, efﬁcient (approximate) value
+alignment veriﬁcation is a solution to the following:
+min
+T⊆T
+|T|, s.t.∀π′∈ Π,∀s∈S (2)
+V∗
+R(s)−Vπ′
+R (s)>ϵ ⇒Pr [π′ passes testT ]≤δfpr
+V∗
+R(s)−Vπ′
+R (s)≤ϵ⇒Pr [π′ fails testT ]≤δfnr
+whereT is the choice set of possible test queries, Π de-
+notes the set of robot policies for which we design the test,
+δfp,δ fn∈ [0, 1] denote the allowable false positive rate and
+false negative rate, and|T| denotes the cardinality, or com-
+plexity of the test,T . Ifϵ =δfpr = 0, then we seek the test
+that enables exact value alignment veriﬁcation.
+4.1. Query Types and Rational Agents
+The difﬁculty of solving Equation 2 can change signiﬁcantly
+as a function of ϵ,δfpr,δfnr, the set of policies for which
+we design the test Π, and the type of queries available in
+
+--- PDF page 4 ---
+Value Alignment Veriﬁcation
+the choice setT . For example, exact alignment is impos-
+sible in settings where one can only query for actions (see
+Appendix A.1). Even when possible, achieving high conﬁ-
+dence may require multiple action queries at every state.
+One of the main goals of this paper is to understand un-
+der what settings we can achieve efﬁcient, provable value
+alignment veriﬁcation. Towards this end, we assume that
+the robot behaves rationally with respect to some reward
+functionR′. A rational agent is one that picks actions to
+maximize its utility (Russell & Norvig, 2016). Formallyπ′
+is a rational agent if:
+∀a∈A,π′(a|s)> 0 =⇒ a∈ arg max
+a
+Q∗
+R′(s,a ), (3)
+where arg maxaQ∗
+R′(s,a ) returns the set of all optimal ac-
+tions at states underR′.
+Note that rationality in itself does not restrict the set of poli-
+cies Π for which we can test, since all policies are rational
+under the trivial all zero reward function (Ng & Russell,
+2000). Rationality also does not limit the choice setT since
+a rational agent can answer any question related to its policy
+or values. The rationality assumption is helpful because
+it directly connects the behavior of the agent to a reward
+function: given behavior we can infer rewards and given re-
+wards we can infer behavior. It also allows us to extrapolate
+robot behavior to new situations, enabling efﬁcient value
+alignment veriﬁcation.
+4.2. Exact Value Alignment
+We start with the idealized query setting of explicit human,
+explicit robot. In this section we discuss exact value align-
+ment (ϵ = 0,δ fpr = 0) of a rational robot and review related
+work by (Ng & Russell, 2000) on sets of rewards consistent
+with an optimal policy. Then in the next section we will
+examine how to construct veriﬁcation tests for exact align-
+ment. We assume that both the human and robot know the
+states reward featuresφ(s), and that the robot acts rationally
+with respect to a reward function linear in these features.
+Consider two rational agents with reward functionsR and
+R′. Because there are inﬁnite reward functions that lead to
+the same optimal policy (Ng & Russell, 2000), determining
+that∃s ∈ S,R (s) ̸= R′(s) does not necessarily imply
+misalignment. For ease of notation, we deﬁne
+OPT (R) ={π|π(a|s)> 0⇒a∈ arg max
+a
+Q∗
+R(s,a )},
+as the set of all optimal (potentially stochastic) policies in
+MDP (E,R ). Combining Deﬁnition (1) and Equation (3)
+immediately gives us that a rational robot is aligned with
+a human if all optimal policies under the robot’s reward
+function are also optimal policies under the human’s reward
+function. We formally state this as the following Corollary.
+  
+(a) Policyπ
+ (b)CRS (π).
+Figure 2. An example of the consistent reward set (CRS) for a
+policyπ in a simple gridworld and a linear reward function with
+two binary reward features (white and gray) with reward weights
+w0 andw1, respectively.
+Corollary 1. We have exact value alignment in environ-
+ment E between a rational robot with reward function
+R′ and a human with reward function R if OPT (R′)⊆
+OPT (R).
+We now review foundational work on IRL by Ng and Rus-
+sell (Ng & Russell, 2000) which inspires our proposed ap-
+proach for efﬁcient value alignment veriﬁcation.
+Deﬁnition 2. Given an environmentE, the consistent re-
+ward set (CRS) of a policyπ in environmentE is deﬁned as
+the set of reward functions under whichπ is optimal:
+CRS(π) ={R|π∈OPT (R)}. (4)
+WhenR(s) = wTφ(s), the CRS is the following polytope:
+Corollary 2. (Ng & Russell, 2000; Brown & Niekum, 2019)
+Given an environmentE, theCRS(π) is given by the fol-
+lowing intersection of half-spaces:
+{w∈ Rk| wT (Φ(s,a)
+π − Φ(s,b)
+π )≥ 0,
+∀a∈ arg max
+a′∈A
+Qπ
+R(s,a′),b∈A,s∈S} . (5)
+As an example consider the grid world MDP shown in Fig-
+ure 2. The CRS is an intersection of half-spaces which
+deﬁne all reward functions under whichπ is optimal. Note
+that the all zero reward function and the reward function
+where white cells have zero reward are included; however,
+not all optimal policies under these reward functions lead to
+the policy shown in Figure 2a.
+Thus, we cannot directly use Corollary 2 to verify alignment
+with a human’s optimal policy—Corollary 2 only provides
+a necessary, but not sufﬁcient, condition for testing whether
+a reward functionR′ is value aligned with a policyπ. Con-
+sider the example of the trivial all zero reward function: it is
+always in the CRS of any policy; however, an agent optimiz-
+ing the zero reward can result in any arbitrary policy. Even
+ignoring the all zero reward, rewards can be on the bound-
+aries of the CRS polytope that are consistent with a policy,
+
+--- PDF page 5 ---
+Value Alignment Veriﬁcation
+but not value aligned since they lead to more than one opti-
+mal policy, one or more of which may not be optimal under
+the human’s reward function. In the next section we show
+that if we remove all such edge cases, we can construct an
+aligned reward polytope (ARP) similar to the CRS, which
+enables provable value alignment veriﬁcation. Furthermore,
+we show that the aligned reward polytope can be used for
+alignment veriﬁcation even when the human cannot directly
+query for the robot’s reward function.
+4.3. Sufﬁcient Conditions for Provable Veriﬁcation of
+Exact Value Alignment
+We seek an efﬁcient value alignment veriﬁcation test which
+enables a human to query the robot to determine exact value
+alignment as in Corollary 1. The following theorem demon-
+strates that provable veriﬁcation of exact value alignment is
+possible under a variety of query types.
+Theorem 1. Under the assumption of a rational robot that
+shares linear reward features with the human, efﬁcient exact
+value alignment veriﬁcation is possible in the following
+query settings: (1) Query access to reward function weights
+w′, (2) Query access to samples of the reward function
+R′(s), (3) Query access to V∗
+R′(s) andQ∗
+R′(s,a ), and (4)
+Query access to preferences over trajectories.
+4.3.1. C ASE 1: R EWARD WEIGHT QUERIES
+We ﬁrst consider the case where the human can directly
+query the robot for their reward function weights w′. While
+this problem setting is mainly of theoretical interest, we
+will show that Cases (2) and (3) also reduce to this setting.
+Querying directly for the robot’s reward function is maxi-
+mally efﬁcient since by deﬁnition it only requires a single
+query. Although one can solve for the optimal policy un-
+der a given w′ and evaluate it under the human’s reward
+function w, this brute force approach is computationally
+demanding and must be repeated for each robot that needs
+to be tested. By contrast, we will prove that there exists a
+single efﬁcient veriﬁcation test that does not require solving
+for the robot’s optimal policy and can be used to verify the
+alignment of any robot.
+As mentioned in the previous section, the CRS for the hu-
+man’s optimal policy does not provide a sufﬁcient test for
+value alignment veriﬁcation. Under the assumption of a
+rational robot, a sufﬁcient condition for value alignment
+veriﬁcation is to test whether a robot’s reward function lies
+in the following set:
+Deﬁnition 3. Given an MDPM composed of environment
+E and reward functionR, the aligned reward set (ARS) is
+deﬁned as the following set of reward functions:
+ARS(R) ={R′| OPT(R′)⊆ OPT(R)}. (6)
+Using Deﬁnition 3, we prove the following lemma which
+will enable efﬁcient veriﬁcation of exact value alignment.
+As a reminder, we use the notationQπ
+R(s,a ) = wT Φ(s,a)
+π ,
+for Φ(s,a)
+π = Eπ[∑∞
+t=0γtφ(st)| s0 = s,a 0 = a], and
+AR(s) = arg maxa′∈AQ∗
+R(s,a′).
+Lemma 1. Given an MDP M = (E,R ), assuming the
+human’s reward functionR, and the robot’s reward function
+R′ can be represented as linear combinations of features
+φ(s)∈ Rk, i.e.,R(s) = wTφ(s),R′(s) = w′Tφ(s), and
+given an optimal policyπ∗
+R underR then
+w′∈
+⋂
+(s,a,b)∈O
+HR
+s,a,b =⇒ R′∈ARS(R) (7)
+whereHR
+s,a,b =
+{
+w | wT (Φ(s,a)
+π∗
+R
+− Φ(s,b)
+π∗
+R
+) > 0
+}
+and
+O ={(s,a,b )|s∈S ,a∈A R(s),b /∈A R(s)} .
+Proof sketch. First we showπ∗
+R is optimal underR′ using
+the policy improvement theorem. Then, using the unique-
+ness of the optimal value function, we show that all optimal
+actions underR are also optimal actions underR′, and so
+all optimal policies under R′ are optimal under R. (see
+Appendix A.3 for the full proof).
+Lemma 1 provides a sufﬁcient condition for verifying exact
+value alignment. We now have the necessary theory to
+construct an efﬁcient value alignment veriﬁcation test in the
+explicit human, explicit robot setting. We aim to efﬁciently
+verify whether the robot’s reward function,R′, is within the
+above intersection of half-spaces, which we call the Aligned
+Reward Polytope (ARP), as this gives a sufﬁcient condition
+forR′ being value aligned with the human’s reward function
+R. Our analysis in this section will be useful later when we
+consider approximate tests for value alignment veriﬁcation
+when one or both of the agents have implicit values.2
+The veriﬁcation test is constructed by precomputing the
+following matrix representation of the ARP:
+∆ =
+
+Φ(s,a)
+π∗
+R
+− Φ(s,b)
+π∗
+R
+...
+
+, (8)
+where each row corresponds to a tuple (s,a,b )∈O . Thus,
+a is an optimal action andb is a suboptimal action underR
+and each row of ∆ represents the normal vector for a strict
+half-space constraint based on feature count differences be-
+tween an optimal and suboptimal action. Note that, using
+this notation, exact value alignment can now be veriﬁed by
+checking whether ∆w′ > 0. This test can be made more
+2Our results may also be of interest in the analysis of explicit
+robot, explicit robot teaming, e.g., ad hoc teamwork (Stone et al.,
+2010) where value alignment veriﬁcation could provide a frame-
+work for verifying whether two robots can work together.
+
+--- PDF page 6 ---
+Value Alignment Veriﬁcation
+efﬁcient by only including non-redundant half-space normal
+vectors in ∆. In Appendix G.2 we discuss a straightforward
+linear programming technique to efﬁciently obtain the mini-
+mal set of half-space constraints that deﬁne the intersection
+of half-spaces speciﬁed in Lemma 1.
+4.3.2. C ASE 2: R EWARD QUERIES
+We now consider the case where the tester can query for
+samples of the robot’s reward function R′(s). Verifying
+alignment via queries toR′(s) can be reduced to Case (1)
+by querying the robot for R′(s) over a sufﬁcient number
+of states and then solving for a system of linear equations
+to recover w′, since we assume both the human and robot
+have access to the reward featuresφ(s).3 Let Φ be deﬁned
+as the matrix where each row corresponds to the feature
+vectorφ(s)T for a distinct states∈S . Then, the number
+of required queries is equal torank(Φ) since we only need
+samples corresponding to linearly independent rows of Φ.
+Thus, if w′∈ Rk, in the worst case we only needk samples
+from the robot’s reward function, since we haverank(Φ)≤
+k. If there is noise in the sampling procedure, then linear
+regression can be used to efﬁciently estimate the robot’s
+weight vector w′. Given w′ we can verify value alignment
+by checking whether ∆w′ > 0.
+4.3.3. C ASE 3: VALUE FUNCTION QUERIES
+Given query access to the robot’s state and state-action value
+functions, w′ can be determined by noting that R′(s) =
+w′Tφ(s) and
+R′(s) =Q∗
+R′(s,a )−γEs′ [V∗
+R′(s′)]. (9)
+Computing the expectation requires enumerating succes-
+sor states. If we deﬁne the maximum degree of the MDP
+transition function as
+dmax = max
+s∈S,a∈A
+|{s′∈S| P (s,a,s′)> 0}|, (10)
+then at most the dmax possible next state value queries
+are needed to evaluate the expectation. Thus, at most
+rank(Φ)(dmax + 1) queries to the robot’s value functions
+are needed to recover w′, and the tester can verify value
+alignment via Case (1). Since rank(Φ)≤ k as before, at
+mostk(dmax + 1) queries are required for w′∈ Rk.
+4.3.4. C ASE 4: P REFERENCE QUERIES
+Finally, we consider the implicit robot setting where the
+tester can only query the robot for preferences over tra-
+jectories, ξ. Each preference over trajectories, ξA≺ ξB,
+induces the constraint w′T (Φ(ξB)− Φ(ξA)) > 0, where
+Φ(ξ) =∑n
+i=1γiφ(si) is the cumulative discounted reward
+3Note that our results also hold for rewards that are functions
+of (s,a ) and (s,a,s ′).
+features along a trajectory. Thus, our choice set of tests,
+T , consists of all trajectory preference queries, and we
+can guarantee value alignment if we have a test T such
+that wT (Φ(ξB)− Φ(ξA))> 0,∀(ξA,ξB)∈T implies that
+w∈⋂HR
+s,a,b. We can then construct∆ in a similar fashion
+as above, except each row corresponds to a half-space nor-
+mal resulting from a preference over individual trajectories
+(see Appendix A.3). Only a logarithmic number of prefer-
+ences over randomly generated trajectories are needed to
+accurately represent⋂HR
+s,a,b via intersection of half-spaces
+formed by the rows in ∆ (Brown et al., 2019).
+4.4. Value Alignment Veriﬁcation Heuristics
+In the next section we relax our assumptions on the robot and
+consider the explicit human, implicit robot setting, where
+the human seeks to verify value alignment but the robot
+has a black-box policy that only affords action queries.
+In this case, we resort to heuristics for value alignment
+as exact value alignment veriﬁcation becomes impossible,
+andϵ-value alignment veriﬁcation by directly attempting to
+solve Equation (2) whenT consists of state-action queries
+is computationally intractable. As we discuss in detail in
+Appendix B, a direct optimization approach would involve
+estimating Π by computing the optimal policies for a large
+number of different reward functions, evaluating each policy
+under w to determine which policies are notϵ-aligned with
+the tester’s reward functionR, and then solving a combina-
+torial optimization problem over all possible state queries.
+Instead, we resort to efﬁcient heuristics. We consider three
+heuristic alignment tests designed to work in the black-box
+value alignment veriﬁcation setting, where the tester can
+only ask the robot policy action queries over states. Each
+heuristic test consists of a method for selecting states at
+which to test the robot by querying for an action from the
+robot’s policy and checking if that action is an optimal action
+under the human’s reward function. Note that querying only
+a subset of states for robot actions is fundamentally limited
+to value alignment veriﬁcation tests with δfpr > 0 since
+we will never know for sure that the agent will not take
+a different action in that state if we query its policy again.
+Thus, receiving the “right answer"—an optimal action under
+the tester’s rewardR—to an action query in a state is not a
+sufﬁcient condition for exact value alignment. We brieﬂy
+discuss three action query heuristics with full details in
+Appendix C. Figure 3 shows examples of the state queries
+generated by each heuristic in a simple gridworld.
+Critical States Heuristic Our ﬁrst heuristic is inspired by
+the notion of critical states: states whereQ∗
+R(s,π∗
+R(s))−
+1
+|A|
+∑
+a∈AQ∗
+R(s,a ) > t, and t is a user deﬁned thresh-
+old (Huang et al., 2018). We adapt this idea to form a
+critical state alignment heuristic test (CS) consisting of criti-
+cal states under the human’s reward functionR. Intuitively,
+
+--- PDF page 7 ---
+Value Alignment Veriﬁcation
+these states are likely to be important; however, often many
+critical states will be redundant since different states are
+often important for similar reasons (see Figure 3).
+Machine Teaching Heuristic Our next heuristic is based
+on Set Cover Optimal Teaching (SCOT) (Brown & Niekum,
+2019), a machine teaching algorithm that approximates the
+minimal set of maximally informative state-action trajecto-
+ries necessary to teach a speciﬁc reward function to an IRL
+agent. Brown & Niekum (2019) prove that the learner will
+recover a reward function in the intersection of halfspaces
+that deﬁne the CRS (Corollary 2). We generate informative
+trajectories using SCOT, and turn them into alignment tests
+by querying the robot for their action at each state along the
+trajectories. SCOT replaces the explicit checking of half-
+space constraints in Section 4.3 with implicit half-space
+constraints that are inferred by querying for robot actions
+at states along trajectories, thus introducing approximation
+error and the possibility of false positives. Furthermore, gen-
+erating a test using SCOT is more computationally intensive
+than generating a test via the CS heuristic; however, unlike
+CS, SCOT will seek to avoid redundant queries by reasoning
+about reward features over a collection of trajectories.
+ARP Heuristic Our third heuristic takes inspiration from
+the deﬁnition of the ARP to deﬁne a black-box alignment
+heuristic (ARP-bb). ARP-bb ﬁrst computes ∆ (see Equa-
+tion (8)), removes redundant half-space constraints via lin-
+ear programming, and then only queries for robot actions
+from the states corresponding to the non-redundant con-
+straints (rows) in ∆. Intuitively, states that are queried
+by ARP-bb are important in the sense that taking differ-
+ent actions reveals important information about the reward
+function. However, ARP-bb uses single-state action queries
+to approximate checking each half-space constraint. Thus,
+ARP-bb trades off smaller query and computational com-
+plexity with the potenital for larger approximation error.
+4.5. Implicit Value Alignment Veriﬁcation
+We now discuss value alignment veriﬁcation in theimplicit
+human, implicit robot setting. Without an explicit represen-
+tation of the human’s values we cannot directly compute
+the aligned reward polytope (ARP) via enumeration over
+states and actions to create an intersection of half-spaces as
+described above. Instead, we propose the pipeline outlined
+in Figure 1 where an AI system elicits and distills human
+preferences and then generates a test which can be used to
+approximately verify the alignment of any rational agent.
+As is common for active reward learning algorithms (Bıyık
+et al., 2019), we assume that the preference elicitation al-
+gorithm outputs both a set of preferences over trajectories
+P ={(ξi,ξj) : ξi≻ ξj} and a set of reward weights w
+sampled from the posterior distribution{wi}∼ P (w|P).
+GivenP and P (w|P), the ARP of the human’s implicit
+reward function can be approximated as
+ARP (R)≈
+⋂
+(ξi,ξj)∈P
+{w| wT (Φ(ξi)− Φ(ξj))> 0
+}
+,
+(11)
+which generalizes the deﬁnition of the ARP to MDPs with
+continuous states and actions. To see this, note that the
+intersection of half-spaces in Lemma 1 enumerates over
+states and pairs of optimal and suboptimal actions under
+the human’s rewardR to create the set of half-space normal
+vectors ∆, where each normal vector is a difference of
+expected feature counts. This enumeration can only be done
+in discrete MDPs. Equation (11) approximates the ARP for
+continuous MDPs via half-space normal vectors constructed
+with empirical feature count differences obtained from pairs
+of actual trajectories over continuous states and actions.
+This test can be further generalized to ϵ-value alignment
+(Deﬁnition 1) to test agents with bounded rationality or
+slightly misspeciﬁed reward functions. One method of con-
+structing an ϵ-alignment test is to use the mean posterior
+reward E[w] to approximate the value difference of each
+pair of trajectories E[w](Φ(ξi)− Φ(ξj)), and only include
+preference queries with estimated value differences of at
+leastϵ. A robot with implicit values is veriﬁed as ϵ-value
+aligned by testT if its preferences over each pair of trajec-
+tories inT match the preferences provided by the human
+(see Appendix F for more details).
+5. Experiments
+We now study the empirical performance of value alignment
+veriﬁcation tests, ﬁrst in theexplicit human setting and then
+in the implicit human setting.
+5.1. Value Alignment Veriﬁcation with Explicit Human
+We ﬁrst study the explicit human setting and analyze the
+efﬁciency and accuracy of exact value alignment veriﬁcation
+tests and heuristics. We consider querying for the weight
+vector of the robot (ARP-w), querying for trajectory pref-
+erences (ARP-pref), and the action-query heuristics: CS,
+SCOT, and ARP-bb, described in Section 4.4.
+5.1.1. C ASE STUDY
+To illustrate the types of test queries found via value align-
+ment veriﬁcation, we consider two domains inspired by
+the AI safety gridworlds (Leike et al., 2017). The ﬁrst do-
+main, island navigation is shown in Figure 3. Figure 3a
+shows the optimal policy under the tester’s reward function,
+R(s) = 50·1green(s)− 1·1white(s)− 50·1blue(s), where
+1color(s) is an indicator feature for the color of the grid
+cell. Shown in ﬁgures 3b and 3c are the two preference
+queries generated by ARP-pref which consist of pairwise
+
+--- PDF page 8 ---
+Value Alignment Veriﬁcation
+trajectory queries (black is preferable to orange under R).
+Preference query 1 veriﬁes that the robot would rather move
+the to terminal state (green) rather than visit more white
+cells. Preference query 2 veriﬁes that the robot would rather
+visit white cells than blue cells. Figures 3d, 3e, and 3f show
+action query tests designed using the ARP-bb, SCOT, and
+CS heuristics. The robot is asked which action its policy
+would take in each of the states marked with a question
+mark. To pass the test, the agent must respond with an
+optimal action under the human’s policy in each of these
+states. ARP-bb chooses two states based on the half-space
+constraints deﬁned by the expected feature counts of π∗
+R,
+resulting in an small but myopic test. SCOT queries over a
+maximally informative trajectory that starts near the water,
+but includes several redundant states. CS only reasons about
+Q-value differences and asks many redundant queries (see
+Appendix D for more results).
+5.1.2. S ENSITIVITY ANALYSIS
+We also analyze the accuracy and efﬁciency of value align-
+ment veriﬁcation in theexplicit human, explicit robot and
+explicit human, implicit robot settings for verifying exact
+value alignment. We analyze performance across a suite
+of random grid navigation domains with varying numbers
+of states and reward features. We summarize our results
+here and refer the reader to Appendix E for more details.
+As expected, ARP-w and ARP-pref result in perfect accu-
+racy. SCOT has uses fewer samples than the CS heuristic
+while achieving nearly perfect accuracy. ARP-bb results
+in higher accuracy tests, but generates more false positives
+than SCOT. CS has signiﬁcantly higher sample cost than the
+other methods and requires careful tuning of the threshold
+t to obtain good performance. Our results indicate that in
+the implicit robot setting, ARP-pref and ARP-bb provide
+highly efﬁcient veriﬁcation tests. Out of the action query
+heuristics, SCOT achieved the highest accuracy, while hav-
+ing larger sample complexity than ARP-bb, but achieving
+lower sample complexity than CS.
+5.2. Value Alignment Veriﬁcation with Implicit Human
+We next analyze approximate value alignment veriﬁcation
+in the continuous autonomous driving domain from Sadigh
+et al. (2017), shown in Figure 4a, where we study the im-
+plicit human, implicit robot setting and consider verifying
+ϵ-value alignment. As depicted in Figure 1 we analyze the
+use of active preference elicitation (Bıyık et al., 2019) to
+perform value alignment veriﬁcation withimplicit human
+values. We ﬁrst analyze implicit value alignment veriﬁca-
+tion using preference queries to a synthetic human oracle
+unobserved ground-truth reward functionR.
+We collected varying numbers of oracle preferences, and
+computed a non-redundant ϵ-alignment test as described
+in 4.5 and Appendix G.2. Tests were evaluated for accuracy
+relative to a set of test reward weights. See Appendix G for
+experimental parameters and details of the testing reward
+generation protocol. Figure 4b displays the results of the
+synthetic human experiments. The best tests achieved 100%
+accuracy. Although collecting additional synthetic human
+queries consistently improved veriﬁcation accuracy, above
+50 human queries, accuracy gains were minimal, demon-
+strating the potential for human-in-the-loop preference elic-
+itation. Furthermore, the generated veriﬁcation tests were
+often succinct: one of the tests with perfect accuracy re-
+quired only six questions out of the original 100 elicited
+preferences. Additional experiments and results are detailed
+in Appendix G, including false positive and false negative
+rate plots, and different methods of estimating the value gap
+of questions. We also ran an initial pilot study using real
+human preference labels which resulted in a veriﬁcation test
+that achieves 72% accuracy.
+6. Generalization to Multiple MDPs
+Up to this point, we have considered designing value align-
+ment tests for a single MDP; however, it is also interesting
+to try and design value alignment veriﬁcation tests that en-
+able generalization, e.g., if a robot passes the test, then this
+veriﬁes value alignment across many different MDPs.
+As a step towards this goal, we present a result in theexplicit
+human, explicit robot setting where the human can construct
+testing environments. We consider the idealized setting of an
+omnipotent tester that is able to construct a set of arbitrary
+test MDPs and can query directly for the entire optimal
+policy of the robot in each MDP. This tester aims to verify
+value alignment across an inﬁnite family of environments
+that share the same reward function. Our result builds on
+prior analysis on the related problem of omnipotent active
+reward learning. Amin & Singh (2016) prove that an active
+learner can determine the reward function of another agent
+withinϵ precision viaO(log|S| + log(1/ϵ)) policy queries.
+By contrast, we prove in the following theorem that the
+sample complexity ofϵ-value alignment veriﬁcation is only
+O(1) (see Appendix A.5 for the proof).
+Theorem 2. Given a testing reward R (not necessarily
+linear in known features), there exists a two-query test (com-
+plexityO(1)) that determinesϵ-value alignment of a ratio-
+nal agent over all MDPs that share the same state space
+and reward functionR, but may differ in actions, transitions,
+discount factors, and initial state distribution.
+We also note that if the human has access a priori to a ﬁnite
+set of MDPs over which they want to verify value alignment,
+then our results from earlier sections on exact, heuristic,
+and approximate value alignment could be extended to this
+setting. For example, we can deﬁne a generalized aligned
+reward polytope for a family of MDPs as the intersection of
+
+--- PDF page 9 ---
+Value Alignment Veriﬁcation
+(a) Optimal policy
+ (b) Preference query 1
+ (c) Preference query 2
+ (d) ARP-bb queries
+ (e) SCOT queries
+ (f) CS queries
+Figure 3. Examples of exact and heuristic value alignment veriﬁcation tests for an island navigation gridworld (Leike et al., 2017). Only
+two preference queries (b) and (c) are required to provably verify any robot policy (black should be preferred over orange). Figures (d)-(f)
+show heuristic tests that query for actions at individual states.
+(a) Driving domain
+0.0 1.25 2.5 3.75 5.0
+ϵ
+0.0
+0.5
+1.0
+Accuracy
+n
+10
+25
+50
+100 (b) Alignment test accuracy vsϵ
+Figure 4. Implicit human, implicit robot: ϵ-value alignment
+veriﬁcation in a continuous autonomous driving domain. (a) A
+preference query. The human is asked if they prefer the blue or
+the red trajectory w.r.t. the trajectory of the white car. (b) 80%
+conﬁdence intervals on veriﬁcation accuracy for different values
+ofϵ, different human query budgetsn, averaged over ten seeds.
+the aligned reward polytope for each individual MDP. This
+intersection of half-spaces provides a sufﬁcient condition
+for testing value alignment across the entire family of MDPs.
+We leave this as a promising area for future work.
+7. Discussion
+We analyzed the problem of efﬁcient value alignment veri-
+ﬁcation: how to generate an efﬁcient test that can be used
+to verify the value alignment of another agent with respect
+to the human’s reward function. We developed a theoretical
+foundation for value alignment veriﬁcation and proved suf-
+ﬁcient conditions for verifying the alignment of a rational
+agent under explicit and implicit values for both the human
+and robot. Our empirical analysis demonstrates that action
+query heuristics can achieve low sample complexity and
+high accuracy while only requiring black-box access to an
+agent’s policy. When the human has only implicit access
+to their values, we analyzed active preference elicitation
+algorithms as a potential means to automatically construct
+an approximate value alignment test that can efﬁciently test
+another agent with implicit values.
+The biggest assumption we make is that the reward function
+is a linear combination of features shared by both the human
+and robot. We would like to emphasize three points: First,
+on representing rewards as linear combinations of features,
+note that the features can be arbitrarily complex, and can
+even be features learned via a deep neural network which
+are then linearly transformed by a ﬁnal linear layer (Brown
+et al., 2020). Second, there is the issue of the human and the
+robot sharing the features. The reason this might actually
+be a reasonable assumption is that recent techniques enable
+robots to detect when they cannot explain human input with
+their existing features and ask for new input speciﬁc to the
+missing features (Bobu et al., 2020; 2021), thereby explicitly
+aligning the robot’s reward representation with the human’s
+reward representation. Third, even if the features are not
+perfectly aligned, our approach can still provide value by
+learning a linear combination of features that approximates
+the human’s reward function to design an alignment test.
+Our pilot study with the driving simulation hints that this
+might be the case, as it gives evidence that value alignment
+veriﬁcation is possible when using real human preferences
+that are determined using pixel-based observations. Fur-
+thermore, the only true requirement for generating value
+alignment tests that query for robot actions or preferences is
+for the tester to have a reward function that can be approxi-
+mated by a linear combination of features. Thus, these tests
+could be possibly be applied in cases where a human uses a
+linear combination of learned or human-designed features
+to construct an approximate alignment test for robots who
+have pixel-based policies and/or rewards.
+In conclusion, we believe that value alignment veriﬁcation
+is an important problem of practical interest, as it seeks
+to enable humans to verify and build trust in AI systems.
+It may also be possible for a robot to use value alignment
+veriﬁcation to verify the performance of a human, e.g., AI-
+generated assessment tests. Future work also includes re-
+laxing rationality assumptions, analyzing value alignment
+veriﬁcation tests in more complex domains, and perform-
+ing a full user study to better analyze the use of human
+preferences for alignment veriﬁcation.
+Acknowledgements
+We would like to thank the ICML anonymous reviewers
+and Stephen Giguere for their suggestions for improving
+the paper. This has taken place in the Personal Autonomous
+Robotics Lab (PeARL) at The University of Texas at Austin
+and the InterACT Lab at the University of Berkeley, Califor-
+nia. PeARL research is supported in part by the NSF (IIS-
+1724157, IIS-1638107, IIS-1749204, IIS-1925082), ONR
+
+--- PDF page 10 ---
+Value Alignment Veriﬁcation
+(N00014-18-2243), AFOSR (FA9550-20-1-0077), and ARO
+(78372-CS). This research was also sponsored by the Army
+Research Ofﬁce under Cooperative Agreement Number
+W911NF-19-2-0333. InterACT Lab research is supported
+in part by AFOSR, NSF NRI SCHOOL, and ONR YIP. The
+views and conclusions contained in this document are those
+of the authors and should not be interpreted as representing
+the ofﬁcial policies, either expressed or implied, of the Army
+Research Ofﬁce or the U.S. Government. The U.S. Gov-
+ernment is authorized to reproduce and distribute reprints
+for Government purposes notwithstanding any copyright
+notation herein.
+References
+Abbeel, P. and Ng, A. Y . Apprenticeship learning via inverse
+reinforcement learning. In Proceedings of the twenty-ﬁrst
+international conference on Machine learning , pp. 1.
+ACM, 2004.
+Amin, K. and Singh, S. Towards resolving unidentiﬁa-
+bility in inverse reinforcement learning. arXiv preprint
+arXiv:1601.06569, 2016.
+Amin, K., Jiang, N., and Singh, S. Repeated inverse rein-
+forcement learning. In Advances in Neural Information
+Processing Systems, pp. 1815–1824, 2017.
+Amodei, D., Olah, C., Steinhardt, J., Christiano, P., Schul-
+man, J., and Mané, D. Concrete problems in ai safety.
+arXiv preprint arXiv:1606.06565, 2016.
+Arora, S. and Doshi, P. A survey of inverse reinforce-
+ment learning: Challenges, methods and progress. arXiv
+preprint arXiv:1806.06877, 2018.
+Barreto, A., Dabney, W., Munos, R., Hunt, J. J., Schaul, T.,
+van Hasselt, H. P., and Silver, D. Successor features for
+transfer in reinforcement learning. In Advances in neural
+information processing systems, pp. 4055–4065, 2017.
+Biyik, E. and Sadigh, D. Batch active preference-based
+learning of reward functions. PMLR, 2018.
+Bıyık, E., Palan, M., Landolﬁ, N. C., Losey, D. P., and
+Sadigh, D. Asking easy questions: A user-friendly ap-
+proach to active reward learning. In Conference on Robot
+Learning (CoRL), 2019.
+Bobu, A., Bajcsy, A., Fisac, J. F., Deglurkar, S., and Dragan,
+A. D. Quantifying hypothesis space misspeciﬁcation in
+learning from human–robot demonstrations and physical
+corrections. IEEE Transactions on Robotics, 36(3):835–
+854, 2020.
+Bobu, A., Wiggert, M., Tomlin, C., and Dragan, A. D. Fea-
+ture expansive reward learning: Rethinking human input.
+In Proceedings of the 2021 ACM/IEEE International Con-
+ference on Human-Robot Interaction, pp. 216–224, 2021.
+Brown, D. S. and Niekum, S. Machine teaching for inverse
+reinforcement learning: Algorithms and applications. In
+Proceedings of the AAAI Conference on Artiﬁcial Intelli-
+gence, volume 33, pp. 7749–7758, 2019.
+Brown, D. S., Goo, W., and Niekum, S. Better-than-
+demonstrator imitation learning via automaticaly-ranked
+demonstrations. In Conference on Robot Learning
+(CoRL), 2019.
+Brown, D. S., Niekum, S., Coleman, R., and Srinivasan,
+R. Safe imitation learning via fast bayesian reward infer-
+ence from preferences. In International Conference on
+Machine Learning. 2020.
+Cakmak, M. and Lopes, M. Algorithmic and human teach-
+ing of sequential decision tasks. In AAAI, 2012.
+Christiano, P. F., Leike, J., Brown, T., Martic, M., Legg,
+S., and Amodei, D. Deep reinforcement learning from
+human preferences. In Advances in Neural Information
+Processing Systems, pp. 4299–4307, 2017.
+Fisac, J. F., Gates, M. A., Hamrick, J. B., Liu, C., Hadﬁeld-
+Menell, D., Palaniappan, M., Malik, D., Sastry, S. S., Grif-
+ﬁths, T. L., and Dragan, A. D. Pragmatic-pedagogic value
+alignment. In Robotics Research, pp. 49–57. Springer,
+2020.
+Hadﬁeld-Menell, D., Russell, S. J., Abbeel, P., and Dragan,
+A. Cooperative inverse reinforcement learning. In Ad-
+vances in Neural Information Processing Systems 29, pp.
+3909–3917. 2016.
+Hanna, J. P., Stone, P., and Niekum, S. Bootstrapping with
+models: Conﬁdence intervals for off-policy evaluation.
+In Proceedings of the 16th Conference on Autonomous
+Agents and Multiagent Systems, 2017.
+Huang, S. H., Held, D., Abbeel, P., and Dragan, A. D.
+Enabling robots to communicate their objectives. In
+Robotics: Science and Systems, 2017.
+Huang, S. H., Bhatia, K., Abbeel, P., and Dragan, A. D.
+Establishing appropriate trust via critical states. In 2018
+IEEE/RSJ International Conference on Intelligent Robots
+and Systems (IROS), pp. 3929–3936. IEEE, 2018.
+Laskin, M., Srinivas, A., and Abbeel, P. Curl: Contrastive
+unsupervised representations for reinforcement learning.
+In International Conference on Machine Learning , pp.
+5639–5650. PMLR, 2020.
+Leike, J., Martic, M., Krakovna, V ., Ortega, P. A., Everitt,
+T., Lefrancq, A., Orseau, L., and Legg, S. Ai safety
+gridworlds. arXiv preprint arXiv:1711.09883, 2017.
+
+--- PDF page 11 ---
+Value Alignment Veriﬁcation
+Leike, J., Krueger, D., Everitt, T., Martic, M., Maini, V ., and
+Legg, S. Scalable agent alignment via reward modeling:
+a research direction. arXiv preprint arXiv:1811.07871,
+2018.
+Ng, A. Y . and Russell, S. J. Algorithms for inverse rein-
+forcement learning. In ICML, pp. 663–670, 2000.
+Paulraj, S., Sumathi, P., et al. A comparative study of redun-
+dant constraints identiﬁcation methods in linear program-
+ming problems. Mathematical Problems in Engineering,
+2010.
+Precup, D. Eligibility traces for off-policy policy evalua-
+tion. Computer Science Department Faculty Publication
+Series, pp. 80, 2000.
+Russell, S., Dewey, D., and Tegmark, M. Research prior-
+ities for robust and beneﬁcial artiﬁcial intelligence. Ai
+Magazine, 36(4):105–114, 2015.
+Russell, S. J. and Norvig, P.Artiﬁcial intelligence: a modern
+approach. Malaysia; Pearson Education Limited„ 2016.
+Sadigh, D., Dragan, A. D., Sastry, S. S., and Seshia, S. A.
+Active preference-based learning of reward functions. In
+Proceedings of Robotics: Science and Systems (RSS), July
+2017. doi: 10.15607/RSS.2017.XIII.053.
+Shah, R., Freire, P., Alex, N., Freedman, R., Krasheninnikov,
+D., Chan, L., Dennis, M., Abbeel, P., Dragan, A., and
+Russell, S. Beneﬁts of assistance over reward learning.
+Workshop on Cooperative AI (Cooperative AI @ NeurIPS,
+2020.
+Stone, P., Kaminka, G. A., Kraus, S., Rosenschein, J. S.,
+et al. Ad hoc autonomous agent teams: Collaboration
+without pre-coordination. In AAAI, 2010.
+Sutton, R. S. and Barto, A. G. Introduction to reinforcement
+learning, volume 135. MIT press Cambridge, 1998.
+Thomas, P. S., Theocharous, G., and Ghavamzadeh, M.
+High-conﬁdence off-policy evaluation. InAAAI, pp. 3000–
+3006, 2015.
+Wirth, C., Akrour, R., Neumann, G., Fürnkranz, J., et al. A
+survey of preference-based reinforcement learning meth-
+ods. Journal of Machine Learning Research , 18(136):
+1–46, 2017.
+Zhu, X., Singla, A., Zilles, S., and Rafferty, A. N.
+An overview of machine teaching. arXiv preprint
+arXiv:1801.05927, 2018.
+Ziebart, B. D., Maas, A. L., Bagnell, J. A., and Dey, A. K.
+Maximum entropy inverse reinforcement learning. In
+AAAI, 2008.
+
+--- PDF page 12 ---
+Value Alignment Veriﬁcation
+A. Theory and Proofs
+A.1. Value Alignment Veriﬁcation of Black-Box Agents
+Deﬁnition 1 makes no assumptions about the robot agent except that it acts according to some policy π′. Given this
+assumption, how can a tester with reward functionR efﬁciently solve the value alignment veriﬁcation problem? A brute
+force attempt at veriﬁcation would be to queryπ′(s) at every state. However, querying the robot’s policy at every state is
+expensive for discrete problems, and impossible for many real-world problems with continuous state-spaces. If we are
+able to query for action probabilities at every state, then for discrete MDPs we can verify value alignment by checking
+whether{a|π′(a|s)> 0}⊆ arg maxaQ∗
+R∗(s,a ),∀s∈S . However, in the case of black-box value alignment veriﬁcation
+where the tester only has sample access to the robot’s policy without any additional assumptions about policy structure or
+rationality, we have the following impossibility result:
+Proposition 1. Even in a ﬁnite MDP (i.e.,|S|,|A| <∞), exact value alignment veriﬁcation via sampling or observing
+actions from a black-box policyπ′ is impossible in a ﬁnite number of queries.
+Proof. Consider the robot policyπ′ that takes actions uniformly at random and assume that the tester’s reward function is
+non-trivial, i.e.,¬∃c∈ R,∀s∈S ,R (s) = c. Given a ﬁnite number of queries, there is a (∑
+a∈arg maxaQ∗
+R(s,a)π(a|s))n
+probability that every time the policy is queried at a states it will select any optimal actiona∈ arg maxaQ∗
+R(s,a ). This
+proves the existence of a non-value aligned policyπ′ that has non-zero probability of being certiﬁed as value aligned. In the
+worst-case, almost surely verifying the value alignment of a policy requires an inﬁnite number of policy queries.
+A.2. Value Alignment for Rational Agents
+We deﬁneOPT (R) ={π|∀π∈ Π,π (a|s)> 0⇒a∈ arg maxaQ∗
+R(s,a )}, the set of all optimal (potentially stochastic)
+policies in MDP M = (E,R ) where arg maxxf(x) := {x| f(y)≤ f(x),∀y} is the set of all function maximizing
+arguments. We now prove the following:
+Corollary 1. We have exact value alignment in environmentE between a rational robot with reward functionR′ and a
+human with reward functionR ifOPT (R′)⊆OPT (R).
+Proof. IfOPT (R′)⊆ OPT (R) then since π′∈ OPT (R′) we haveπ′∈ OPT (R). By construction, if a policy is in
+OPT (R) then it is optimal underR, and so exact alignment immediately follows.
+A.3. Value Alignment Veriﬁcation with Explicit Values
+In this section we prove the main theorem of our paper, that efﬁcient exact value alignment veriﬁcation is possible in many
+settings. We start with a lemma, equivalent to the case where we have query access to the robot’s reward function. We will
+reduce many of the cases of Theorem 1 to this case.
+Lemma 1. Given an MDPM = (E,R ), assuming the human’s reward functionR, and the robot’s reward functionR′
+can be represented as linear combinations of featuresφ(s)∈ Rk, i.e.,R(s) = wTφ(s),R′(s) = w′Tφ(s), and given an
+optimal policyπ∗
+R underR then
+w′∈
+⋂
+(s,a,b)∈O
+HR
+s,a,b =⇒ R′∈ARS(R) (12)
+whereHR
+s,a,b =
+{
+w| wT (Φ(s,a)
+π∗
+R
+− Φ(s,b)
+π∗
+R
+)> 0
+}
+andO ={(s,a,b )|s∈S ,a∈A R(s),b /∈A R(s)} .
+Proof. We will prove that⋂
+(s,a,b)∈OHR
+s,a,b⊆ARS(R). Consider an arbitrary w′∈⋂
+(s,a,b)∈OHR
+s,a,b. By assumption
+we have that
+∀s∈S ,∀a∈A R,b /∈A R, w′T Φ(s,a)
+π∗
+R
+> w′T Φ(s,b)
+π∗
+R
+(13)
+Qπ∗
+R
+R′ (s,a )>Q π∗
+R
+R′ (s,b ) (14)
+
+--- PDF page 13 ---
+Value Alignment Veriﬁcation
+UnderR′ the Q-value of all actions thatπ∗
+R does not take are strictly worse than that of the actions that it does take, and so
+π∗
+R is optimal underR′ by the policy improvement theorem.
+Sinceπ∗
+R is optimal underR′,Qπ∗
+R
+R′ (s,a ) =Q∗
+R′(s,a ). Thus Eq. 14 becomes
+∀s∈S ,∀a∈A R,b /∈A R,Q∗
+R′(s,a )>Q∗
+R′(s,b ) (15)
+Now consider an arbitrary optimal policy underR′, call itπ∗
+R′. Assume for contradiction thatπ∗
+R′ /∈OPT (R). Therefore,
+there existss∈S ,a∈A R(s), andb /∈A R(s) such thatQ∗
+R′(s,b )≥ Q∗
+R′(s,a ). However, this contradicts (15). Thus,
+we haveπ∗
+R′∈OPT (R) and sinceπ∗
+R′ was assumed to be any optimal policy underR′, we have w′∈⋂
+(s,a,b)∈OHR
+s,a,b
+impliesOPT (R′)⊆OPT (R) and so⋂
+(s,a,b)∈OHR
+s,a,b⊆ARS(R) by Deﬁnition 3.
+We now prove the full theorem.
+Theorem 1. Under the assumption of a rational robot that shares linear reward features with the human, efﬁcient exact
+value alignment veriﬁcation is possible in the following query settings: (1) Query access to reward function weights w′, (2)
+Query access to samples of the reward functionR′(s), (3) Query access toV∗
+R′(s) andQ∗
+R′(s,a ), and (4) Query access to
+preferences over trajectories.
+Proof. The proof of case (1) follows directly from Lemma 1.
+In case (2), the tester can query for samples of the reward functionR′(s). If the tester only has query access toR′(s), then
+the weight vector w′ can be recovered by solving a linear system.
+R′
+sample =
+
+
+...
+R(si)
+...
+
+ = Φsamplew′ =
+
+
+...
+Φ(si)
+...
+
+ w′ (16)
+This system is guaranteed to have a unique solution if rank(Φsample) =k i.e. Φsample is full column rank. If Φ, the matrix
+of features at every state, is full column rank, then there is a subset ofk rows which is also full column rank. If Φ is not
+full column rank, then there is some feature columnφi which is a linear combination of other feature columns, and so can
+be removed from the test without affecting the predicted alignment of any policy. Features can be safely removed in this
+manner until the remaining columns are linearly independent. Thus for any environment there is a set ofk states which one
+can queryR′(s) at in order to recover a sufﬁcient subset of the reward weights for value alignment purposes. Note that this
+also works for rewards that are functions of (s,a ) and (s,a,s′).
+IfR′(s) is a stochastic function, then linear regression can be used to efﬁciently estimate the robot’s weight vectorw′. After
+recovering the weight vector, the same value alignment test used for case (1) can be used.
+In case (3) the tester has access to the value functions of the robot. If the tester can query the robot agent’s value function
+thenR(s) can be recovered from the Bellman equation
+R(s) =Q∗
+R(s,a )−γEs′|s,a [V∗
+R(s′)] (17)
+Computing the expectation requires enumerating successor states. If we deﬁne the maximum degree of the MDP transition
+function as
+dmax = max
+s∈S,a∈A
+|{s′∈S| P (s,a,s′)> 0}|, (18)
+then at most thedmax possible next state value queries are needed to evaluate the expectation. Thus, at mostrank(Φ)(dmax +
+1) queries to the robot’s value functions are needed to recoverw′, and the tester can verify value alignment via Case (1).
+Since rank(Φ)≤k as before, at mostk(dmax + 1) queries are required.
+In case (4), the tester only has access to the robot’s values via preference queries over trajectories. If the robot agent being
+tested can answer pairwise preferences over trajectories, then a value alignment test can also be tested via an approximation
+
+--- PDF page 14 ---
+Value Alignment Veriﬁcation
+of the ARP. Each preference over trajectoriesξA≺ ξB induces the constraint wT (ξB−ξA) > 0. Thus, given a testT
+consisting of preferences over trajectories, we can guarantee value alignment if
+{w| wT (ξB−ξA)> 0,∀(ξA,ξB)∈T}⊆ ARS(w). (19)
+Note that a single trajectory in general will not actually match the successor features of a stochastic policy. However, by
+synthesizing arbitrary trajectories we can create more half-space constraints than are used to deﬁne the ARP since these
+trajectories do not need to be the product of a rational policy. As more trajectory queries are asked the estimate of the ARP
+will approach a subset of the true ARP. Brown et al. (Brown et al., 2019) proved that given random halfplane constraints,
+the volume of the polytope will decrease exponentially. Thus we will need a logarithmic number of queries to accurately
+approximate the ARP.
+A.4. Relationship of the ARP to Ng and Russell’s Consistent Reward Sets
+In this section we discuss the relationship between our approach and the foundational work on IRL by Ng and Russell (Ng
+& Russell, 2000).
+We deﬁne the set of rewards consistent with an optimal policy as follows:
+Deﬁnition 2. Given an environmentE, the consistent reward set (CRS) of a policyπ in environmentE is deﬁned as the set
+of reward functions under whichπ is optimal:
+CRS(π) ={w∈ Rk|π is optimal with respect toR(s) = wTφ(s)}. (20)
+The fundamental theorem of inverse reinforcement learning (Ng & Russell, 2000), deﬁnes the set of all consistent reward
+functions as a set of linear inequalities for ﬁnite MDPs.
+Proposition 2. (Ng & Russell, 2000) Given an environmentE, with ﬁnite state and action spaces, R∈ CRS(π) if and only
+if
+(Pπ− Pa)(I−γPπ)−1R≥ 0,∀a∈A (21)
+where Pa is the transition matrix associated with always taking actiona, Pπ is the transition matrix associated with policy
+π, and R is the column vector of rewards for each state in the MDP .
+When the reward function is a linear combination of features, we get the following:
+Corollary 2. (Ng & Russell, 2000; Brown & Niekum, 2019) Given an environmentE, theCRS(π) is given by the following
+intersection of half-spaces:
+{w∈ Rk| wT (Φ(s,a)
+π − Φ(s,b)
+π )≥ 0,∀a∈ support(π(s)),b∈A,s∈S} . (22)
+Proof. In every states there is one or more optimal actionsa. For each optimal action a∈ support(π(s)), we then have by
+deﬁnition of optimality that
+Q∗(s,a )≥Q∗(s,b ),∀b∈A (23)
+Rewriting this in terms of expected discounted feature counts we have
+wT Φ(s,a)
+π ≥ wT Φ(s,b)
+π ,∀b∈A (24)
+Thus, the entire feasible region is the intersection of the following half-spaces
+wT (Φ(s,a)
+π − Φ(s,b)
+π )≥ 0, (25)
+∀a∈ support(π(s)),b∈A,s∈S (26)
+and thus the feasible region is convex.
+The consistent reward set of a demonstration from an optimal policy can be deﬁned similarly:
+
+--- PDF page 15 ---
+Value Alignment Veriﬁcation
+Corollary 3. (Brown & Niekum, 2019) Given a set of demonstrations D from a policy π, CRS(D|π) is given by the
+following intersection of half-spaces:
+wT (Φ(s,a)
+π − Φ(s,b)
+π )≥ 0,∀(s,a )∈D,b∈A. (27)
+Proof. The proof follows from the proof of 2 by only considering half-spaces corresponding to optimal (s,a ) pairs in the
+demonstration.
+Note that Corollary 2 does not solve the alignment veriﬁcation problem. It only provides a necessary, but not sufﬁcient
+condition. If a reward function is within the CRS of a policy dot not imply all agents optimal under that reward function are
+aligned. Consider the example of the all zero reward: it is always in the CRS of any policy; however, an agent optimizing
+the zero reward can end up with any policy. Even ignoring the all zero reward we can have rewards on the boundaries of the
+CRS polytope that are consistent with a policy, but not value aligned since they lead to more than one optimal policy, one or
+more of which may not be optimal under the tester’s reward function.
+A.5. Proof of Theorem 2:ϵ-Alignment Veriﬁcation via Omnipotent Testing
+In this section we consider what is possible in the omnipotent tester case where a tester can design a set of test MDPs in
+order to verify alignment over a (potentially inﬁnite) family of MDPs that share reward information. We are able to prove
+that, under some assumptions, alignment over a family of MDPs is possible by querying a complete policy in only two test
+MDPs.
+More formally, we consider the case where the testing agent is able to construct a set of arbitrary test MDPs to verify value
+alignment across a family of environments that may have different transitions, actions, initial state distribution, and discount
+factor, but that share the same reward function over states. Amin and Sing (Amin & Singh, 2016) prove that an omnipotent
+active learner can determine the reward function of another agent within ϵ precision via O(log(|S|) + log(1/ϵ)) active
+policy queries. We extend this result to the case ofϵ-value alignment veriﬁcation.
+Before we prove Theorem (2), we require the following Lemma, which proves that if two agents’ reward functions are
+similar enough (in anL∞ sense) then we can guaranteeϵ-value alignment.
+Lemma 2. If∥R(s)−R′(s)∥∞≤ϵ(1−γ)/2, whereγ is the discount factor andϵ is any non-negative error term, then
+rational agents that have reward functions R(s) andR′(s) areϵ-value aligned across all MDPs that share the reward
+functionR(s).
+Proof. Forπ′∈ OPT (R′) to beϵ-value aligned under the humans’ reward function R we must have∀s∈S ,V∗
+R(s)−
+Vπ′
+R (s)≤ϵ. To prove the lemma we must show that an adversary that picksR′ within the constraint∥R(s)−R′(s)∥∞≤
+ϵ(1−γ)/2 cannot violate the alignment condition in any MDP.
+The adversary wants to maximizeV∗
+R(s)−Vπ′
+R (s) at some state. Letπ∗
+R∈OPT (R) be an optimal policy underR. Since
+π′ is optimal underR′, we haveVπ∗
+R
+R′ (s)−Vπ′
+R′ (s)≤ 0. We will show bounds on the maximum gap betweenVR′ andVR
+for both policies, and use those bounds in combination with the above inequality to show thatV∗
+R(s)−Vπ′
+R (s)≤ϵ. The
+adversary would like the resulting upper bound to be as large as possible, which is achieved by making Vπ∗
+R
+R as large as
+possible andVπ′
+R as small as possible, which is in turn achieved by making Vπ∗
+R
+R′ as small as possible in relationship to
+Vπ∗
+R
+R and vice versa forVπ′
+R′ . Thus the adversary createsR′ by subtracting the maximumϵ(1−γ)/2 from the true reward
+(R′(s) =R(s)−ϵ(1−γ)/2) at states visited byπ∗
+R to make them look as bad as possible and addingϵ(1−γ)/2 to the
+true reward (R′(s) =R(s) +ϵ(1−γ)/2) at states visited byπ′ look as good as possible. If π∗
+R andπ′ visit some of the
+
+--- PDF page 16 ---
+Value Alignment Veriﬁcation
+same states, this assignment ofR′(s) isn’t possible, but this only tightens our bound. Thus, we have in the worst-case
+Vπ∗
+R
+R′ = E[
+∞∑
+t=0
+γtR′(st)|st∼π∗
+R] (28)
+≥ E[
+∞∑
+t=0
+γt (R(st)−ϵ(1−γ)/2)|st∼π∗
+R] (29)
+≥Vπ∗
+R
+R − ϵ(1−γ)
+2(1−γ) (30)
+≥Vπ∗
+R
+R − ϵ
+2 (31)
+and
+Vπ′
+R′ = E[
+∞∑
+t=0
+γtR′(st)|st∼π′] (32)
+≤ E[
+∞∑
+t=0
+γt (R(st) +ϵ(1−γ)/2)|st∼π′] (33)
+≤Vπ′
+R + ϵ(1−γ)
+2(1−γ) (34)
+≤Vπ′
+R + ϵ
+2 (35)
+As noted above we haveVπ∗
+R
+R′ (s)≤Vπ′
+R′ (s) sinceπ′ is optimal underR′. Substituting the above bounds provides that
+Vπ∗
+R
+R′ (s)≤Vπ′
+R′ (s) (36)
+Vπ∗
+R
+R (s)−ϵ/2≤Vπ′
+R (s) +ϵ/2 (37)
+Vπ∗
+R
+R (s)−Vπ′
+R (s)≤ϵ (38)
+Thus, we have shown that under the assumption that∥R(s)−R′(s)∥∞≤ϵ(1−γ)/2, then the robot agent with reward
+functionR′ isϵ-value aligned with the tester’s reward functionR under all possible MDPs that share the reward function
+R.
+Note that if we scale the reward of an agent by a positive constant or by a constant vector, we can get the difference to look
+arbitrarily large even if the two rewards lead to the same optimal policy. This is undesirable for computing value alignment
+in terms of reward differences. Comparing rewards in this way works best if they are similarly normalized. We utilize a
+canonical form for reward functions deﬁned by the transformation(R(s)− maxsR(s))/(maxsR(s)− minsR(s)) such
+that the values of the reward function are scaled to be between 0 and 1 (Amin & Singh, 2016). Following the notation of
+Amin and Singh (Amin & Singh, 2016) we use [R] to denote the canonical form for reward functionR. Note that we will
+not assume access to the canonical form of the robot’s reward function. Indeed we assume no direct access to this reward
+function.
+Given the ability to construct arbitrary testing environments, we can guaranteeϵ-value alignment over all MDPs that share
+the reward functionR. The following theorem is inspired by Amin and Singh (Amin & Singh, 2016) who prove an analogous
+theorem for the case of actively querying an expert’s policy to approximate the expert’s reward function. The proof of Amin
+and Singh (Amin & Singh, 2016) relies on binary search and the query algorithm they derive results in query complexity of
+O(log(|S|) + log(1/ϵ)), where each query requires the expert to specify a complete policy for a new MDP. In contrast, our
+proof is based instead on machine testing, and we prove that in the case of value alignment veriﬁcation we only requireO(1)
+policy queries. In fact we only need two test MDPs with policy queries.
+
+--- PDF page 17 ---
+Value Alignment Veriﬁcation
+Theorem 2. Given a testing rewardR, there exists a two-query test (complexityO(1)) that determinesϵ-value alignment of
+a rational agent over all MDPs that share the same state space and reward functionR, but may differ in actions, transitions,
+discount factors, and initial state distribution.
+Proof. By Lemma 2 we want a test that guarantees∥[R′]− [R]∥∞≤ϵ(1−γ)/2. Thus we need to show that
+|[R′](s)− [R](s)|≤ ϵ(1−γ)/2,∀s∈S (39)
+which implies that
+[R](s)−ϵ(1−γ)/2≤ [R′](s)≤ [R](s) +ϵ(1−γ)/2,∀s∈S. (40)
+We use the notation [R] and [R′] to represent the canonical versions ofR andR′, the tester’s and robot’s reward functions,
+respectively. If we can directly query forR′, then we simply compute∥R−R′∥∞ and check if it is less thanϵ(1−γ)/2.
+We now consider the case where we can only query the robot’s policy. We deﬁne smax = arg maxsR(s) andsmin =
+arg minsR(s) ands′
+max = arg maxsR′(s) ands′
+min = arg minsR′(s).
+We ﬁrst cover the simple case where we only have two states: smin andsmax. In this case, we can construct an MDP
+with two actions: a1 that always leads to smin anda2 which always leads to smax. We then can verify value alignment
+veriﬁcation by asking for the robot’s optimal policy and checking thata2 is always preferred overa1. Note that if the robot
+has more than two actions, we can simply make all remaining actions equivalent to eithera1 ora2 since the tester has full
+control over the transition dynamics.
+We now consider the general case where there are more than two states. We create two testing environments such that from
+each state there is an actiona1 that self transitions and an actiona2 that goes from each state tosmax with probabilityαs and
+tosmin with probability (1−αs), except in statessmin andsmax in which all transitions viaa1 anda2 are self transitions.
+Thus, taking actiona2 represents a gamble between the states with minimum and maximum reward under the tester’s reward
+functionR. Fors∈S\{smax,s min}, we design two different transition dynamics with the parametersαU andαL such
+thatαL
+s = max([R](s)− ϵ(1−γ)
+2 , 0) andαU
+s = min([R](s) + ϵ(1−γ)
+2 , 1). Then we construct two test environmentsEL and
+EU .L hasαL as the transitions andU hasαU as the transitions. We then query the robot for its optimal policy in both test
+environments and use the policy to answer the two test questions:
+1. Is π(s) =a1,∀s∈S\{smin,s max} in MDPL?
+2. Is π(s) =a2,∀s∈S\{smin,s max} in MDPU?
+If the agent answers "YES" to the ﬁrst question, then∀s∈S\{smax,s min} we know thata1 is at lest as good asa2. Thus
+the agent prefers to self transition at a state rather than take actiona2 which leads to a stochastic transitions to eithersmax or
+smin. Thus, under the robot’s unknown rewardR′ the following inequality holds for alls∈S\{smax,s min}:
+αL
+sR′(smax) + (1−αL
+s )R′(smin)≤R′(s) (41)
+⇔ αL
+sR′(smax) + (1−αL
+s )R′(smin)−R′(s′
+min)≤R′(s)−R′(s′
+min) (42)
+⇔ αL
+s (R′(smax)−R′(s′
+min)) + (1−αL
+s )(R′(smin)−R′(s′
+min))≤R′(s)−R′(s′
+min) (43)
+⇔ αL
+s
+R′(smax)−R′(s′
+min)
+R′(s′max)−R′(s′
+min) + (1−αL
+s )R′(smin)−R′(s′
+min)
+R′(s′max)−R′(s′
+min)≤ R′(s)−R′(s′
+min)
+R′(s′max)−R′(s′
+min) (44)
+⇔ αL
+s [R′](smax) + (1−αL
+s )[R′](smin)≤ [R′](s). (45)
+and similarly, if the agent answers "YES" to question 2, we have
+R′(s)≤αU
+sR′(smax) + (1−αU
+s )R′(smin) (46)
+⇔ [R′](s)≤αU
+s [R′](smax) + (1−αU
+s )[R′](smin). (47)
+These above inequalities hold for alls∈S\{ smax,s min}.
+We now prove that answering "YES" to both questions 1 and 2 also means thats′
+max≡ maxsR′(s) = maxsR(s)≡smax
+ands′
+min≡ minsR′(s) = minsR(s)≡smin. We assume that ϵ(1−γ)
+2 < 0.5 and thus consider three cases for the values of
+αL
+s = max([R](s)− ϵ(1−γ)
+2 , 0) andαU
+s = min([R](s) + ϵ(1−γ)
+2 , 1)
+
+--- PDF page 18 ---
+Value Alignment Veriﬁcation
+1. αL
+s = 0 andαU
+s = [R](s) + ϵ(1−γ)
+2
+2. αL
+s = [R](s)− ϵ(1−γ)
+2 andαU
+s = [R](s) + ϵ(1−γ)
+2
+3. αL
+s = [R](s)− ϵ(1−γ)
+2 andαU
+s = 1
+Case 1: We haveαL
+s = 0, thus. If the robot answers YES to question 1, we have
+αL
+s [R′](smax) + (1−αL
+s )[R′](smin)≤ [R′](s) (48)
+⇒ [R′](smin)≤ [R′](s) (49)
+We also have
+[R′](s)≤αU
+s [R′](smax) + (1−αU
+s )[R′](smin). (50)
+plugging in the value in Equation (49) we have
+[R′](s)≤αU
+s [R′](smax) + (1−αU
+s )[R′](s) (51)
+⇒ [R′](s)− (1−αU
+s )[R′](s)≤αU
+s [R′](smax) (52)
+⇒ [R′](s)≤ [R′](smax) (53)
+Case 2: We haveαL
+s = [R](s)− ϵ(1−γ)
+2 andαU
+s = [R](s) + ϵ(1−γ)
+2 . Plugging these into Equation (45) we have
+αL
+s [R′](smax) + (1−αL
+s )[R′](smin)≤ [R′](s) (54)
+⇒ [R′](smin)≤ 1
+(1−αLs )
+(
+[R′](s)−αL
+s [R′](smax)
+)
+(55)
+Plugging this into the following equation, yields:
+[R′](s)≤αU
+s [R′](smax) + (1−αU
+s )[R′](smin) (56)
+⇒ [R′](s)≤αU
+s [R′](smax) + (1−αU
+s )
+( 1
+(1−αLs )
+(
+[R′](s)−αL
+s [R′](smax)
+))
+(57)
+⇒ (1−αL
+s )[R′](s)≤ (1−αL
+s )αU
+s [R′](smax) + (1−αU
+s )
+(
+[R′](s)−αL
+s [R′](smax)
+)
+(58)
+Plugging the values forαL
+s andαU
+s for Case 2 and reducing the resulting algebraic equation results in
+[R′](s)≤ [R′](smax) (59)
+We then plug this value into Equation (54) we get
+αL
+s [R′](smax) + (1−αL
+s )[R′](smin)≤ [R′](s) (60)
+⇒ αL
+s [R′](s) + (1−αL
+s )[R′](smin)≤ [R′](s) (61)
+⇒ [R′](smin)≤ [R′](s). (62)
+Case 3: We haveαL
+s = [R](s)− ϵ(1−γ)
+2 andαU
+s = 1. Thus,
+[R′](s)≤αU
+s [R′](smax) + (1−αU
+s )[R′](smin) (63)
+⇒ [R′](s)≤ [R′](smax). (64)
+Plugging this into the following equation yields:
+αL
+s [R′](smax) + (1−αL
+s )[R′](smin)≤ [R′](s) (65)
+⇒ αL
+s [R′](s) + (1−αL
+s )[R′](smin)≤ [R′](s) (66)
+⇒ [R′](smin)≤ [R′](s) (67)
+(68)
+
+--- PDF page 19 ---
+Value Alignment Veriﬁcation
+Thus, for every states∈S\{ smax,s min}, we have proved that we always have
+[R′](smin)≤ [R′](s)≤ [R′](smax). (69)
+Therefore, it must be the case that s′
+max≡ maxsR′(s) = maxsR(s)≡ smax ands′
+min≡ minsR′(s) = minsR(s)≡
+smin.
+Combining the above results we have (assuming the robot answers "YES" to questions 1 and 2) that [R](smax) =
+[R′](smax) = 1 and [R](smin) = [R′](smin) = 0. Additionally, for the remaining states, s∈S\{ smax,s min}, we have
+that
+αL
+sR′(smax) + (1−αL
+s )R′(smin)≤R′(s)≤αU
+sR′(smax) + (1−αU
+s )R′(smin) (70)
+⇒ αL
+s [R′](smax) + (1−αL
+s )[R′](smin)≤ [R′](s)≤αU
+s [R′](smax) + (1−αU
+s )[R′](smin)
+⇒ αL
+s ≤ [R′](s)≤αU
+s (71)
+⇒ max([R](s)−ϵ(1−γ)/2, 0)≤ [R′](s)≤ min([R](s) +ϵ(1−γ)/2, 1) (72)
+⇒ |[R′](s)− [R](s)|≤ ϵ(1−γ)/2. (73)
+Thus, we have∥[R′]− [R]∥∞≤ϵ(1−γ)/2 so by Lemma 2 we have veriﬁedϵ-value alignment via two policy preference
+queries as desired.
+B. Value Alignment Veriﬁcation for Action Queries
+In this section we discuss the difﬁculty of solving Equation (2) directly to ﬁnd which states to query for actions. The
+approach detailed here will generally be intractable, but motivates the tractable heuristics discussed in Section 4.4.
+We consider the problem of ﬁnding a subset of states where we will query the robot for an action they would take at that
+state. We want to optimize the following objective (copied from the main text for convenience):
+min
+T⊆T
+|T|, s.t.∀π′∈ Π, (74)
+V∗
+R(s)−Vπ′
+R (s)>ϵ ⇒Pr [π′ passes testT ]≤δfpr
+V∗
+R(s)−Vπ′
+R (s)≤ϵ⇒Pr [π′ fails testT ]≤δfnr
+where the choice setT⊂T is the set of states where we query for actions from the robot’s policy. We seek to use these
+actions to verify value alignment. Furthermore, we want to precompute a single test that will certify any agent.
+We will discuss a naive approach that motivates our heuristics from Section 4.4. We propose a breadth-ﬁrst search to ﬁnd the
+optimal set of test states for action queries.
+First we need to establish how likely detecting ϵ-misalignment from a single action query at each state is. Consider all
+the reward functions that have a policy that is rational under that reward function but is ϵ-value misaligned under R:
+R′ ={R′|∃π′,π′∈OPT (R′),π′ isϵ− misalignedunderR}. For each policy optimal under a reward inR′, rollout that
+policy at every stateN times. From this we can obtain a Monte-Carlo estimate of the probability of detecting the robot is
+ϵ-misaligned by taking the ratio of rollouts where the robot takes anϵ-misaligned actionb such that
+Q∗
+R(s,π∗
+R(s))−Q∗
+R(s,b )>ϵ, (75)
+to the number of rolloutsN.
+We now perform breadth-ﬁrst search to search to solve the combinatorial optimization problem of determining the subset of
+states that allow high-conﬁdence value alignment veriﬁcation. We use breadth-ﬁrst search since we are interested in ﬁnding
+the minimal number of states to test such that we can detect all non-aligned agents with probability at leastδfpr. We start
+with tests consisting of only one state and grow them via breadth-ﬁrst search. The goal condition is that the probability the
+test fails to detect a misaligned agent is less thanδfpr. We can deﬁne this probability as
+max
+π′∈Π′
+Pr [π′ passes test T] = max
+π′∈Π′
+∏
+s∈T
+(
+1−Pr (π′ detected ats)
+)
+, (76)
+
+--- PDF page 20 ---
+Value Alignment Veriﬁcation
+where Π′ is the set ofϵ misaligned policies underR.
+Thus, we perform breadth-ﬁrst graph search, where the search progressively explored all subsets of states starting with
+singletons and returns the ﬁrst subset of states such thatmaxπ′∈Π′Pr [π′ passes test T]<δ fpr. Note that the above test will
+never fail anϵ-value aligned agent, since all such agents will never take an actionb that satisﬁes Equation(75) by deﬁnition.
+Thus, we haveδfnr = 0. If we are willing to allow some false negatives (the test is allowed to fail someϵ-aligned agents),
+then we can adjust the test by keeping track of all policies that areϵ-value aligned and computing an analogous probability
+to that above for false positives.
+While the above procedure will work for the simplest of domains it has several fundamental drawbacks: (1) We need to
+enumerate all policies in Π and check whether they areϵ-value aligned or not, (2) We need to run multiple rollouts from
+eachϵ-misaligned policy over multiple states to compute Pr (π′ detected ats) for every state, (3) We have to then run
+a combinatorial optimization. In comparison, the action query heuristics we discuss in the paper only require solving a
+single MDP for an optimal policy under the human’s rewardR. However, the heuristics are speciﬁcally for testing exact
+value alignment (ϵ = 0,δfpr = 0) and do not consider false negatives. Future work should examine how to bridge the
+gap between these two extremes to see if there is a tractable middle ground that is amenable to high-conﬁdenceϵ-value
+alignment veriﬁcation.
+C. Value Alignment Veriﬁcation Heuristics
+In this section we discuss the value alignment veriﬁcation heuristics in more detail. Note that all of the methods above
+are not guaranteed to verify value alignment and may give false positives. However, all are designed to never give a false
+negative.
+C.1. Critical State-Action Value Alignment Heuristic
+Prior work by Huang et al. (Huang et al., 2018), seeks to build human-agent trust by asking an agent for critical states which
+are deﬁned as follows:
+Q∗
+R(s,π∗
+R(s))− 1
+|A|
+∑
+a∈A
+Q∗
+R(s,a )>t (77)
+for some user-deﬁnedt. Ift = 0, then all states will be critical states. On the otherhand, for larget, none of the states will
+be critical. Thus, t must be carefully tuned to the scale of the reward function and to the particulars of the MDP. Huang et al.
+(Huang et al., 2018) also proposed ﬁnding critical states in terms of states with policy entropy below some thresholdt, but
+found that state-action value critical states performed better. Futhermore, using entropy would label every state as critical for
+a deterministic policy. State-action value critical states can also be computed for both deterministic and stochastic policies,
+thus we only compare against state-action value critical states.
+One possible way to use critical states for a value alignment heuristic would be to ask an agent for its critical states and
+then see if those match the tester’s critical states However, this is problematic since reward scale isn’t ﬁxed and there are
+an inﬁnite number of reward functions that lead to the same policy (Ng & Russell, 2000), so the gap in Q-values can be
+arbitrarily large. Thus t would have to be carefully constructed and tuned for both the tester and the agent, making this
+impractical. Instead, we simply calculate the critical states for the tester under a tester-deﬁnedt and then test whether the
+optimal action that the agent being tested would take in the tester’s critical state is also optimal under the tester’s value
+function.
+This results in the following value alignment heuristic:
+(1) Find critical states in true MDP fort≥ 0.
+(2) Query the robot for their action in each critical state and check if this is an optimal action under the tester’s reward
+function.
+C.2. Aligned Reward Polytope Black-Box Heuristic
+For this heuristic we have the tester computeARP (R) for the tester’s reward functionR, and then ﬁnd the minimum set of
+equivalent constraints using linear programming as discussed in Section G.2. To run a veriﬁcation test we simply take the
+
+--- PDF page 21 ---
+Value Alignment Veriﬁcation
+set of states corresponding to this minimal set of constraints. For each of these constraints we have
+wT (Φ(s,a)
+π∗ − Φ(s,b)
+π∗ )> 0 (78)
+for alla∈ arg maxa′Q∗(s,a′). The test then consists of asking the agent being tested for the action the testee would take
+in states and checking if it is optimal under the tester’s reward function.
+C.3. SCOT Trajectory-Based Heuristic
+We also adapt the set cover optimal teaching (SCOT) algorithm for value alignment veriﬁcation (Brown & Niekum, 2019).
+As done in the original paper (Brown & Niekum, 2019), we ﬁrst compute feature expectations, then we calculate the minimal
+set of constraints that deﬁne the consistent reward set (CRS) using Corollary 2. We then rolloutm trajectories using the
+teacher’s policy from each initial state and calculate the CRS of the rollouts using Corollary 3. We then run set cover and
+ﬁnd the minimum set of rollouts of lengthH that implicitly covers the CRS.
+Given the machine teaching demos from SCOT we mask the actions and ask the agent being tested what action it would take
+in each state. We then compare this action with the machine teaching action. In particular, we implement this querying the
+robot agent for an action at each states and then checking if this action is optimal under the tester’s reward function.
+C.4. Computational Complexity
+In terms of complexity, the CS heuristic is the least computationally expensive since it requires only solving for the optimal
+Q-values at each state and then selecting states with action-value gap larger thant. The ARP-bb heuristic is the next most
+computationally intensive heuristic. It also only requires solving for the optimal policy for a single MDP, but also requires
+computing ∆ and removing redundant constraints. If the policy is represented and learned using successor features (Barreto
+et al., 2017), then we obtain ∆ simply by iterating over each state to ﬁnd optimal and suboptimal actions. Alternatively,
+given an optimal policy,∆ can be efﬁciently recovered via a vectorized version of policy evaluation, where expected feature
+vectors are propagated instead of expected values. Removing redundant constraints requires solving a LP. The complexity of
+this will depend on the number of rows (number of states with unique feature count normal vectors) and columns (number
+of features) of ∆. Finally, the SCOT heuristic is the most computationally intensive. It still requires solving one MDP (to
+get the optimal policy for R), but also requires removing redundant half-space constraints from ∆ and then running a greedy
+set-cover approximation.
+D. Case Study Continued
+To illustrate the types of test queries found via value alignment veriﬁcation, we consider two domains inspired by the AI
+safety grid worlds (Leike et al., 2017). The ﬁrst domain, island navigation is shown in Section 5.1.1. We now discuss
+another domain inspired by the AI safety gridworlds: lava world. This domain is shown in Figure 5. Figure 5a shows the
+optimal policy under the tester’s reward function
+R(s) = 50· 1green(s)− 1· 1white(s)− 50· 1red(s), (79)
+where 1color(s) is an indicator feature for the color of the grid cell. Shown in ﬁgures 5b and 5c are the two preference queries
+generated by ARP-pref. In both cases the query consists of two trajectories (shown in black and orange for visualization),
+and the agent taking the test must decide which trajectory is preferable (we chose the colors such that the black trajectory is
+preferable to orange). We see that preference query 1 veriﬁes that the agent would rather move the to terminal state (green)
+rather than visit white cells. The second preference veriﬁes that the agent would rather visit white cells than red cells, and
+would rather take an indirect path to the goal state (green) rather than a more direct path that visits red cells. Note that the
+black trajectory in preference query 2 ﬁrst goes up, which results in a self transition, then goes left to get out of the lava.
+Shown in ﬁgures 5d, 5e, and 5f are the query states for ARP-bb, SCOT, and CS heuristics, respectively. In each of these
+tests the agent being tested is asked what action its policy would take in each of the states marked with a question mark. To
+pass the test, the agent must respond with an optimal action under the tester’s policy in each of these states. ARP-bb chooses
+two states where the half-spaces deﬁned by the expected feature counts of following the optimal policy versus taking a
+suboptimal action and following the optimal policy fully deﬁne the ARP.
+
+--- PDF page 22 ---
+Value Alignment Veriﬁcation
+(a) Optimal policy
+ (b) Preference query 1
+ (c) Preference query 2
+ (d) ARP black-box queries
+(e) SCOT queries
+ (f) Critical state queries
+Figure 5. Example value alignment veriﬁcation tests for the lava world domain.
+E. Value Alignment Veriﬁcation with Idealized Human Tester
+In this appendix we compare the heuristic alignment methods with the exact alignment tests that query for the robot’s
+reward function (ARP-w) and query for preferences over trajectories (ARP-pref). Since the tests are designed such that
+they accurately verify aligned agents, we constructed a suite of grid navigation domains with varying numbers of states and
+reward features. We generated 50 different misaligned agents by sampling random reward functions and comparing the
+resulting optimal policies to the optimal policy under a randomly-chosen ground-truth reward function. Figure 6 (a) and (b)
+show that for a ﬁxed number of features, the size of the test generated via the critical state heuristic with thresholdt = 0.2
+(CS-0.2) scales poorly with the size of the grid world, even though the complexity of the reward function stays constant.
+The thresholdt has a large impact on the performance: smallt results in better accuracy at the cost of signiﬁcantly more
+queries and largert results in signiﬁcantly more false positives. We choset = 0.2 to minimize false positives while also
+attempting to keep the test size small. In Figure 6 (c) and (d) we plot how the number of constraints grows as the reward
+function dimension increases and the MDP size is ﬁxed. The plot for ARP-bb shows that the number of constraints grows
+with the size of the reward weight vector as expected. Conversely, the number of critical states has the undesirable effect of
+growing with the size of the MDP, regardless of the complexity of the underlying reward function.
+By construction, ARP-w requires only one query (querying for w′) to achieve perfect accuracy. Using trajectory preferences
+to deﬁne the ARP (ARP-pref) also has perfect accuracy, but requires more queries to the robot. SCOT has sample complexity
+that is lower than the critical state methods, but much higher than querying directly reward function weights since it queries
+for actions at each state along each machine teaching trajectory. We found empirically that SCOT has nearly perfect accuracy,
+but occasionally has false positives. Using the ARP inspired heuristic (ARP-bb) has low sample complexity and high
+accuracy, but sometimes has false positives as expected due to Theorem 1. These results give evidence that the testing
+method of choice depends on the capability of the robot and the complexity of the environment relative to the robot’s reward
+function. If the robot can report a ground truth reward weight then ARP-w has the best performance. If the robot can only
+answer trajectory preference queries, then ARP-pref should be used. The heuristics (ARP-bb, SCOT, and CS) have higher
+query costs and lower accuracy, but are applicable when only given query access to the robot’s policy and when the robot
+may not be perfectly rational.
+F. Details on Value Alignment Veriﬁcation with Human Tester
+In this section we fully describe the pipelines used to determineϵ-alignment in the implicit human, implicit robot setting.
+Each of these pipelines consist of the following steps:
+1. Preference elicitation, generating a posterior reward distribution and a number of potential test questions and answers
+
+--- PDF page 23 ---
+Value Alignment Veriﬁcation
+(a) ARP black-box queries
+ (b) ARP black-box queries
+(c) ARP black-box queries
+ (d) ARP black-box queries
+Figure 6. Queries vs. accuracy (1 - false positive rate) for value alignment testing of misaligned agents. Exact alignment tests (ARP-w and
+ARP-pref) achieve good efﬁciency and perfect accuracy.
+2. Deduplication of test questions
+3. Filtering questions for ϵ-alignment compatibility using the posterior reward distribution
+4. Removal of redundant questions
+Step (1) can be performed using any preference elicitation algorithm which produces a posterior reward distribution, although
+the questions may be of higher quality if the algorithm can operate over the same linear reward basis the test will operate
+over. We used the algorithm from (Bıyık et al., 2019), although (Biyik & Sadigh, 2018; Sadigh et al., 2017) and others with
+similar structure can be used as easily. Some preference elicitation algorithms that only produce a point estimate of the
+human’s reward function are compatible with some methods ofϵ-ﬁltering, including the one used in the main paper.
+Step (2) is necessary because active preference elicitation algorithms sometimes ask the same question multiple times if they
+believe humans to be noisily reporting their true preference.
+Step (3) turns the test from an exact alignment test to anϵ-alignment test. The goal of this step is to remove questions that
+ϵ-aligned reward functions will answer wrong. This is true of a question if the value gap between the trajectories under the
+true reward is less than epsilonwT (Φ(ξa)− Φ(ξb))<ϵ . In the implicit human setting, the true reward function is unknown,
+so this true value gap must be estimated somehow from the posterior distribution. One can achieve this by approximating the
+true reward w with the empirical mean reward ˆw := Ew∼P(·|P)[w]. The MAP reward can also be used, although we did
+not test this and expect the MAP and mean rewards to be similar. If one is concerned about the conﬁdence of the estimate,
+one can instead remove trajectories that areϵ−δ misaligned i.e. those for whichP (wT (Φ(ξa)− Φ(ξb))>ϵ )<δ . This
+ensures that each question in the test has a 1−δ probability of having an value gap of at leastϵ. Empirically we found these
+two methods had similar results, and so relied on the simpler one.
+Step (4) ensures that test is as small as possible. Each question in the test forms a half-space constraint over the possible
+reward functions. Some of these half-space constraints will be redundant. (Brown & Niekum, 2019) describe a procedure
+for detecting which half-spaces are redundant by solving a specially constructed linear system of equations. See G.2 for
+further details.
+The ﬁnalϵ-alignment test consists of all the questions asked of the human during step (1) that are not removed by steps (2),
+
+--- PDF page 24 ---
+Value Alignment Veriﬁcation
+(3), or (4). In general there is nothing to suggest that questions asked of the human during a preference elicitation process
+will make good test questions. In fact, such questions may be stricter than the ones that make up an ϵ-ARP. Questions
+asked of the human are often between trajectories that are both suboptimal under the human’s reward function. The ARP is
+constructed only using optimal-suboptimal pairs of trajectories, asking the robot only to have the correct preferences in
+optimal actions, and is agnostic about preferences over suboptimal actions, as the policy will never take those actions. By
+asking for preferences between suboptimal trajectories, we may be asking the robot to not only have the correct optimal
+actions at every state, but also the correct rankings between suboptimal actions.
+However there are reasons to believe that preference elicitation algorithms that operate over the same linear reward features
+as the test will ask questions useful for an alignment test. These algorithms share much of the geometry of the ARP. Each
+answer to a question induces a (potentially soft) half-space constraint over the possible reward function of the human. These
+algorithms attempt to ask questions that remove the most volume from the posterior reward distribution (Sadigh et al.,
+2017) or have the maximum expected information gain (Bıyık et al., 2019), which intuitively should result in high quality
+questions.
+If one is not satisﬁed by these arguments, one could use the posterior reward distribution to generate new questions for the
+test. One could randomly generate test questions and answer those questions using the mean or MAP posterior reward.
+In practice we found this to have poor performance. With much larger test sizes, the suboptimal-suboptimal trajectory
+comparisons made the test so strict that nearly no rewards were passed. In future work we would like to generate test
+questions that will not be too strict by generating optimal trajectories under the posterior reward and comparing them to
+random suboptimal trajectories.
+G. Experiment Details
+G.1. Exact vs Heuristics Grid Domains
+In all grid domains the transition dynamics are deterministic and actions corresponding to movement up, down, left, and
+right are available at every state. Actions that would lead the agent off of the grid result result in the agent staying in the
+same state. We ran experiments over different sized grid worlds with different numbers of features. For each grid world size
+and number of features we generated 50 random MDPs with features placed randomly and with a random ground-truth
+reward function. We then sampled 50 different reward function weights w from the unit hypersphere. This bounds the
+Q-values of states, and so allowed us to tune over a bounded interval oft hyperparameters for the critical-action state value
+alignment heuristic. For each reward we function we computed an optimal policy to create different agents for veriﬁcation.
+Duplicate policies were removed.
+G.2. Half-space Normal Vector Redundancy removal
+All experiments (gridworlds and Driver) do duplication and redundancy ﬁltering. Duplicate constraints are detected by
+computing cosine distance between the halfplane normal vectors. Any normal vectors that are within a small threshold
+(0.0001) of other normal vectors are deduplicated arbitrarily. Trivial (all-zero) constraints are also removed. There are
+several known ways to remove redundant constraints (Paulraj et al., 2010). We remove redundant constraints using the exact
+linear programming method (Paulraj et al., 2010), following the procedure from Brown & Niekum (2019) which we will
+brieﬂy summarize.
+A redundant constraint is one that can be removed without changing the interior of the intersection of half-spaces. We can
+ﬁnd redundant constraints efﬁciently using linear programming. To check if a constraintaTx≤b is binding we can remove
+that constraint and solve the linear program with maxxaTx as the objective. If the optimal solution is still constrained to be
+less than or equal tob even when the constraint is removed, then the constraint can be removed. However, if the optimal
+value is greater thanb then the constraint is non-redundant. Thus, all redundant constraints can be removed by making one
+pass through the constraints, where each constraint is immediately removed if redundant.
+As an example. Consider Figure 7. The hatched region on the right is the intersection of half-spaces that makes up the CRS.
+If we take away the boundaries we get the ARP. Note that there are several half-space constraints that do not tightly deﬁne
+the hatched region and are redundant.
+
+--- PDF page 25 ---
+Value Alignment Veriﬁcation
+  
+(a) Optimal policy
+ (b) ARP
+Figure 7. Optimal policy and aligned reward polytope (ARP) for a simple gridworld with two features (white and gray) and a linear reward
+function (w0: weight on white feature,w1: weight on gray feature).
+0.0 1.25 2.5 3.75 5.0
+ϵ
+0.0
+0.5
+1.0
+False Positive Rate
+n
+10
+25
+50
+100
+0.0 1.25 2.5 3.75 5.0
+ϵ
+0.0
+0.5
+1.0
+False Negative Rate
+n
+10
+25
+50
+100
+0.0 1.25 2.5 3.75 5.0
+ϵ
+0.0
+0.5
+1.0
+Accuracy
+n
+10
+25
+50
+100
+Figure 8. Performance of tests from simulated humans using mean rewardϵ ﬁltering.
+G.3. Simulated Human in the Driver Environment
+In this section we more thoroughly describe the experimental procedure for the driving study in Section 4.5 and present the
+full results, including false positive and false negative rates.
+All preference elicitation parameters are as in (Bıyık et al., 2019) unless otherwise speciﬁed. We run elicitation using strict
+queries. The information gain criterion was used. Each experiment is replicated ten times. Within each replication, the
+ground truth reward is randomly sampled from a unit-Gaussian and then normalized to unit length. M, the number of
+rewards sampled from the posterior in order to determine the expected information gain, was set to 100. Each replication
+terminated after asking different numbers of questions, but each replication contained at least 1000 question-answer pairs.
+During test generation, the following combination of parameters were used: ϵ∈ (0.0, 0.1,... 5.0) and the number of
+simulated human preferences usedn∈ (10, 25, 50, 100).
+Simulated reward functions to evaluate the test were generated in a way to ensure balanced ground truth classes. In all cases,
+100000 rewards functions were generated. The reward functions were always generated from a Gaussian distribution with
+mean equal to the ground truth reward function. The initial variance of this distribution was 1. Ground truth alignment for
+each test reward was determined by checking for agreement between the test reward and the ground truth reward on all
+ϵ-compatible questions generated during preference elicitation (>1000) regardless of the value ofn. If the initial batch of test
+rewards had between 45% and 55% aligned rewards for the given experimental parameters, we deemed the test reward set
+balanced and proceeded. If the initial set was unbalanced, we adapted the variance of the distribution until it either produced
+balanced test rewards or became implausibly large or small, in which case we used the last reasonable set of test rewards.
+The full false positive, false negative, and accuracy graphs for these experiments are displayed below in Figure 8.
+
+--- PDF page 26 ---
+Value Alignment Veriﬁcation
+0.0 1.25 2.5 3.75 5.0
+ϵ
+0.0
+0.5
+1.0
+False Positive Rate
+n
+25
+50
+100
+181
+0.0 1.25 2.5 3.75 5.0
+ϵ
+0.0
+0.5
+1.0
+False Negative Rate
+n
+25
+50
+100
+181
+0.0 1.0 2.0 3.0 4.0 5.0
+ϵ
+0.0
+0.5
+1.0
+Accuracy
+n
+25
+50
+100
+181
+Figure 9. Detailed breakdown of mistakes from the human pilot study.
+G.4. Human Pilot Study
+We performed a pilot study using real human preferences provided by the authors. The experimental procedure is the same
+as in the simulated case, except for the generation of test rewards and their labelling. Test rewards were generated from a
+Gaussian centered at the mean posterior reward with variance 0.5, which was selected after searching for a variance that
+would provide a balanced test set. Ground truth reward was determined by producing an optimal trajectory as in (Bıyık
+et al., 2019), manually inspecting the trajectory, and labelling the reward as aligned if the trajectory looked reasonable. This
+procedure is unjustiﬁed, as it does not examine reward functions in states that are hard to reach with a reasonable policy, and
+so a reward function labeled as aligned may not be aligned everywhere. It serves a reasonable proxy for the pilot study. The
+results are in ﬁgure G.4.
+As epsilon increases, more of the questions are removed from the test. This necessarily increases the number of positive
+judgements the test provides, all else being equal. The accuracy initially increases withϵ because the test has fewer false
+negatives as more noise questions are removed. At aroundϵ = 1.0 most of the aligned agents pass, and any further removal
+of questions creates more false positives than it removes false negatives, lowering the overall accuracy. The cost of false
+positives and false negatives are often unequal, and so accuracy may not be the correct metric for your use case. The peak
+accuracy was 72%.

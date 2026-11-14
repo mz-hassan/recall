@@ -1,0 +1,483 @@
+A Game-Theoretic Approach to Apprenticeship
+Learning
+UmarSyed RobertE.Schapire
+ComputerScienceDepartment ComputerScienceDepartment
+PrincetonUniversity PrincetonUniversity
+35OldenSt 35OldenSt
+Princeton,NJ08540-5233 Princeton,NJ08540-5233
+usyed@cs.princeton.edu schapire@cs.princeton.edu
+Abstract
+Westudytheproblemofanapprenticelearningtobehaveinanenvironmentwith
+an unknown reward function by observing thebehavior of an expert. Wefollow
+ontheworkofAbbeelandNg[1]whoconsideredaframeworkinwhichthetrue
+rewardfunctionisassumedtobealinearcombinationofasetofknownandob-
+servablefeatures. Wegiveanewalgorithmthat,liketheirs,isguaranteedtolearn
+apolicythatisnearlyasgoodastheexpert’s,givenenoughexamples. However,
+unliketheiralgorithm,weshowthatoursmayproduceapolicythatissubstantially
+betterthantheexpert’s. Moreover,ouralgorithmiscomputationallyfaster,iseas-
+iertoimplement,andcanbeappliedevenintheabsenceofanexpert. Themethod
+isbasedonagame-theoreticviewoftheproblem,whichleadsnaturallytoadirect
+applicationofthemultiplicative-weightsalgorithmofFreundandSchapire[2]for
+playingrepeatedmatrixgames.Inadditiontoourformalpresentationandanalysis
+ofthenewalgorithm,wesketchhowthemethodcanbeappliedwhenthetransi-
+tionfunctionitselfisunknown,andweprovideanexperimentaldemonstrationof
+thealgorithmonatoyvideo-gameenvironment.
+1 Introduction
+Whenanagentisfacedwiththetaskoflearninghowtobehaveinastochasticenvironment,acom-
+mon approach is to model the situation using a Markov Decision Process. An MDP consists of
+states,actions,rewardsandatransitionfunction. OnceanMDPhasbeenprovided,theusualobjec-
+tiveistofindapolicy (i.e. amapping fromstatestoactions) thatmaximizes expected cumulative
+rewardcollectedbytheagent.
+Building the MDP model is usually the most difficult part of this process. One reason is that it is
+oftenhardtocorrectlydescribetheenvironment’struerewardfunction,andyetthebehaviorofthe
+agentisquitesensitivetothisdescription. Inpractice,rewardfunctionsarefrequentlytweakedand
+tuned to elicit what is thought to be the desired behavior. Instead of maximizing reward, another
+approach often taken is to observe and follow the behavior of an expert in the same environment.
+Learning how to behave by observing an expert has been called apprenticeship learning, with the
+agentintheroleoftheapprentice.
+AbbeelandNg[1]proposedanovelandappealingframeworkforapprenticeshiplearning. Inthis
+framework,therewardfunction,whileunknowntotheapprentice,isassumedtobeequaltoalinear
+combination of a set of known features. They argued that while it may be difficult to correctly
+describetherewardfunction, itisusuallymucheasiertospecifythefeaturesonwhichthereward
+functiondepends.
+1
+
+With this setting in mind, Abbeel and Ng [1] described an efficient algorithm that, given enough
+examples of the expert’s behavior, produces a policy that does at least as well as the expert with
+respecttotheunknownrewardfunction. Thenumberofexamplestheiralgorithmrequiresfromthe
+expertdependsonlymoderatelyonthenumberoffeatures.
+Whileimpressive,adrawbackoftheirresultsisthattheperformanceoftheapprenticeisbothupper-
+and lower-bounded by the performance of the expert. Essentially, their algorithm is an efficient
+method for mimicking the expert’s behavior. If the behavior of the expert is far from optimal, the
+samewillholdfortheapprentice.
+Inthispaper,wetakeasomewhatdifferentapproachtoapprenticeshiplearningthataddressesthis
+issue,whilealsosignificantlyimprovingonotheraspectsofAbbeelandNg’s[1]results. Wepose
+the problem as learning to play a two-player zero-sum game in which the apprentice chooses a
+policy, andtheenvironmentchoosesarewardfunction. Thegoaloftheapprenticeistomaximize
+performancerelativetotheexpert,eventhoughtherewardfunctionmaybeadversariallyselectedby
+theenvironmentwithrespecttothisgoal.Akeypropertyofouralgorithmisthatitisabletoleverage
+priorbeliefsabouttherelationshipbetweenthefeaturesandtherewardfunction. Specifically,ifitis
+knownwhetherafeatureis“good”(relatedtoreward)or“bad”(inverselyrelatedtoreward),thenthe
+apprenticecanusethatknowledgetoimproveitsperformance. Asaresult,ouralgorithmproduces
+policiesthatcanbesignificantlybetterthantheexpert’spolicywithrespecttotheunknownreward
+function,whileatthesametimeareguaranteedtobenoworse.
+Ourapproachisbasedonamultiplicativeweightsalgorithmforsolvingtwo-playerzero-sumgames
+duetoFreundandSchapire[2].Theiralgorithmisespeciallywell-suitedtosolvingzero-sumgames
+inwhichthe“gamematrix”isextremelylarge. Itturnsoutthatourapprenticeshiplearningsetting
+canbeviewedasagamewiththisproperty.
+Our results represent a strict improvement over those of Abbeel and Ng [1] in that our algorithm
+isconsiderablysimpler,providesthesamelowerboundontheapprentice’sperformancerelativeto
+theexpert,andremovestheupperboundontheapprentice’sperformance. Moreover,ouralgorithm
+requires less computational expense – specifically, we are able to achieve their performance guar-
+antee after only O(lnk) iterations, instead of the O(klnk), where k is the number of features on
+whichtherewardfunctiondepends. Additionally,ouralgorithmcanbeappliedtoasettinginwhich
+noexamplesareavailablefromtheexpert. Inthatcase,ouralgorithmproducesapolicythatisop-
+timalinacertainconservativesense. Wearealsoabletoextendouralgorithmtoasituationwhere
+the MDP’s transition function θ is unknown. We conducted experiments from a small car driving
+simulationthatillustratesomeofourtheoreticalfindings.
+Ratliffetal[3]formulatedarelatedproblemtoapprenticeshiplearning,inwhichthegoalistofind
+a reward function whose optimal policy is similar to the expert’s policy. Quite different from our
+work,mimickingtheexpertwasanexplicitgoaloftheirapproach.
+2 Preliminaries
+Our problem setup largely parallels that outlined in Abbeel and Ng [1]. We are given an infinite-
+horizon Markov Decision Process in which the reward function has been replaced by a set of
+features. Specifically, we are given an MDP\R M = (S,A,γ,D,θ,φφφ), consisting of finite
+state and action sets S and A, discount factor γ, initial state distribution D, transition function
+θ(s,a,s0) , Pr(s = s0 | s = s,a = a), and a set of k features defined by the function
+t+1 t t
+φφφ:S →Rk.
+ThetruerewardfunctionR∗isunknown. Foreaseofexposition,weassumethatR∗(s)=w∗·φφφ(s),
+forsomew∗ ∈Rk,althoughwealsoshowhowouranalysisextendstothecasewhenthisdoesnot
+hold.
+ForanypolicyπinM,thevalueofπ(withrespecttotheinitialstatedistribution)isdefinedby
+∞
+V(π),E γtR∗(s ) π,θ,D .
+t
+" #
+X t=0 (cid:12)
+(cid:12)
+(cid:12)
+2
+
+wheretheinitialstates ischosenaccordingtoD,andtheremainingstatesarechosenaccordingto
+0
+πandθ. Wealsodefineak-lengthfeatureexpectationsvector,
+∞
+µ(π),E γtφφφ(s ) π,θ,D .
+t
+" #
+X t=0 (cid:12)
+(cid:12)
+Fromitsdefinition,itshouldbeclearthat“featureexpec(cid:12)tations”isa(somewhatmisleading)abbre-
+viationfor“expected,cumulative,discountedfeaturevalues.”Importantly,sinceR∗(s)=w∗·φφφ(s),
+wehaveV(π)=w∗·µ(π),bylinearityofexpectation.
+We say that a feature expectations vector µˆ is an (cid:15)-good estimate of µ(π) if kµˆ −µ(π)k ≤ (cid:15).
+∞
+Likewise,wesaythatapolicyπˆ is(cid:15)-optimalforM if|V(πˆ)−V(π∗)|≤(cid:15),whereπ∗isanoptimal
+policyforM,i.e. π∗ =argmax V(π).1
+π
+We also assume that there is apolicy π , called theexpert’s policy, which weare able toobserve
+E
+executing in M. Following Abbeel and Ng [1], our goal is to find a policy π such that V(π) ≥
+V(π )−(cid:15),eventhoughthetruerewardfunctionR∗ isunknown. Wealsohavetheadditionalgoal
+E
+offindingapolicywhennoobservationsfromtheexpert’spolicyareavailable. Inthatcase,wefind
+apolicythatisoptimalinacertainconservativesense.
+Like Abbeel and Ng [1], the policy we find will not necessarily be stationary, but will instead be
+a mixed policy. A mixed policy ψ is a distribution over Π, the set of all deterministic stationary
+policiesinM. BecauseΠisfinite(thoughextremelylarge),wecanfixanumberingofthepolicies
+in Π, which we denote π1,...,π|Π|. This allows us to treat ψ as a vector, where ψ(i) is the
+probabilityassignedtoπi. Amixedpolicyψ isexecutedbyrandomlyselectingthepolicyπi ∈ Π
+attime0withprobabilityψ(i),andexclusivelyfollowingπi thereafter. Itshouldbenotedthatthe
+definitionsofvalueandfeatureexpectationsapplytomixedpoliciesaswell:V(ψ)=E [V(πi)]
+i∼ψ
+andµ(ψ)=E [µ(πi)]. Alsonotethatmixedpoliciesdonothaveanyadvantageoverstationary
+i∼ψ
+policiesintermsofvalue: ifπ∗ isanoptimalstationarypolicyforM,andψ∗ isanoptimalmixed
+policy,thenV(ψ∗)=V(π∗).
+Theobservations fromtheexpert’spolicyπ areintheformof mindependent trajectoriesinM,
+E
+eachforsimplicityofthesamelengthH. Atrajectoryisjustthesequenceofstatesvisitedbythe
+expert: si,si,...,si fortheithtrajectory.Letµ =µ(π )betheexpert’sfeatureexpectations.
+0 1 H E E
+Wecomputeanestimateµˆ ofµ byaveragingtheobservedfeaturevaluesfromthetrajectories:
+E E
+(cid:0) (cid:1)
+m H
+1
+µˆ = γtφφφ(si).
+E m t
+i=0 t=0
+XX
+3 ReviewoftheProjectionAlgorithm
+Wecompareourapproachtothe“projectionalgorithm”ofAbbeelandNg[1],whichfindsapolicy
+thatisatleastasgoodastheexpert’spolicywithrespecttotheunknownrewardfunction.2
+AbbeelandNg[1]assumethatφφφ(s)∈[0,1]k,andthatR∗(s)=w∗·φφφ(s)forsomew∗ ∈Bk,where
+Bk = {w : kwk ≤ 1}. Givenmindependenttrajectoriesfromtheexpert’spolicy,theprojection
+1
+algorithmrunsforT iterations. Itreturnsamixedpolicyψsuchthatkµ(ψ)−µ k ≤(cid:15)aslongas
+E 2
+T andmaresufficientlylarge. Inotherwords,theiralgorithmseeksto“match”theexpert’sfeature
+expectations. Thevalueofψwillnecessarilybeclosetothatoftheexpert’spolicy,since
+|V(ψ)−V(π )| = |w∗·µ(ψ)−w∗·µ |
+E E
+≤ kw∗k kµ(ψ)−µ k (1)
+2 E 2
+≤ (cid:15)
+whereinEq. (1)weusedtheCauchy-Schwartzinequalityandkw∗k ≤kw∗k ≤1.
+2 1
+1Notethatthisisweakerthanthestandarddefinitionofoptimality,asthepolicyonlyneedstobeoptimal
+withrespecttotheinitialstatedistribution,andnotnecessarilyateverystatesimultaneously.
+2AbbeelandNg[1]actuallypresentedtwoalgorithmsforthistask. Bothhadthesametheoreticalguaran-
+tees,buttheprojectionalgorithmissimplerandwasempiricallyshowntobeslightlyfaster.
+3
+
+The following theorem is the main result in Abbeel and Ng [1]. However, some aspects of their
+analysis are not covered by this theorem, such as the complexity of each iteration of the projec-
+tionalgorithm,andthesensitivityofthealgorithmtovariousapproximations. Thesearediscussed
+immediatelybelow.
+Theorem1(AbbeelandNg[1]). GivenanMDP\R,andmindependenttrajectoriesfromanex-
+pert’spolicyπ . SupposeweexecutetheprojectionalgorithmforT iterations. Letψbethemixed
+E
+policyreturnedbythealgorithm. Theninorderfor
+|V(ψ)−V(π )|≤(cid:15) (2)
+E
+toholdwithprobabilityatleast1−δ,itsufficesthat
+k k
+T ≥O ln
+((cid:15)(1−γ))2 (cid:15)(1−γ)
+(cid:18) (cid:19)
+and
+2k 2k
+m≥ ln .
+((cid:15)(1−γ))2 δ
+We omit the details of thealgorithm due to space constraints, but note that each iteration involves
+onlytwostepsthatarecomputationallyexpensive:
+1. Findanoptimalpolicywithrespecttoagivenrewardfunction.
+2. Computethefeatureexpectationsofagivenpolicy.
+The algorithm we present in Section 5 performs these same expensive tasks in each iteration, but
+requires far fewer iterations — justO(lnk) rather than O(klnk), a tremendous savings when the
+numberoffeatureskislarge. Also,theprojectionalgorithmhasapost-processingstepthatrequires
+invokingaquadraticprogram(QP)solver.Comparatively,thepost-processingstepforouralgorithm
+istrivial.
+AbbeelandNg[1]provideseveralrefinementsoftheanalysisinTheorem1. Inparticular,suppose
+thateachsampletrajectoryhaslengthH ≥(1/(1−γ))ln(1/((cid:15) (1−γ))),andthatan(cid:15) -optimal
+H P
+policy is found in each iteration of the projection algorithm (see Step 1 above). Also let (cid:15) =
+R
+minw∈Bkmax
+s
+|R∗(s)−w ·φφφ(s)| be the “representation error” of the features. Abbeel and Ng
+[1] comment at various points in their paper that (cid:15) , (cid:15) , and O((cid:15) ) should be added to the error
+H P R
+boundofTheorem1. InSection5weprovideaunifiedanalysisoftheseerrortermsinthecontext
+ofouralgorithm, andalsoincorporatean(cid:15) termthataccountsforcomputingan(cid:15) -goodfeature
+F F
+expectationsestimateinStep2above. Weprovethatouralgorithmissensitivetotheseerrorterms
+inasimilarwayastheprojectionalgorithm.
+4 ApprenticeshipLearningviaGamePlaying
+Noticethetwo-sidedboundinTheorem1:thetheoremguaranteesthattheapprenticewilldoalmost
+as well as the expert, but also almost as badly. This is because the value of a policy is a linear
+combination of its feature expectations, and the goal of the projection algorithm is to match the
+expert’sfeatureexpectations.
+Wewilltakeadifferentapproach. Weassumethatφφφ(s)∈[−1,1]k,andthatR∗(s)=w∗·φφφ(s)for
+somew∗ ∈Sk,whereSk ={w ∈Rk :kwk =1andw (cid:23)0}.3 Theimpactofthisminorchange
+1
+inthedomainsofwandφφφisdiscussedfurtherinSection5.2. LetΨbethesetofallmixedpolicies
+inM. Nowconsidertheoptimization
+v∗ =max min [w·µ(ψ)−w·µ ]. (3)
+ψ∈Ψw∈Sk E
+Our goal will be to find (actually, to approximate) the mixed policy ψ∗ that achieves v∗. Since
+V(ψ) = w∗·µ(ψ)forallψ,wehavethatψ∗ isthepolicyinΨthatmaximizesV(ψ)−V(π )
+E
+withrespecttotheworst-casepossibilityforw∗. Sincew∗ isunknown,maximizingfortheworst-
+caseisappropriate.
+3Weuse(cid:23)todenotecomponentwiseinequality. Likewise, weuse(cid:31)todenotestrictinequalityinevery
+component.
+4
+
+Webegin by notingthat, becausew and ψ areboth distributions, Eq. (3)isintheformofatwo-
+person zero-sum game. Indeed, this is the motivation for redefining the domain of w as we did.
+Thequantityv∗istypicallycalledthegamevalue. Inthisgame,the“minplayer”specifiesareward
+functionbychoosingw,andthe“maxplayer”choosesamixedpolicyψ.Thegoaloftheminplayer
+is to cause the max player’s policy to perform as poorly as possible relative to the expert, and the
+maxplayer’sgoalisjusttheopposite. Agameisdefinedbyitsassociatedgamematrix. Inourcase,
+thegamematrixisthek×|Π|matrix
+G(i,j)=µj(i)−µ (i) (4)
+E
+whereµ(i)istheithcomponentofµandwehaveletµj =µ(πj)bethevectoroffeatureexpecta-
+tionsforthejthdeterministicpolicyπj. NowEq. (3)canberewrittenintheform
+v∗ =max min wTGψ. (5)
+ψ∈Ψw∈Sk
+In Eq. (3) and (5), the max player plays first, suggesting that the min player has an advantage.
+However,thewell-knownminmaxtheoremofvonNeumannsaysthatwecanswaptheminandmax
+operatorsinEq. (5)withoutaffectingthegamevalue. Inotherwords,
+v∗ =max min wTGψ = min maxwTGψ. (6)
+ψ∈Ψw∈Sk w∈Skψ∈Ψ
+Findingψ∗willnotbeusefulunlesswecanestablishthatv∗ ≥0,i.e.thatψ∗willdoatleastaswell
+astheexpert’spolicywithrespecttotheworst-casepossibilityforw∗. Thisfactisnotimmediately
+clear,sincewearerestrictingourselvestomixturesofdeterministicpolicies,whilewedonotassume
+thattheexpert’spolicyisdeterministic. However,notethatintherightmostexpressioninEq. (6),
+themaximizationoverΨisdoneafterw —andhencetherewardfunction—hasbeenfixed. So
+themaximumisachievedbythebestpolicyinΨwithrespecttothisfixedrewardfunction. Note
+thatifthisisalsoanoptimalpolicy,thenv∗ willbenonnegative. Itiswell-knownthatinanyMDP
+therealwaysexistsadeterministicoptimalpolicy. Hencev∗ ≥0.
+Infact,wemayhavev∗ >0. Supposeithappensthatµ(ψ∗)(cid:31)µ(π ). Thenψ∗willdominateπ ,
+E E
+i.e. ψ∗ will have higher value than π regardless of the actual value of w∗, because we assumed
+E
+thatw∗ (cid:23)0.Essentially,byassumingthateachcomponentofthetrueweightvectorisnonnegative,
+weareassumingthatwehavecorrectlyspecifiedthe“sign”ofeachfeature. Thismeansthat,other
+thingsbeingequal,alargervalueforeachfeatureimpliesalargerreward.
+Sowhenv∗ > 0,themixedpolicyψ∗ tosomeextentignorestheexpert,andinsteadexploitsprior
+knowledgeaboutthetruerewardfunctionencodedbythefeatures. Wepresentexperimentalresults
+thatexplorethisaspectofourapproachinSection7.
+5 TheMultiplicativeWeightsfor ApprenticeshipLearning(MWAL)
+Algorithm
+In the previous section, we motivated the goal of finding the mixed policy ψ∗ that achieves the
+maximuminEq. (3)(orequivalently,inEq. (5)). Inthissectionwepresentanefficientalgorithm
+forsolvingthisoptimizationproblem.
+Recallthegameformulatedintheprevioussection. Intheterminologyofgametheory,wandψare
+calledstrategiesfortheminandmaxplayerrespectively,andψ∗ iscalledanoptimalstrategyfor
+themaxplayer. Also,astrategyw˙ iscalledpureifw˙(i)=1forsomei.
+Typically,onefindsanoptimalstrategyforatwo-playerzero-sumgamebysolvingalinearprogram.
+However,thecomplexityofthatapproachscaleswiththesizeofthegamematrix. Inourcase,the
+gamematrixGishuge,sinceithasasmanycolumnsasthenumberofdeterministicpoliciesinthe
+MDP\R.
+Freund and Schapire [2] described a multiplicative weights algorithm for finding approximately
+optimalstrategiesingameswithlargeorevenunknowngamematrices. Toapplytheiralgorithmto
+agamematrixG,itsufficestobeabletoefficientlyperformthefollowingtwosteps:
+1. Givenaminplayerstrategyw,findargmax ψ∈Ψ wTGψ.
+5
+
+2. Givenamaxplayerstrategyψ,computew˙TGψforeachpurestrategyw˙.
+ObservethatthesetwostepsareequivalenttothetwostepsoftheprojectionalgorithmfromSection
+3. Step1amountstofindingtheoptimalpolicyinastandardMDPwithaknownrewardfunction.
+Thereareahugearrayoftechniquesavailableforthis,suchasvalueiterationandpolicyiteration.
+Step2isthesameascomputingthefeatureexpectationsofagivenpolicy. Thesecanbecomputed
+exactlybysolvingk systemsoflinearequations,ortheycanbeapproximatedusingiterativetech-
+niques. Importantly,thecomplexityofbothstepsscaleswiththesizeoftheMDP\R,andnotwith
+thesizeofthegamematrixG.
+Our Multiplicative Weights for Apprenticeship Learning (MWAL) algorithm is described below.
+Lines 7 and 8 of the algorithm correspond to Steps 1 and 2 directly above. The algorithm is es-
+sentially the MW algorithm of Freund and Schapire [2], applied to a game matrix very similar to
+G.4 WehavealsoslightlyextendedtheirresultstoallowtheMWALalgorithm,inlines7and8,to
+estimatetheoptimalpolicyanditsfeatureexpectations,ratherthanrequiringthattheybecomputed
+exactly.
+Algorithm1TheMWALalgorithm
+1: Given: AnMDP\RM andanestimateoftheexpert’sfeatureexpectationsµˆ .
+E
+−1
+2: Letβ = 1+ 2lnk .
+T
+3: DefineG (cid:18) (i,µ) q,((1− (cid:19) γ)(µ(i)−µˆ (i))+2)/4,whereµ∈Rk.
+E
+4: InitializeW(1)(i)=1fori=1,...,k.
+5: fort=e1,...,T do
+6: Setw(t)(i)= W(t)(i) fori=1,...,k.
+Pi W(t)(i)
+7: Computean(cid:15) P -optimalpolicyπˆ(t)forM withrespecttorewardfunctionR(s)=w(t)·φφφ(s).
+8: Computean(cid:15) F -goodestimateµˆ(t)ofµ(t) =µ(πˆ(t)).
+9:
+W(t+1)(i)=W(t)(i)·exp(ln(β)·G(i,µˆ(t)))fori=1,...,k.
+10: endfor
+11: Post-processing: Return the mixed poelicy ψ that assigns probability
+T
+1 to πˆ(t), for all t ∈
+{1,...,T}.
+Theorem2belowprovidesaperformanceguaranteeforthemixedpolicyψreturnedbytheMWAL
+algorithm,relativetotheperformanceoftheexpertandthegamevaluev∗. Itscorrectnessislargely
+basedonthemainresultinFreundandSchapire[2]. Aproofisavailableinthesupplement[4].
+Theorem 2. Given an MDP\R M, and m independent trajectories from an expert’s policy π .
+E
+Suppose we execute the MWAL algorithm for T iterations. Let ψ be the mixed policy returned
+by the algorithm. Let (cid:15) and (cid:15) be the approximation errors from lines 7 and 8 of the al-
+F P
+gorithm. Let H ≥ (1/(1 − γ))ln(1/((cid:15) (1 − γ))) be the length of each sample trajectory.
+H
+Let (cid:15)
+R
+= minw∈Skmax
+s
+|R∗(s) − w · φφφ(s)| be the representation error of the features. Let
+v∗ =max ψ∈Ψminw∈Sk[w·µ(ψ)−w·µ
+E
+]bethegamevalue. Theninorderfor
+V(ψ)≥V(π )+v∗−(cid:15) (7)
+E
+toholdwithprobabilityatleast1−δ,itsufficesthat
+9lnk
+T ≥ (8)
+2((cid:15)0(1−γ))2
+2 2k
+m ≥ ln (9)
+((cid:15)0(1−γ))2 δ
+(10)
+where
+(cid:15)−(2(cid:15) +(cid:15) +2(cid:15) +2(cid:15) /(1−γ))
+(cid:15)0 ≤ F P H R . (11)
+3
+4NotethatGe inAlgorithm1,incontrasttoGinEq. (4),dependsonµˆ insteadofµ . Thisisbecause
+E E
+µ isunknown,andmustbeestimated. TheotherdifferencesbetweenGe andGareofnorealconsequence,
+E
+andarefurtherexplainedinthesupplement[4].
+6
+
+Note the differences between Theorem 1 and Theorem 2. Because v∗ ≥ 0, the guarantee of the
+MWALalgorithmin(7)isatleastasstrongastheguaranteeoftheprojectionalgorithmin(2),and
+hasthefurtherbenefitofbeingone-sided.Additionally,theiterationcomplexityoftheMWALalgo-
+rithmismuchlower. Thisnotonlyimpliesafasterruntime,butalsoimpliesthatthemixedpolicy
+output by the MWAL algorithm consists of fewer stationary policies. And if a purely stationary
+policy is desired, it is not hard to show that the guarantee in (7) must hold for at least one of the
+stationarypolicesinthemixedpolicy(thisisalsotrueoftheprojectionalgorithm[1]).
+ThesamplecomplexityintheTheorem2isalsolower,butwebelievethatthisportionofouranal-
+ysis applies to the projection algorithm as well [Abbeel, personal communication], so the MWAL
+algorithmdoesnotrepresentanimprovementinthisrespect.
+5.1 Whennoexpertisavailable
+Ourgame-playingapproachcanbeverynaturallyandeasilyextendedtothecasewherewedonot
+havedatafromanexpert. InsteadoffindingapolicythatmaximizesEq. (3), wefindapolicyψ∗
+thatmaximizes
+max min [w·µ(ψ)]. (12)
+ψ∈Ψw∈Sk
+Here ψ∗ is the best policy for the worst-case possibility for w∗. The MWAL algorithm can be
+triviallyadaptedtofindthispolicyjustbysettingµ =0(compare(12)to(3)).
+E
+ThefollowingcorollaryfollowsstraightforwardlyfromtheproofofTheorem2.
+Corollary 1. Given an MDP\R M. Suppose we execute the ‘no expert’ version of the MWAL
+algorithmforT iterations. Letψ bethemixedpolicyreturnedbythealgorithm. Let(cid:15) ,(cid:15) ,(cid:15) be
+F P R
+definedasinTheorem2. Letv∗ =max ψ∈Ψminw∈Sk[w·µ(ψ)]. Then
+V(ψ)≥v∗−(cid:15) (13)
+if
+9lnk
+T ≥ (14)
+2((cid:15)0(1−γ))2
+where
+(cid:15)−(2(cid:15) +(cid:15) +2(cid:15) /(1−γ))
+(cid:15)0 ≤ F P R . (15)
+3
+5.2 Representationerror
+AlthoughtheMWALalgorithmmakesdifferentassumptionsaboutthedomainsofwandφφφthanthe
+projectionalgorithm,thesedifferencesareofnorealconsequence. Thesameclassofrewardfunc-
+tionscanbeexpressedundereithersetofassumptionsbyroughlydoublingthenumberoffeatures.
+Concretely,considerafeaturefunctionφφφthatsatisfiestheassumptionsoftheprojectionalgorithm.
+Thenforeachs,ifφφφ(s)=(f ,...,f ),defineφφφ0(s)=(f ,...,f ,−f ,...,−f ,0).Observethat
+1 k 1 k 1 k
+φφφ0satisfiestheassumptionsoftheMWALalgorithm,andthatminw∈Bkmax
+s
+|R∗(s)−w·φφφ(s)|≥
+minw∈S2k+1 max
+s
+|R∗(s)−w ·φφφ0(s)|. So by only doubling the number of features, we can en-
+surethattherepresentationerror(cid:15) doesnotincrease. Notably,employingthisreductionforcesthe
+R
+game value v∗ to be zero, ensuring that the MWAL algorithm, like the projection algorithm, will
+mimictheexpert. Thisobsevationprovidesuswithsomeusefulguidanceforselectingfeaturesfor
+the MWAL algorithm: both the original and negated version of a feature should be used ifwe are
+uncertainhowthatfeatureiscorrelatedwithreward.
+6 Whenthetransitionfunctionisunknown
+Intheprevioussections,aswellasinAbbeelandNg[1],itwasassumedthatthetransitionfunction
+θ(s,a,·) was known. In this section we sketch how to remove this assumption. Our approach to
+applying the MWAL algorithm to this setting can be informally described as follows: Let M =
+(S,A,θ,γ,φ)bethetrueMDP\Rforwhichwearemissingθ. ConsidertheMLEestimateθ ofθ
+thatisformedfromtheexpert’ssampletrajectories. LetZ ⊆S ×Abethesetofstate-actionpairs
+that are visited “most frequently” by the expert. Then after observing enough trajectories, θbwill
+b
+7
+
+beanaccurateestimateofθ onZ. WeformapessimisticestimateM ofM byusingθ tomodel
+Z
+thetransitionsinZ,androuteallothertransitionstoaspecial“deadstate.” FollowingKearnsand
+Singh[5],whousedaverysimilarideaintheiranalyisoftheE3algocrithm,wecallM thbeinduced
+Z
+MDP\RonZ.
+c
+By a straightforward application of several technical lemmas due to Kearns and Singh [5] and
+Abbeel and Ng [6], it is possible to show that if the number of expert trajectories m is at least
+O(|S|3|A|ln|S|3|A| +|S||A|ln2|S||A|),andweletZ bethesetofstate-actionpairsvisitedbythe
+8(cid:15)3 δ(cid:15) δ
+expertatleastO(|S|2 ln|S|3|A|)times,thenusingM
+inplaceofM intheMWALalgorithmwill
+4(cid:15)2 (cid:15) Z
+add only O((cid:15)) to the error bound in Theorem 2. More details are available in the supplement [4],
+includingapreciseprocedureforconstructingM .c
+Z
+7 Experiments c
+Foreaseofcomparison,wetestedtheMWALalgorithmandtheprojectionalgorithminacardriving
+simulatorthatresembledtheexperimentalsetupfromAbbeelandNg[1].Videosoftheexperiments
+discussedbelowareavailableinthesupplement[4].
+Inoursimulator,theapprenticemustnavigateacarthroughrandomly-generatedtrafficonathree-
+lane highway. We define three features for this environment: a collision feature (0if contact with
+another car, and 1/2 otherwise), an off-road feature (0 if on the grass, and 1/2 otherwise), and a
+speedfeature(1/2,3/4and1foreachofthethreepossiblespeeds,withhighervaluescorresponding
+tohigherspeeds). Notethatthefeaturesencodethat, otherthingsbeingequal, speedisgood, and
+collisionsandoff-roadsarebad.
+FastExpert Proj MWAL BadExpert Proj. MWAL NoExpert MWAL
+Speed Fast Fast Fast Slow Slow Medium - Medium
+Collisions(persec) 1.1 1.1 0.5 2.23 2.23 0 - 0
+Off-roads(persec) 0 0 0 8.0 8.0 0 - 0
+ThetableabovedisplaystheresultsofusingtheMWALandprojectionalgorithmstolearnadriving
+policybyobservingtwokindsofexperts: a“fast”expert(drivesatthefastestspeed; indifferentto
+collisions),anda“bad”expert(drivesattheslowestspeed;triestohitcarsandgooff-road). Inboth
+cases,theMWALalgorithmleveragesinformationencodedinthefeaturestoproduceapolicythat
+issignificantlybetterthantheexpert’spolicy.
+We also applied the MWAL algorithm to the “no expert” setting (see Section 5.1). In that case, it
+producedapolicythatdrivesasfastaspossiblewithoutriskinganycollisionsoroff-roads. Given
+ourfeatures,thisisindeedthebestpolicyfortheworst-casechoiceofrewardfunction.
+Acknowledgments
+WethankPieterAbbeelforhishelpfulexplanatorycommentsregardinghisproofs. Wealsothank
+theanonymousreviewersfortheirsuggestionsforadditionalexperimentsandotherimprovements.
+ThisworkwassupportedbytheNSFundergrantIIS-0325500.
+References
+[1] P.Abbeel,A.Ng(2004).ApprenticeshipLearningviaInverseReinforcementLearning.ICML21.
+[2] Y. Freund, R. E. Schapire (1999). Adaptive Game Playing Using Multiplicative Weights. Games and
+EconomicBehavior29,79–103.
+[3] N.Ratliff,J.Bagnell,M.Zinkevich(2006).MaximumMarginPlanning.ICML23.
+[4] U.Syed, R.E.Schapire(2007).“AGame-TheoreticApproachtoApprenticeshipLearning—Supple-
+ment”.http://www.cs.princeton.edu/˜usyed/nips2007/.
+[5] M.Kearns,S.Singh(2002).Near-OptimalReinforcementLearninginPolynomialTime.MachineLearn-
+ing49,209–232.
+[6] P.Abbeel,A.Ng(2005).ExplorationandApprenticeshipLearninginReinforcementLearning.ICML22.
+(Longversion;availableathttp://www.cs.stanford.edu/˜pabbeel/)
+8

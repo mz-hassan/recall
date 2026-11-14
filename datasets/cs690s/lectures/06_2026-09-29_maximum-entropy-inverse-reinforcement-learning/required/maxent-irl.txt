@@ -1,0 +1,616 @@
+Maximum Entropy Inverse Reinforcement Learning
+BrianD.Ziebart,AndrewMaas,J.AndrewBagnell, and AnindK.Dey
+SchoolofComputerScience
+CarnegieMellonUniversity
+Pittsburgh,PA15213
+bziebart@cs.cmu.edu,amaas@andrew.cmu.edu,dbagnell@ri.cmu.edu,anind@cs.cmu.edu
+Abstract employtheprincipleofmaximumentropytoresolvetheam-
+biguity in choosing a distribution over decisions. We pro-
+Recent research has shown the benefit of framing problems
+vide efficient algorithms for learning and inference for de-
+ofimitationlearningassolutionstoMarkovDecisionProb-
+terministicMDPs. Werelyonanadditionalsimplifyingas-
+lems. Thisapproachreduceslearningtotheproblemofre-
+sumptiontomakereasoningaboutnon-deterministicMDPs
+covering a utility function that makes the behavior induced
+byanear-optimalpolicycloselymimicdemonstratedbehav- tractable. Theresultingdistributionisaprobabilisticmodel
+ior. Inthiswork,wedevelopaprobabilisticapproachbased that normalizes globally over behaviors and can be under-
+ontheprincipleofmaximumentropy.Ourapproachprovides stoodasanextensiontochainconditionalrandomfieldsthat
+awell-defined,globallynormalizeddistributionoverdecision incorporates the dynamics of the planning system and ex-
+sequences,whileprovidingthesameperformanceguarantees tendstotheinfinitehorizon.
+asexistingmethods. Our research effort is motivated by the problem of mod-
+We develop our technique in the context of modeling real- eling real-world routing preferences of drivers. We apply
+worldnavigationanddrivingbehaviorswherecollecteddata our approach to route preference modeling using 100,000
+isinherentlynoisyandimperfect.Ourprobabilisticapproach
+miles of collected GPS data of taxi-cab driving, where the
+enablesmodelingofroutepreferencesaswellasapowerful
+structureoftheworld(i.e.,theroadnetwork)isknownand
+new approach to inferring destinations and routes based on
+the actions available (i.e., traversing a road segment) are
+partialtrajectories.
+characterizedbyroadfeatures(e.g.,speedlimit,numberof
+lanes). In sharp contrast to many imitation learning tech-
+Introduction
+niques, our probabilistic model of purposeful behavior in-
+Inproblemsofimitationlearningthegoalistolearntopre- tegratesseamlesslywithotherprobabilisticmethodsinclud-
+dictthebehavioranddecisionsanagentwouldchoose–e.g., inghiddenvariabletechniques. Thisallowsustoextendour
+the motions a person would take to grasp an object or the route preferences with hidden goals to naturally infer both
+routeadriverwouldtaketogetfromhometowork. Captur- futureroutesanddestinationsbasedonpartialtrajectories.
+ingpurposeful,sequentialdecision-makingbehaviorcanbe A key concern is that demonstrated behavior is prone to
+quitedifficultforgeneral-purposestatisticalmachinelearn- noise and imperfect behavior. The maximum entropy ap-
+ingalgorithms;insuchproblems,algorithmsmustoftenrea- proach provides a principled method of dealing with this
+sonaboutconsequencesofactionsfarintothefuture. uncertainty. We discuss several additional advantages in
+Apowerfulrecentideaforapproachingproblemsofimi- modelingbehaviorthatthistechniquehasoverexistingap-
+tationlearningistostructurethespaceoflearnedpoliciesto proachestoinversereinforcementlearningincludingmargin
+besolutionsofsearch,planning,or,moregenerally,Markov methods(Ratliff,Bagnell,&Zinkevich2006)andthosethat
+Decision Problems (MDP). The key notion, intuitively, is normalize locally over each state’s available actions (Ra-
+thatagentsacttooptimizeanunknownrewardfunction(as- machandran&Amir2007;Neu&Szepesvri2007).
+sumed to be linear in the features) and that we must find
+reward weights that make their demonstrated behavior ap- Background
+pear (near)-optimal. The imitation learning problem then
+In the imitation learning setting, an agent’s behavior (i.e.,
+is reduced to recovering a reward function that induces the
+itstrajectoryorpath,ζ,ofstatess andactionsa )insome
+demonstratedbehaviorwiththesearchalgorithmservingto i i
+planning space is observed by a learner trying to model or
+“stitch-together”long,coherentsequencesofdecisionsthat
+imitate the agent. The agent is assumed to be attempting
+optimizethatrewardfunction.
+to optimize some function that linearly maps the features
+Wetakeathoroughlyprobabilisticapproachtoreasoning
+of each state, f ∈ ℜk, to a state reward value represent-
+aboutuncertaintyinimitationlearning. Undertheconstraint sj
+ing the agent’s utility for visiting that state. This function
+ofmatchingtherewardvalueofdemonstratedbehavior,we
+is parameterized by some reward weights, θ. The reward
+Copyright(cid:13)c 2008,AssociationfortheAdvancementofArtificial value of a trajectoryis simplythe sumof staterewards, or,
+Intelligence(www.aaai.org).Allrightsreserved. equivalently, the reward weight applied to the path feature
+
+counts,f ζ = Psj∈ζ f sj ,whicharethesumofthestatefea- a6 s2 s2 a4
+turesalongthepath. a4
+s1 a1 a5 a3 s1 a1 a5 a3
+reward(f ζ )=θ⊤f ζ = Xθ⊤f sj a2 s3 a2 s3
+sj∈ζ (a) (c)
+The agent demonstrates single trajectories, ζ˜
+i
+, and has an s1 s1
+expected empirical feature count,˜f =
+m
+1
+Pi
+f
+ζ˜ i
+, based on s2 a6 s2 a4
+many(m)demonstratedtrajectories. s1 a1 a4 s2 s1 a1 s2
+Recovering the agent’s exact reward weights is an ill- a2 s3 a5 a2 s3
+posed problem; many reward weights, including degenera-
+a5
+s3 s3
+cies (e.g., all zeroes), make demonstrated trajectories opti- a3 a3
+mal. Ratliff,Bagnell,&Zinkevich(2006)castthisproblem
+s2 s2
+as one of structured maximum margin prediction (MMP).
+(b) (d)
+Theyconsideraclassoflossfunctionsthatdirectlymeasure
+disagreement between an agent and a learned policy, and
+then efficiently learn a reward function based on a convex Figure 1: A deterministic MDP (a) and a single path from
+relaxation of this loss using the structured margin method itspath-space(b).Anon-deterministicMDP(c)andasingle
+and requiring only oracle access to an MDP solver. How- pathfromitspath-space(d).
+ever, this method suffers from some significant drawbacks
+whennosinglerewardfunctionmakesdemonstratedbehav-
+iorbothoptimalandsignificantlybetterthananyalternative iors. This corresponds to paths of (potentially) variable
+behavior. This arises quite frequently when, for instance, length(Figure1b)fordeterministicMDPs(Figure1a).
+thebehaviordemonstratedbytheagentisimperfect, orthe Similar to distributions of policies, many different dis-
+planningalgorithmonlycapturesapartoftherelevantstate- tributions of paths match feature counts when any demon-
+spaceandcannotperfectlydescribetheobservedbehavior. strated behavior is sub-optimal. Any one distribution from
+Abbeel&Ng(2004)provideanalternateapproachbased among this set may exhibit a preference for some of the
+on Inverse Reinforcement Learning (IRL) (Ng & Russell paths over others that is not implied by the path features.
+2000). The authors propose a strategy of matching feature We employ the principle of maximum entropy, which re-
+expectations (Equation 1) between an observed policy and solvesthisambiguitybychoosingthedistributionthatdoes
+a learner’s behavior; they demonstrate that this matching notexhibitanyadditionalpreferencesbeyondmatchingfea-
+isbothnecessaryandsufficienttoachievethesameperfor- ture expectations (Equation 1). The resulting distribution
+manceastheagentiftheagentwereinfactsolvinganMDP over paths for deterministic MDPs is parameterized by re-
+witharewardfunctionlinearinthosefeatures. wardweightsθ (Equation2). Underthismodel,planswith
+equivalentrewardshaveequalprobabilities, andplanswith
+X P(ζ i )f ζi =˜f (1) higherrewardsareexponentiallymorepreferred.
+Pathζi
+fea
+U
+tu
+n
+r
+f
+e
+or
+c
+t
+o
+u
+u
+n
+n
+a
+t
+t
+s
+el
+a
+y
+r
+,
+e
+bo
+am
+th
+b
+t
+i
+h
+g
+e
+uo
+IR
+us
+L
+.
+c
+E
+o
+a
+n
+c
+c
+h
+ep
+p
+t
+o
+a
+l
+n
+ic
+d
+y
+th
+ca
+e
+n
+m
+b
+a
+e
+tc
+o
+h
+p
+in
+ti
+g
+m
+o
+a
+f
+l
+P(ζ
+i
+|θ)=
+Z(
+1
+θ)
+eθ⊤fζi =
+Z(
+1
+θ)
+e P sj∈ζi θ⊤fsj (2)
+formanyrewardfunctions(e.g.,allzeros)andmanypolicies
+leadtothesamefeaturecounts. Whensub-optimalbehavior Givenparameterweights,thepartitionfunction,Z(θ),al-
+isdemonstrated, mixtures of policies arerequired tomatch waysconvergesforfinitehorizonproblemsandinfinitehori-
+feature counts, and, similarly, many different mixtures of zonsproblemswithdiscountedrewardweights. Forinfinite
+policiessatisfyfeaturematching. Nomethodisproposedto horizonproblemswithzero-rewardabsorbingstates,thepar-
+resolvetheambiguity. titionfunctioncanfailtoconvergeevenwhentherewardsof
+all states are negative. However, given demonstrated tra-
+MaximumEntropyIRL jectories that are absorbed in a finite number of steps, the
+Wetakeadifferentapproachtomatchingfeaturecountsthat rewardweightsmaximizingentropymustbeconvergent.
+allowsustodealwiththisambiguityinaprincipledway,and
+Non-DeterministicPathDistributions
+results in a single stochastic policy. We employ the princi-
+pleofmaximumentropy(Jaynes1957)toresolveambigui- IngeneralMDPs,actionsproducenon-deterministictransi-
+tiesinchoosingdistributions. Thisprincipleleadsustothe tionsbetweenstates(Figure1c)accordingtothestatetran-
+distributionoverbehaviorsconstrainedtomatchfeatureex- sitiondistribution, T. PathsintheseMDPs(Figure1d)are
+pectations,whilebeingnomorecommittedtoanyparticular now determined by the action choices of the agent and the
+paththanthisconstraintrequires. random outcomes of the MDP. Our distribution over paths
+musttakethisrandomnessintoaccount.
+DeterministicPathDistributions
+We use the maximum entropy distribution of paths con-
+Unlike previous work that reasons about policies, we con- ditionedonthetransitiondistribution,T,andconstrainedto
+sider a distribution over the entire class of possible behav- matchfeatureexpectations(Equation1). Considerthespace
+
+of action outcomes, T, and an outcome sample, o, speci- samples–inparticular,theseboundshaveonlyanO(logK)
+fying the next state for every action. The MDP is deter- dependenceonthenumberoffeatures.1 Dud´ık&Schapire
+ministicgivenowiththepreviousdistribution(Equation2) (2006)showthatthemaximumentropyproblemthatresults
+overpathscompatiblewitho(i.e.,theactionoutcomesofthe given bounded uncertainty in feature expectation is a max-
+pathandomatch). Theindicatorfunction,I is1whenζ imum a posteriori problem exactly like the one described
+ζ∈o
+is compatible with o and 0 otherwise. Computing this dis- above,butwithanl -regularizeraddedon(withthestrength
+1
+tribution (Equation 3) is generally intractable. However, if of regularization depending on the uncertainty in that fea-
+we assume that transition randomness has a limited effect ture expectation). In our experimental section we use the
+onbehaviorandthatthepartitionfunctionisconstantforall online exponentiated gradient descent algorithm, which is
+o ∈ T, then we obtain a tractable approximate distribution bothveryefficientandinducesanl -typeregularizingeffect
+1
+overpaths(Equation4). onthecoefficients. 2
+EfficientStateFrequencyCalculations
+eθ⊤fζ
+P(ζ|θ,T)= XP
+T
+(o)
+Z(θ,o)
+I
+ζ∈o
+(3) Given the expected state frequencies, the gradient can eas-
+ily be computed (Equation 6) for optimization. The most
+o∈T
+eθ⊤fζ straight-forwardapproachforcomputingtheexpectedstate
+≈ Z(θ,T) Y P T (s t+1 |a t ,s t ) (4) f f r o e r q tu u n e a n t c e i l e y s ,t i h s e ba e s x e p d o o n n en e t n ia u l m g e ro ra w ti t n h g o e f a p c a h th p s o w ss i i t b h le th p e at M h. D U P n ’s -
+st+1,at,st∈ζ
+timehorizonmakesenumeration-basedapproachescompu-
+StochasticPolicies tationallyinfeasible.
+Thisdistributionoverpathsprovidesastochasticpolicy(i.e.,
+adistributionovertheavailableactionsofeachstate)when Algorithm1ExpectedEdgeFrequencyCalculation
+the partition function of Equation 4 converges. The proba-
+bilityofanactionisweightedbytheexpectedexponentiated Backwardpass
+rewardsofallpathsthatbeginwiththataction.
+1. SetZ =1
+sterminal
+2. RecursivelycomputeforN iterations
+P(actiona|θ,T)∝ X P(ζ|θ,T) (5)
+ζ:a∈ζt=0
+Z
+ai,j
+=XP(s
+k
+|s
+i
+,a
+i,j
+)ereward(si|θ)Z
+sk
+k
+LearningfromDemonstratedBehavior
+Z
+si
+=XZ
+ai,j
++1
+{si=sterminal}
+Maximizing the entropy of the distribution over paths sub-
+ai,j
+jecttothefeatureconstraintsfromobserveddataimpliesthat
+Localactionprobabilitycomputation
+we maximize the likelihood of the observed data under the
+maximumentropy(exponentialfamily)distributionderived
+3. P(a |s )=
+Z ai,j
+above(Jaynes1957). i,j i Z
+si
+Forwardpass
+θ∗ =argmaxL(θ)=argmax X logP(ζ˜|θ,T) 4. SetD si,t =P(s i =s initial )
+θ θ
+examples 5. Recursivelycomputefort=1toN
+This function is convex for deterministic MDPs and the
+optima can be obtained using gradient-based optimization
+D
+si,t+1
+=XXD
+sk,t
+P(a
+i,j
+|s
+i
+)P(s
+k
+|a
+i,j
+,s
+i
+)
+methods. The gradient is the difference between expected ai,j k
+empirical feature counts and the learner’s expected feature Summingfrequencies
+counts, which can be expressed in terms of expected state
+visitationfrequencies,D
+si
+.
+6. D
+si
+=X
+t
+D
+si,t
+∇L(θ)=˜f−XP(ζ|θ,T)f
+ζ
+=˜f−XD
+si
+f
+si
+(6)
+ζ si Instead,ouralgorithmcomputestheexpectedstateoccu-
+Atthemaxima,thefeatureexpectationsmatch,guaranteeing pancyfrequenciesefficientlyusingatechniquesimilartothe
+thatthelearnerperformsequivalentlytotheagent’sdemon-
+1Incontrast,margin-basedandlocallynormalizingmodelsrely
+stratedbehaviorregardlessoftheactualrewardweightsthe
+ontechniquesthatscalelinearlyinthenumberoffeatures.
+agentisattemptingtooptimize(Abbeel&Ng2004).
+2ForstochasticMDPswecanachievebetterusageoffinitedata
+In practice, we measure empirical, sample-based expec-
+byremovingthevarianceinsamplefeatureexpectationsduetothe
+tations of the feature values, and not the true values of the
+uncertaintyintheMDP.Spacedoesn’tpermitthefullexpositionof
+agent to be imitated. Assuming the magnitude of the fea-
+the incomplete (and non-convex) log-likelihood, but the intuitive
+turescanbebounded,astandardunionandHoeffdingbound expectation-maximizationalgorithmthatresultsfitsthemaximum-
+argument can provide high-probability bounds on the er- entropymodelusinginitialfeatureexpectationsandthenimproves
+ror in feature expectations as a function of the number of thoseestimatesbyrunningtheresultingpolicyintheMDP.
+
+forward-backwardalgorithmforConditionalRandomFields is categorized in each of these dimensions (i.e., from inter-
+orvalueiterationinReinforcementLearning.Thealgorithm statetolocalroad,highspeedtolowspeed,andonelaneto
+approximatesthestatefrequenciesfortheinfinitetimehori- manylanes)andtransitionsarecategorizedasstraight,left,
+zon using a large fixed time horizon. It recursively “backs right, hardleft, andhardright. Apathisdescribedbyhow
+up”fromeachpossibleterminalstate(Step1)andcomputes manymilesofeachroadsegmentcategorizationitcontains
+the probability mass associated with each branch along the andthenumberofeachtransitiontype.Eachroadsegment’s
+way(Step2)bycomputingthepartitionfunctionforEqua- contributiontothese22differentcountsisrepresentedinthe
+tion4ateachactionandstate. Thesebranchingvaluesyield roadsegment’sfeatures.
+localactionprobabilities(Step3),fromwhichstatefrequen-
+cies in each timestep can be computed (Steps 4 and 5) and IRLModels
+summedforthetotalstatefrequencycounts(Step6). We apply our Maximum Entropy IRL model (MaxEnt) to
+the task of learning taxi drivers’ collective utility function
+DriverRouteModeling for the different features describing paths in our road net-
+OurresearcheffortonmaximumentropyapproachestoIRL work. We maximize the probability of demonstrated paths
+wasmotivatedbyapplicationsofimitationlearningofdriver withinasmallerfixedclassofreasonablygoodpathsrather
+routechoices. Weareinterestedinrecoveringautilityfunc- thantheclassofallpossiblepathsbelowafixedlength. Our
+tion useful for predicting driving behavior as well as for algorithmisefficient(polynomialtime)forbothclasses,but
+routerecommendation.Toourknowledge,thisisthelargest- thisreductionprovidesasignificantspeedup(withoutintro-
+scale IRL problem investigated to date in terms of demon- ducingoptimizationnon-convexity)andlimitsconsideration
+strateddatasize. ofcyclesintheroadnetwork.
+Wedemonstrateourapproach’seffectivenessbycompar-
+RouteChoiceasanMDP ingwithtwootherIRLmodels. ThefirstisMaximumMar-
+gin Planning (MMP) (Ratliff, Bagnell, & Zinkevich 2006),
+Road networks present a large planning space with known
+whichisamodelcapableofpredictingnewpaths,butinca-
+structure. Wemodelthisstructurefortheroadnetworksur-
+pable of density estimation (i.e., computing the probability
+roundingPittsburgh, Pennsylvania, asadeterministicMDP
+ofsomedemonstratedpath).Thesecondmodelisanaction-
+with over 300,000 states (i.e., road segments) and 900,000
+based distribution model (Action) that has been employed
+actions (i.e., transitions at intersections). We assume that
+for Bayesian IRL (Ramachandran & Amir 2007) and hy-
+driverswhoareexecutingplanswithintheroadnetworkare
+brid IRL (Neu & Szepesvri 2007). The choice of action in
+attempting to reach some goal while efficiently optimizing
+any particular state is assumed to be distributed according
+sometrade-offbetweentime,safety,stress,fuelcosts,main-
+tothefutureexpectedrewardofthebestpolicyaftertaking
+tenance costs, and other factors. We call this value a cost
+theaction,Q∗(S,a). Inoursetting,thisvalueissimplythe
+(i.e.,anegativereward). Werepresentthedestinationwithin
+optimalpathcosttothegoalaftertakingaparticularaction.
+the MDP as an absorbing state where no additional costs
+areincurred. Differenttripshavedifferentdestinationsand
+P(actiona|s
+,θ)∝eQ∗(si,a)
+(7)
+i
+slightlydifferentcorrespondingMDPs. Weassumethatthe
+rewardweightisindependentofthegoalstateandtherefore The difference between this action-based model and our
+asinglerewardweightcanbelearnedfrommanyMDPsthat modelisbestillustratedinthefollowingexample.
+differonlyingoalstate.
+1
+CollectingandProcessingGPSData
+B
+2
+WecollectedGPStracedatafrom25YellowCabtaxidrivers
+over a 12 week duration at all times of day. This yielded a A 3
+datasetofover100,000milesoftravelcollectedduringover
+3,000 hours of driving and covering a large area surround-
+Figure2: Exampleofprobabilitydistributionsoverpaths.
+ingPittsburgh. Weemployedaparticlefiltertofitthesparse
+GPSdatatotheroadnetworkandsegmentedthefittedtraces
+into approximately 13,000 distinct trips using a time-based TherearethreeobviouspathsfromAtoBinFigure2. As-
+threshold to determine stopping locations. We discarded suming each path provides the same reward, in the maxi-
+roughly30%ofthetripsthatweretooshort(fewerthan10 mumentropymodel, eachpathwillhaveequalprobability.
+roadsegments),toocyclic,ortoonoisy,andsplit20%ofthe Intheaction-basedmodel,path3willhave50%probability
+remainingtripsintoatrainingsetandtheremaining80%of whilepaths1and2have25%probability. Thedistribution
+thedataintoatestingsetof7403examples. willbedifferentforthereturntripfromBtoA.
+More generally, paths in action-based distributions such
+PathFeatures
+as this one only compete for probability mass with other
+Our road network data includes a detailed set of charac- pathslocallyattheactionlevel,andnotagainstotherpaths
+teristics that describe each road segment. For our experi- that branched earlier. This problem is known as label bias
+ments,weconsiderfourdifferentdimensionsofcharacteris- in the Conditional Random Field literature (Lafferty, Mc-
+tics:roadtype,speed,lanes,andtransitions.Aroadsegment Callum, & Pereira 2001). It has undesirable consequences
+
+forIRL.Forinstance,thehighestrewardpolicymaynotbe
+the most probable policy in the model, and policies with
+the same expected reward can have different probabilities.
+Comparedtoourmaximumentropydistributionoverpaths,
+this model gives higher probability mass to paths with a
+smallerbranchingfactorandlowerprobabilitymasstothose
+withahigherbranchingfactor.
+ComparativeEvaluation
+Wenowevaluateeachmodel’sabilitytomodelpathsinthe
+withheld testing set after being trained on the training set
+giventhepath’soriginanddestination. Weusethreediffer-
+entmetrics. Thefirstcomparesthemodel’smostlikelypath
+estimatewiththeactualdemonstratedpathandevaluatesthe
+amount of route distance shared. The second shows what
+percentageofthetestingpathsmatchatleast90%(distance)
+withthemodel’spredictedpath. Thefinalmetricmeasures
+the average log probability of paths in the training set un-
+der the given model. For path matching, we evaluate both
+the most likely path within the action-based model and the
+lowestcostpathusingtheweightslearnedfromtheaction-
+based model. We additionally evaluate a model based on
+expectedtraveltimesthatweightsthecostofaunitdistance
+ofroadtobeinverselyproportionaltothespeedoftheroad,
+and predicts the fastest (i.e., lowest cost) route given these
+costs.
+Matching 90%Match LogProb
+Time-based 72.38% 43.12% N/A
+MaxMargin 75.29% 46.56% N/A
+Action 77.30% 50.37% -7.91
+Action(costs) 77.74% 50.75% N/A
+MaxEntpaths 78.79% 52.98% -6.85
+Table1: Comparisonofdifferentmodels’abilitiestomatch
+mostlikelypathpredictionstowithheldpaths(averageper-
+centage of distance matching and percentage of examples
+where at least 90% of the paths’ distances match) and the
+probabilityofwithheldpaths(averagelogprobability).
+TheresultsofthisanalysisareshowninTable1. Foreach
+ofthesemetrics,ourmaximumentropymodelshowssignif-
+icant(α<.01)improvementsovertheothermodels.
+200
+150
+100
+50
+0
+Interstate Local Road
+Road type
+sdnoceS
+costof1.4secondsthathelpstopenalizepathscomposedof
+manyshortroads.
+Applications
+Beyond the route recommendation application described
+above, our approach opens up a range of possibilities for
+driverprediction. Routerecommendationcanbeeasilyper-
+sonalizedbasedonpassiveobservationofasingleuser. Fur-
+ther, by learning a probability distribution over driver pref-
+erences, destinations, and routes the MaxEntIRL model of
+driver behavior can go beyond route recommendation, to
+new queries like: “What is the probability the driver will
+take this street?” This enables a range of new applications,
+including, e.g., warning drivers about unanticipated traffic
+problems on their route without ever explicitly having to
+query the user about route or destination; optimizing bat-
+teryandfuelconsumptioninahybridvehicle;andactivating
+temperaturecontrolsatahomepriortothedriver’sarrival.
+Sofar,wehavenotdescribedsituationswherethedriver’s
+intendeddestinationisunknown. Fortunatelywecanreason
+easily about intended destinations by applying Bayes’ the-
+orem to our model of route preference. Consider the case
+wherewewanttheposteriorprobabilityofasetofdestina-
+tionsgivenapartiallytraveledpathfromAtoB.
+P(dest|ζ˜ )∝P(ζ˜ |dest)P(dest)
+A→B A→B
+eθ⊤fζ
+∝
+PζB→dest
+P(dest)
+PζA→dest
+eθ⊤fζ
+Thesequantitiescaneasilybecomputedusingourinference
+algorithm(Algorithm1).
+Figure4: Destinationdistribution(from5destinations)and
+remaining path distribution given partially traveled path.
+Learned Road Costs The partially traveled path is heading westward, which is
+a very inefficient (i.e., improbable) partial route to any of
+the eastern destinations (3, 4, 5). The posterior destination
+probability is split between destinations 1 and 2 primarily
+basedonthepriordistributionondestinations.
+Figure4showsoneparticulardestinationpredictionprob-
+lem. Weevaluateourmodel’sabilitytopredictdestinations
+forroutesterminatinginoneoffivelocationsaroundthecity
+Figure 3: Learned costs of turns (left) and miles of differ- (Figure4)basedonthefractionoftotalrouteobserved(Fig-
+entroadtypes(right)normalizedtoseconds(withinterstate ure5).Weuseatrainingsettoformaprioroverdestinations
+drivingfixedto65milesperhour). andevaluateourmodelonawithheldtestset. Incorporating
+additionalcontextualinformationintothispriordistribution,
+The learned cost values using our MaxEnt model are like time of day, will be beneficial for predicting the desti-
+shown in Figure 3. Additionally, we learn a fixed per edge nationsofmostdrivers.
+
+Predicting destination from partial path
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0 0.1 0.2 0.3 0.4
+Fraction of path observed
+ycarucca
+roiretsoP
+in a parametric fashion allows our model to efficiently in-
+corporate contextual information by learning drivers’ pref-
+erences of those contexts, and to generalize to previously
+un-encounteredroadnetworks.
+ConclusionsandFutureWork
+We present a novel approach to inverse reinforcement and
+imitation learning that cleanly resolves ambiguities in pre-
+vious approaches, provides a convex, computationally ef-
+ficient procedure for optimization and maintains important
+Figure 5: Posterior prediction accuracy over five destina- performance guarantees. We applied our method to the
+tionsgivenpartialpath. problemofmodelingroutepreferences,butwefocusedpri-
+marilyondescribingandevaluatingthedifferencesbetween
+ourmodelandotherimitationlearningmodelsusingasmall
+RelatedWork
+feature space. In future work, we plan to improve our
+In locally normalizing probabilistic IRL models, probabil- modelbyincorporatingcontextualfactors(e.g.,timeofday,
+itymassisassignedtoeachactionbasedonsomesummary weather) into our feature space, and inducing region-based
+statistic. Thevalueoftheoptimalpolicyhasbeenemployed or even specific road based features that can explain, e.g.,
+(Neu&Szepesvri2007;Ramachandran&Amir2007). Be- theavoidanceofaparticularroadonlyduringrushhour,or
+yond this probability mass assignment, paths prefixed with asteeproadduringwinterweather.
+one action do not compete for probability mass with paths
+prefixedbyotheractions. Theeffect,knownaslabelbiasin Acknowledgments
+theCRFliterature(Lafferty,McCallum,&Pereira2001),is The authors thank Eric Oatneal and Jerry Campolongo of
+thatpathsinportionsofthestatespacewithmanybranches Yellow Cab Pittsburgh for their assistance, and the Quality
+will be biased towards lower probability mass while those ofLifeTechnologyCenter/NationalScienceFoundationfor
+withfewerbrancheswillbebiasedtowardshigherprobabil- supportingthisresearchunderGrantNo. EEEC-0540865.
+itymass. Asaconsequence,thehighestrewardbehaviorin
+an MDP may not be the most probable, and behaviors that References
+matchinexpectedrewardneednotmatchinprobability.Our
+Abbeel, P., and Ng, A. Y. 2004. Apprenticeship learning
+modelavoidsthelabelbiasproblem,givingequivalentprob-
+viainversereinforcementlearning. InProc.ICML,1–8.
+ability to behaviors with equivalent expected reward, and
+Dud´ık, M., andSchapire, R.E. 2006. Maximumentropy
+larger probability to higher reward behavior. Further, we
+distributionestimationwithgeneralizedregularization. In
+note that the models suggested lead to potentially difficult
+Proc.COLT,123–138.
+non-convexoptimizationproblemswithmultipleminima.
+Routepreferencemodelinghasbeenstudiedusingafew Jaynes,E.T. 1957. Informationtheoryandstatisticalme-
+different approaches. Liao et al. (2007) model transporta- chanics. PhysicalReview106:620–630.
+tion decisions using a directed graphical model. Local ac- Krumm,J.,andHorvitz,E.2006.Predestination:Inferring
+tion distributions are learned from demonstrated behavior destinations from partial trajectories. In Proc. Ubicomp,
+capturedinGPStraces. Whilethismodelcanrepresentthe 243–260.
+same distributions as our undirected model, it is much less
+Lafferty, J.; McCallum, A.; and Pereira, F. 2001. Condi-
+efficient. Contextualinformation,likeroadclosures,canin-
+tional random fields: Probabilistic models for segmenting
+fluenceactionprobabilitydistributionthroughouttheentire
+andlabelingsequencedata. InProc.ICML,282–289.
+roadnetwork. Consequentially,adifferentsetofactiondis-
+Letchner,J.;Krumm,J.;andHorvitz,E. 2006. Triprouter
+tributionsmustbelearnedforeverydestinationandpossible
+with individualized preferences (trip): Incorporating per-
+context, leadingtoestimatesbasedonverysparseamounts
+sonalizationintorouteplanning.InProc.IAAI,1795–1800.
+ofdata.
+Liao, L.; Patterson, D. J.; Fox, D.; and Kautz, H. 2007.
+Krumm & Horvitz (2006) use route efficiency of partial
+Learning and inferring transportation routines. Artificial
+routestovaryingdestinationstoperformdestinationpredic-
+Intelligence171(5-6):311–331.
+tion of a driver. This same notion of efficiency is captured
+withinourprobabilisticmodel. TheTRIPsystem(Letchner, Neu,G.,andSzepesvri,C. 2007. Apprenticeshiplearning
+Krumm, & Horvitz 2006) learns the time inefficiency val- usinginversereinforcementlearningandgradientmethods.
+ues drivers are willing to accept for each of their traveled InProc.UAI,295–302.
+routes and discounts the costs of these previously traveled Ng, A. Y., and Russell, S. 2000. Algorithms for inverse
+roadsegmentsforeachuserbythelevelofacceptedineffi- reinforcementlearning. InProc.ICML,663–670.
+ciency, implicitly capturing some of their preferences. Our
+Ramachandran, D., and Amir, E. 2007. Bayesian inverse
+IRL formalization of the problem can be viewed as an ex-
+reinforcementlearning. InProc.IJCAI,2586–2591.
+tensiontothisworkthatnotonlyenablesportionsofdesired
+Ratliff,N.;Bagnell,J.A.;andZinkevich,M. 2006. Maxi-
+routestohaveloweredcosts,butalsoincreasesthecostsof
+mummarginplanning. InProc.ICML,729–736.
+undesirable routes. Additionally, approaching the problem

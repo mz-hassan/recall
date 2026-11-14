@@ -1,0 +1,1146 @@
+--- PDF page 1 ---
+Human irrationality: both bad
+and good for reward inference
+Lawrence Chan
+University of California, Berkeley
+chanlaw@berkeley.edu
+Andrew Critch
+University of California, Berkeley
+critch@berkeley.edu
+Anca Dragan
+University of California, Berkeley
+anca@berkeley.edu
+Abstract—Assuming humans are (approximately) rational en-
+ables robots to infer reward functions by observing human
+behavior. But people exhibit a wide array of irrationalities, and
+our goal with this work is to better understand the effect they
+can have on reward inference. The challenge with studying this
+effect is that there are many types of irrationality, with varying
+degrees of mathematical formalization. We thus operationalize
+irrationality in the language of MDPs, by altering the Bellman
+optimality equation, and use this framework to study how these
+alterations would affect inference.
+We ﬁnd that wrongly modeling a systematically irrational
+human as noisy- rational performs a lot worse than correctly
+capturing these biases – so much so that it can be better to skip
+inference altogether and stick to the prior! More importantly,
+we show that an irrational human, when correctly modelled, can
+communicate more information about the reward than a perfectly
+rational human can. That is, if a robot has the correct model of
+a human’s irrationality, it can make an even stronger inference
+than it ever could if the human were rational. Irrationality
+fundamentally helps rather than hinder reward inference, but it
+needs to be correctly accounted for. We explain this theoretically
+by showing that irrationality can increase the mutual information
+between the policy and the reward. We also replicate the
+result in an autonomous driving domain with myopic/greedy
+demonstrations.
+I. I NTRODUCTION
+Motivated by difﬁculty in reward speciﬁcation [21], inverse
+reinforcement learning (IRL) methods estimate a reward
+function from human demonstrations [ 24, 1, 20, 17, 23]. The
+central assumption behind these methods is that human behavior
+is rational, i.e., optimal with respect to their reward (cumulative,
+in expectation). Unfortunately, decades of research in behavioral
+economics and cognitive science [ 6] have unearthed a deluge
+of irrationalities, i.e., of ways in which people deviate from
+optimal decision making: hyperbolic discounting, scope insensi-
+tivity, illusion of control, decision noise, loss aversion, to name
+a few. As a community, we are starting to account for some of
+these irrationalities in different ways [35, 36, 32, 26, 12, 30]. In
+this work, we seek to understand how the "ground truth" human
+irrationality (type and amount) pairs with the robot’s model of
+the human to affect the performance of reward inference.
+On the human model side, prior work has shown that a more
+accurate model of the ground-truth human behavior will lead
+to better reward learning performance. However, what we still
+do not understand is: how big is the difference between reward
+learning performance for an irrational human when the human
+is correctly modelled (as irrational), as opposed to incorrectly
+High speed preference
+Irrational (Myopic) HumanRational Human
+Low speed preference High speed preferenceLow speed preference
+Fig. 1: On the left, the rational human (dark gray) behaves in the same
+way regardless of their speed preference. On the right, the myopic
+(short horizon) human (cyan) behaves differently depending on their
+speed preference: merging and staying in lane vs. myopically starting
+to pass on the right to make more progress. Myopia induces this
+diversity of behavior as a function of the human’s reward, increasing
+the amount of information in the behavior. This makes it fundamentally
+easier for a robot to differentiate what the reward is.
+modelled (as rational), for different types of irrationality? A
+very large difference would mean we should keep pushing
+towards better human models.
+On the ground truth human side, we may intuit that
+a perfectly rational human would be the ideal human for
+reward inference and that a robot using a rational model will
+perform the best reward inference, i.e. that the (rational human,
+rational model) pair is ideal. Even if this proves true, it still
+raises questions about how other human-model pairs fare. For
+example, just how hard does human irrationality make reward
+learning, assuming the robot accurately models the human?
+While this might seem hypothetical because we cannot dictate
+what kind of human interacts with the robot, the answer is
+nonetheless important in order to understand the fundamental
+limits of reward learning. Namely, what are the effects of
+irrationality on the upper bounds on performance, if the robot
+correctly models the human? If some irrationality types lead
+to inherently ambiguous behavior, such that no robot could
+perform well, this is something the reward learning community
+needs to be aware of.
+One challenge with conducting such an analysis is that
+there are many irrationalities in the psychology and behavioral
+economics literature, with varying degrees of mathematical
+formalization versus empirical description. To structure the
+space for our analysis, we operationalize irrationalities in the
+language of MDPs by systematically enumerating possible
+deviations from the Bellman equation – imperfect maximization,
+arXiv:2111.06956v1  [cs.LG]  12 Nov 2021
+
+--- PDF page 2 ---
+deviations from the true transition function, etc. This gives
+us a formal framework in which we can simulate irrational
+behavior, run reward inference, and study its performance.
+Armed with this formalism, we then explore the various
+impacts of irrationality on reward learning in three families of
+environments: small random MDPs, a more legible gridworld
+MDP, and an autonomous driving domain drawn from the
+literature [28].
+A. Irrationality can make human behavior more informative.
+Our most surprising ﬁnding comes from analyzing the
+question of how "ground truth" human irrationality affects
+reward inference, when the correct model is known to the
+robot. We expected that perfectly rational behavior is more
+informative than suboptimal, biased behavior. Instead, we found
+that certain irrationalities actually improve the quality of reward
+inference. When the human exhibits certain biases, correctly
+modeling these biases can help make stronger inferences – not
+only compared to incorrect modeling, but even compared to the
+best-case performance when learning from a perfectly rational
+human! That is, in all three environments: an irrational human
+correctly modelled as irrational by the robot leads to better
+reward inference than a rational human correctly modelled as
+rational, for some types and amounts of irrationality.
+We explain this theoretically from the perspective of the
+mutual information between the human behavior and the reward
+parameters, proving that some irrationalities are arbitrarily more
+informative than rational behavior. An intuitive example is in
+Fig. 1, where myopic behavior varies with the reward, but ratio-
+nal behavior does not – this makes it fundamentally possible for
+the robot to ﬁgure out the reward from the myopic behavior, but
+not from the rational one. We prove that there are cases where
+the rational behavior is not informative at all, whereas some
+irrational behavior achieves the information-theoretic upper
+bound; we also prove that the popular Boltzmann-rationality
+model is arbitrarily more informative than perfect rationality.
+While knowing the human irrationality model is hard, this
+result is overall very encouraging: it is probably easier to
+learn irrationality models of people, than to make people act
+rationally – so in the end, it is a good thing that irrational
+behavior is the more informative one.
+B. Unmodelled irrationality leads to remarkably poor reward
+inference.
+We continue with an analysis of what the model that the
+robot uses should be, if the human is in fact irrational. It might
+seem that we can’t immediately beneﬁt from the knowledge that
+irrationalities help inference unless we have a comprehensive
+understanding of human decision-making, and so we should
+just stick to the status quo of modeling people as rational.
+However, prior work [ 30, 32] has already shown beneﬁts of
+algorithms that approximately capture irrationality. What we
+contribute is the ﬁnding that modeling irrational humans as
+(noisily-)rational (instead of accounting for their biases) can
+lead to worse outcomes than not performing inference at all
+and just using the prior (Sec. V). Encouragingly, we also ﬁnd
+evidence that even just modeling the human’s irrationality only
+approximately, i.e. getting the type of irrationality correct but
+not the exact parameters, allows a robot to outperform modeling
+the human as noisily-rational. This reinforces prior works that
+studied speciﬁc algorithms for capturing speciﬁc biases with a
+more systematic analysis (Sec. V-B).
+C. Contributions
+Overall, we contribute 1) a theoretical and empirical analysis
+of the effects of different irrationalities on reward inference,
+2) a way to systematically formalize and cover the space of
+irrationalities in order to conduct such an analysis, and 3)
+evidence and explanation for the importance and beneﬁt of
+accounting for irrationality during inference. The implications
+are that we should probably stop assuming rationality (because
+it can lead to worse inference than sticking to the prior), and
+further prior work on learning models of irrationality (because
+there is a lot of information to be exploited from irrational
+behavior). While basic intuition says that it is good to model
+irrationality because people are irrational, what we argue in
+this paper is that there is an additional reason for modeling
+irrationality: the way people are irrational communicates
+additional information about the reward, and correct modeling
+will enable robots to tap into that.
+II. F RAMEWORK : BIASES AS DEVIATIONS FROM THE
+BELLMAN UPDATE
+A. Exploring biases through simulation
+While ideally we would recruit human subjects with different
+irrationalities and measure how well we can learn rewards, this
+is prohibitive because we do not get to dictate someone’s
+irrationality type: people exhibit a mix of them, some yet to
+be discovered. Further, measuring the accuracy of inference
+from observing real humans is complicated by the fact that
+we lack ground truth access to the human’s reward function.
+For instance, suppose we asked subjects to produce a set of
+(behavior, reward function) pairs. We could then try to predict
+the reward functions from the behaviors. But how did we, the
+experimenters, infer the reward functions from the people? If
+we are wrong in our assumptions about which irrationalities
+are affecting their behavior and/or explicit reports of rewards,
+we would remain deluded about the subjects’ true preferences.
+To address these issues, we simulate human behavior subject
+to different irrationalities, run reward inference, and measure
+the performance against the ground truth, i.e., the accuracy
+of a Bayesian posterior on the reward parameter given the
+(simulated) human’s inputs.
+B. Background and formalism
+Consider an Uncertain-Reward MDP (URMDP) [ 4, 27, 8]
+M = ( S,A,{Ps,a},γ, Θ,p,r ), consisting of ﬁnite state
+and action sets S and A, distributions over states {Ps,a}
+representing the result of taking action a in state s, discount
+rate γ∈ [0, 1), a (ﬁnite) set of reward parameters Θ, a prior
+distribution p∈ ∆(S× Θ) over starting states and reward
+parameters, and a parameterized state-action reward function
+
+--- PDF page 3 ---
+V i+1 (s ) = max
+a
+X
+s
+0
+2 S
+P s,a (s
+0
+)( r✓ (s, a, s
+0
+)+   V i (s
+0
+))
+<latexit sha1_base64="tUrVd30ftRvSTlUZWvPCDkoqueE=">AAACTXicbVHPaxNBGJ2NP1rjj6Z69PJhkCY0hF0R7KVQ6sVjRJMWsmH5djKbDJ2ZXWa+lYZl/0EvQm/+F148KCLOpnvQ1gcDj/feNz/epIWSjsLwa9C5c/fe/Z3dB92Hjx4/2evtP525vLRcTHmucnueohNKGjElSUqcF1agTpU4Sy/eNv7ZJ2GdzM1H2hRioXFlZCY5kpeS3nKWVPIwqgduCMcQa7xMKqwhdqVOKncQSwMf6omnI/SZgyHESmQEA5vEtBaEAzcCHEHjHEK8Qq0Rmi3bsJWrNQ2TXj8ch1vAbRK1pM9aTJLeVbzMeamFIa7QuXkUFrSo0JLkStTduHSiQH6BKzH31KAWblFt26jhpVeWkOXWL0OwVf+eqFA7t9GpT2qktbvpNeL/vHlJ2dGikqYoSRh+fVBWKqAcmmphKa3gpDaeILfS3xX4Gi1y8h/Q9SVEN598m8xejaNwHL1/3T85bevYZc/ZCzZgEXvDTtg7NmFTxtln9o39YD+DL8H34Ffw+zraCdqZZ+wfdHb+ADDNsFI=</latexit><latexit sha1_base64="tUrVd30ftRvSTlUZWvPCDkoqueE=">AAACTXicbVHPaxNBGJ2NP1rjj6Z69PJhkCY0hF0R7KVQ6sVjRJMWsmH5djKbDJ2ZXWa+lYZl/0EvQm/+F148KCLOpnvQ1gcDj/feNz/epIWSjsLwa9C5c/fe/Z3dB92Hjx4/2evtP525vLRcTHmucnueohNKGjElSUqcF1agTpU4Sy/eNv7ZJ2GdzM1H2hRioXFlZCY5kpeS3nKWVPIwqgduCMcQa7xMKqwhdqVOKncQSwMf6omnI/SZgyHESmQEA5vEtBaEAzcCHEHjHEK8Qq0Rmi3bsJWrNQ2TXj8ch1vAbRK1pM9aTJLeVbzMeamFIa7QuXkUFrSo0JLkStTduHSiQH6BKzH31KAWblFt26jhpVeWkOXWL0OwVf+eqFA7t9GpT2qktbvpNeL/vHlJ2dGikqYoSRh+fVBWKqAcmmphKa3gpDaeILfS3xX4Gi1y8h/Q9SVEN598m8xejaNwHL1/3T85bevYZc/ZCzZgEXvDTtg7NmFTxtln9o39YD+DL8H34Ffw+zraCdqZZ+wfdHb+ADDNsFI=</latexit><latexit sha1_base64="tUrVd30ftRvSTlUZWvPCDkoqueE=">AAACTXicbVHPaxNBGJ2NP1rjj6Z69PJhkCY0hF0R7KVQ6sVjRJMWsmH5djKbDJ2ZXWa+lYZl/0EvQm/+F148KCLOpnvQ1gcDj/feNz/epIWSjsLwa9C5c/fe/Z3dB92Hjx4/2evtP525vLRcTHmucnueohNKGjElSUqcF1agTpU4Sy/eNv7ZJ2GdzM1H2hRioXFlZCY5kpeS3nKWVPIwqgduCMcQa7xMKqwhdqVOKncQSwMf6omnI/SZgyHESmQEA5vEtBaEAzcCHEHjHEK8Qq0Rmi3bsJWrNQ2TXj8ch1vAbRK1pM9aTJLeVbzMeamFIa7QuXkUFrSo0JLkStTduHSiQH6BKzH31KAWblFt26jhpVeWkOXWL0OwVf+eqFA7t9GpT2qktbvpNeL/vHlJ2dGikqYoSRh+fVBWKqAcmmphKa3gpDaeILfS3xX4Gi1y8h/Q9SVEN598m8xejaNwHL1/3T85bevYZc/ZCzZgEXvDTtg7NmFTxtln9o39YD+DL8H34Ffw+zraCdqZZ+wfdHb+ADDNsFI=</latexit><latexit sha1_base64="tUrVd30ftRvSTlUZWvPCDkoqueE=">AAACTXicbVHPaxNBGJ2NP1rjj6Z69PJhkCY0hF0R7KVQ6sVjRJMWsmH5djKbDJ2ZXWa+lYZl/0EvQm/+F148KCLOpnvQ1gcDj/feNz/epIWSjsLwa9C5c/fe/Z3dB92Hjx4/2evtP525vLRcTHmucnueohNKGjElSUqcF1agTpU4Sy/eNv7ZJ2GdzM1H2hRioXFlZCY5kpeS3nKWVPIwqgduCMcQa7xMKqwhdqVOKncQSwMf6omnI/SZgyHESmQEA5vEtBaEAzcCHEHjHEK8Qq0Rmi3bsJWrNQ2TXj8ch1vAbRK1pM9aTJLeVbzMeamFIa7QuXkUFrSo0JLkStTduHSiQH6BKzH31KAWblFt26jhpVeWkOXWL0OwVf+eqFA7t9GpT2qktbvpNeL/vHlJ2dGikqYoSRh+fVBWKqAcmmphKa3gpDaeILfS3xX4Gi1y8h/Q9SVEN598m8xejaNwHL1/3T85bevYZc/ZCzZgEXvDTtg7NmFTxtln9o39YD+DL8H34Ffw+zraCdqZZ+wfdHb+ADDNsFI=</latexit>
+Boltzmann-Rationality
+Optimism/Pessimism
+Illusion of Control
+Prospect Bias
+Myopic Horizon
+Myopic Discounting
+Hyperbolic Discounting
+Extremal Bias
+Fig. 2: In Sec. II-C, we modify the components of the Bellman update to cover different types of irrationalities: changing the max into a
+softmax to capture noise (Boltzmann), changing the transition function to capture optimism/pessimism or the illusion of control, changing the
+reward values to capture the nonlinear perception of gains and losses (Prospect), changing the average reward over time into a maximum
+(Extremal), and changing the discounting to capture more myopic decision-making.
+r : Θ×S×A×S→ R, where rθ(s,a,s′) represents the
+reward received.
+We assume that the human’s policy π satisﬁesπ = d(θ),
+where d is an (environment-speciﬁc) planner d : Θ→ Π that
+returns a (possibly stochastic) policy given a particular reward
+parameter θ. The rational human uses a planner dRational that,
+given a reward parameter θ, returns a policy that maximizes
+its expected value. On the other hand, we say that an human is
+irrational if its planner returns policies with lower expected
+value than the optimal policy, for at least one θ∈ Θ.
+C. Types and degrees of irrationality
+There are many possible irrationalities that people exhibit
+[6], far more than what we could study in one paper. To
+provide good coverage of this space, we start from the Bellman
+update, and systematically manipulate its terms and operators
+to produce a variety of different irrationalities that deviate from
+the optimal MDP policy in complementary ways. For instance,
+operating on the discount factor can model myopic behavior,
+while operating on the transition function can model optimism
+or the illusion of control. We parametrize each irrationality
+so that we can manipulate its “intensity" or deviation from
+rationality. Figure 2 summarizes our approach, which we detail
+below.
+1) Rational human: In our setup, the rational human does
+value iteration using the Bellman update from Fig. 2 with
+ground truth models and high γ. Our models change this
+update to produce different types of non-rational behavior.
+2) Modifying the max operator: Boltzmann: Boltzmann-
+rationality modiﬁes the maximum over actions maxa with a
+Boltzmann operator with a parameter β:
+Vi+1(s) = Boltzβ
+a
+∑
+s′∈S
+Ps,a(s′) (rθ(s,a,s′) +γVi(s′)),
+where Boltzβ(x) = ∑
+ixieβxi/∑
+ieβxi [36, 3]. This is the
+most popular stochastic model used in reward inference[ 36,
+3, 13]. After computing the value function, the Boltzmann-
+rational planner dBoltz returns a policy where the probability
+of an action is proportional to the exponential of the Q-value
+of the action:
+π(a|s)∝eβQθ(s,a).
+The constant β is called the rationality constant , because
+as β→∞ , the human choices approach perfect rationality
+(optimality), whereas β = 0 produces uniformly random
+choices.
+3) Modifying the transition function: Our next set of
+irrationalities manipulate the transition function away from
+reality.
+a) Illusion of Control.: People often overestimate their
+ability to control random events [ 34]. To model this, we
+consider humans that use the Bellman update:
+Vi+1(s) = max
+a
+∑
+s′∈S
+Pn
+s,a(s′) (rθ(s,a,s′) +γVi(s′))
+where Pn
+s,a(s′) = (Ps,a(s′))n/ ∑
+s′′∈S (Ps,a(s′′))n. As n→
+∞, the human acts as if it exists in a deterministic environment.
+As n→ 0, the human acts as if it had an equal chance of
+transitioning to every possible successor state.
+b) Optimism/Pessimism: Many people systematically
+overestimate or underestimate their chance experiencing of
+positive over negative events [31]. We model this using humans
+that modify the probability they get outcomes based on the
+value of those outcomes:
+Vi+1(s) = max
+a
+∑
+s′∈S
+Pω
+s,a(s′) (rθ(s,a,s′) +γVi(s′))
+where Pω
+s,a(s′) ∝ Ps,a(s′)eω(rθ(s,a,s′)+γVi(s′)). ω controls
+how pessimistic or optimistic the human is. As ω→ +∞
+(respectively, ω → −∞), the human becomes increasingly
+certain that good (bad) transitions will happen. As ω→ 0, the
+human approaches the rational human.
+4) Modifying the reward: Next, we consider humans that
+use the modiﬁed Bellman update:
+Vi+1(s) = max
+a
+∑
+s′∈S
+Ps,a(s′) (f(rθ(s,a,s′)) +γVi(s′))
+wheref : R→ R is some scalar function. This is equivalent to
+solving the MDP with reward f◦rθ, and allows us to model
+human behavior such as loss aversion and scope insensitivity.
+a) Prospect Bias: Kahneman and Tversky [19] inspires
+us to consider a particular family of fs:
+fc(r) =
+
+
+
+log(1 +|r|) r> 0
+0 r = 0
+−c log(1 +|r|) r< 0
+c controls how loss averse the human is. As c→∞ , the human
+primarily focuses on avoiding negative rewards. As c→ 0, the
+human focuses on maximizing positive rewards.
+5) Modifying the sum between reward and future value::
+
+--- PDF page 4 ---
+a) Extremal: People seem to exhibit duration neglect,
+sometimes only caring about the maximum intensity of an
+experience [10]. We model this using Bellman update:
+Vi+1(s) = max
+a
+∑
+s′∈S
+Ps,a(s′) max
+{
+rθ(s,a,s′)
+(1−α)rθ(s,a,s′) +αVi(s′)
+These humans maximize the expected maximum reward along
+a trajectory, instead of the expected sum of rewards. As α→ 1,
+the human maximizes the expected maximum reward received
+along the full trajectory. As α→ 0, the human becomes greedy
+and maximizes the immediate reward.
+6) Modifying the discounting:
+a) Myopic Discount: In practice, people are sometimes
+myopic, only considering near-term rewards. One way to model
+this is to decrease gamma in the Bellman update. At γ =γ∗,
+the discount rate speciﬁed by the environment, this is the
+rational human. As γ→ 0, the human becomes greedy and
+only acts to maximize immediate reward.
+b) Myopic Value Iteration: As another way to model
+human myopia, we consider a human that performs only h
+steps of Bellman updates. That is, this human cares equally
+about rewards for a horizon h, and discount to 0 reward after
+that. As h→∞ , this human becomes rational. If h = 1, this
+human only cares about the immediate reward.
+c) Hyperbolic Discounting: Human also exhibit hyper-
+bolic discounting, with a high discount rate for the immediate
+future and a low discount rate for the far future [ 15]. Alexander
+and Brown [2] formulate this as the following Bellman update:
+Vi+1(s) = max
+a
+∑
+s′∈S
+Ps,a(s′)rθ(s,a,s′) +Vi(s′)
+1 +kVi(s′)
+k modulates how much the human prefers rewards now versus
+the future. As k→ 0, this human becomes a rational human
+without discounting.
+III. E XPLORING THE EFFECTS OF KNOWN BIASES ON
+REWARD INFERENCE
+Armed with our framework for characterizing irrationality,
+we test its implications for reward inference. We start by
+investigating the effects in random MDPs.
+A. Experimental Design: Exact Inference in Random MDPs.
+a) Independent Variables.: We manipulate the type of
+the planner, and vary the degree parameters for each. We
+use different environments, sample different ground truth
+reward parameters, and test different trajectory lengths for
+the demonstrated behavior (T = 3, 15, and 30 state-actions).
+b) Dependent Measures.: To separate the inference difﬁ-
+culty caused by suboptimal inference from the difﬁculty caused
+by human irrationality, we perform the exact Bayesian update
+on the trajectory ξ [25], which gives us the posterior on θ
+givenξ, P (θ|ξ) = P(ξ|θ)P(θ)∫
+θ′P(ξ|θ′)P(θ′). Our primary metric is the
+expected log loss of this posterior:
+Log Loss(θ|ξ) =Eθ∗,ξ∼d(θ∗) [− logP (θ∗|ξ)].
+A low log loss implies that we are assigning a high likelihood
+to the true θ∗. Note that in this case, the log loss is equal to
+the entropy of the posterior H(θ|ξ) =H(θ)− I(θ;ξ).
+For each environment and irrationality type, we calculate
+the performance of reward inference on trajectories of a ﬁxed
+length T . To sample a trajectory of length T from a human,
+we ﬁxθ∗ and start state s. Then, we generate rollouts starting
+from state s untilT state, action pairs have been sampled from
+π =d(θ∗). We repeat this procedure 10 times for each start
+state.
+c) Simulation Environment.: We used MDPs with 10
+states and 2 actions, where each (s,a )-pair has 2 random,
+nonzero transition-probabilities. We used γ = 0.99 and start
+trajectories in every state without reward. In these θ is a vector
+of length 3, where θi is the reward received from transitions
+out of state i (and all other rewards are 0). We discretized each
+θi with 4 values, leading to |Θ| = 64. We generated 20 such
+random MDPs.
+B. Results
+Fig. 3 plots the log loss for each irrationality for random
+MDPs. The degree affects reward inference, with many settings
+naturally resulting in worse inference, especially at the extremes.
+However, what is surprising is that every type except Prospect
+Bias has at least one degree (parameter) setting that results in
+better inference with enough data: we see that most irrationality
+types can be more informative than rational behavior. The more
+data we have, the more drastic the difference (T=30 results in
+both better inference and larger difference relative to rational).
+We put this to the test with a repeated-measures ANOV A
+with planner type as the independent variable, using the data
+from the best parameter setting from each type and T=30, and
+environment as a random effect. We ﬁnd a signiﬁcant main
+effect for planner type ( F (8, 806372) = 6102.93, p< 0.001).
+A post-hoc analysis with Tukey HSD corrections conﬁrmed
+that every irrationality except Prospect improved inference
+compared to the fully rational planner ( p<. 001). For T = 30,
+Optimism with ω = 3.16 performed best, followed by Illusion
+of Control with n = 0.1 and Boltzmann with β = 10.
+IV. D OES THIS EFFECT GENERALIZE ?
+In the domain of random MDPs, we found that not only
+does irrationality affect reward inference, certain irrationalities
+can actually result in better inference. In this section, we
+probe the generality of this ﬁnding empirically, and explain it
+theoretically.
+A. Gridworld
+Random MDPs lack structure, so we ﬁrst test a toy envi-
+ronment that adds natural structure based on OpenAI Gym’s
+‘Frozen-Lake-v0’ [5] (Fig. 5). Fig. 4 shows the results in the
+gridworld: they are surprisingly (and reassuringly) similar to the
+random MDPs. This suggests that irrationalities can indeed help
+inference across differently structured MDPs. By inspecting
+the policies, we see that the irrational humans were able to
+outperform the rational human by disambiguating between θs
+
+--- PDF page 5 ---
+Fig. 3: The log loss (lower = better) of the posterior as a function of the parameter we vary for each irrationality type, on the random MDP
+environments. For the irrationalities that interpolate to the rational planner, we denote the value that is closest to rational using a dashed
+vertical line. Every irrationality except Prospect Bias all have parameter settings that outperform the rational planner. The error bars show the
+standard error of the mean, calculated by 1000 bootstraps across environments.
+Fig. 4: The analog of Fig. 3 for the gridworld. Error bars are the standard error of the mean. The ﬁndings are surprisingly similar as with the
+random MDPs. Note the more limited x-axis ranges we used in this experiment.
+TABLE I: Autonomous Driving Results: Merging
+Bayesian IRL CIOC
+Horizon Log Loss Information Gain Cosine Similarity Normalized Return
+3 0.690 0.696 0.999 0.939
+5 0.824 0.562 0.940 0.981
+7 1.383 0.004 0.350 0.856
+
+--- PDF page 6 ---
+Fig. 5: Myopic value iteration ( h = 5 ), here presented in blue)
+produces different policies for θ∗ = (4, 1) vs. θ∗ = (4, 0): while the
+rational expert (whose policy is represented in black) always detours
+around the hole and attempts to reach the larger reward, myopia
+causes the myopic expert to go for the smaller source of reward when
+it is non-zero.
+that the rational human could not. To visualize this, we give
+an example of how the policy of several irrational humans
+differ on the gridworld when the rational human’s policies are
+identical in Fig. 5. Additional examples are given in Fig. 9
+and Fig. 10 in the appendix.
+B. Autonomous Driving
+Even if known irrationality helps reward inference both
+empirically and theoretically in small MDPs, the question still
+remains whether this result will matter in practice. Next, we
+investigate the effect of human irrationality on reward inference
+in a continuous state and action self-driving car domain [ 28].
+Switching to this real-world domain means we can no longer
+plan exactly, so we use model predictive control. It also means
+we can no longer run exact inference, so we approximate
+Bayesian IRL through samples, and also test continuous IOC
+(CIOC, Levine and Koltun [22]) which recovers an approximate
+MLE. We measure the cosine similarity between the estimate
+andθ∗, as well as the normalized reward of the trajectory when
+optimizing the recovered estimate. We use the merging task
+from Fig. 1 (more details in the appendix).
+We report our results in Table I. As the columns relating to
+Bayesian IRL show, decreasing the MPC planning horizon
+signiﬁcantly decreases the log loss of the Bayesian IRL
+posterior. As with the gridworld results in Sec. IV-A, the
+reason for this is that the shorter planning horizons exhibit
+more diverse behavior (as a function of the reward). Of the 4
+reward settings we used, MPC with horizon 3 and 5 produced
+two different qualitative behaviors, whereas all rewards led
+to qualitatively similar behavior with horizon 7 (depicted in
+Fig. 1). When the weight on target speed was large enough,
+MPC with horizon 3 and 5 would produce a trajectory that
+overtakes the front car by going off the road. In all other cases,
+the human would merge between the two other cars.
+We found similar results for CIOC: decreasing the MPC
+planning horizon increases the cosine similarity between the
+true and CIOC-recovered rewards. The return of optimizing
+the CIOC-recovered rewards is also higher when the human’s
+planning horizon is 3 or 5 than 7.
+Overall, yet again we ﬁnd that irrationality (in this case
+speciﬁcally myopia) improves reward inference by producing
+more diverse behavior as a function of the reward.
+C. Theoretical Analysis
+We now investigate this phenomenon theoretically. We show
+that not only can rational behavior be arbitrarily less informative
+than irrational behavior, but also that this applies to Boltzmann-
+rationality.
+1) Informativeness as mutual information.: The mutual
+information I(θ;d(θ)) = H(θ)− H(θ|d(θ)) between the
+policy and the reward parameters allows us to quantify the
+informativeness of a planner. As the conditional entropy
+H(θ|d(θ)) =E [− logp(θ|d(θ)] is equal to the log loss of the
+posterior under the true model, the mutual information upper
+bounds how much better (in terms of log loss) any inference
+procedure can do, relative to the prior. A known insight is that
+planners that optimize for maximizing the discounted sum of
+rewards are not the same as those that optimize for being infor-
+mative [ 11, 16]: arg maxdEθ[Vd(θ)
+θ ]̸= arg maxd I(θ;d(θ)).
+While this insight has been tested empirically, we begin with
+a theoretical lens for understanding it.
+2) Irrationalities exist that are arbitrarily better for inference
+than rationality.: We ﬁrst consider deterministic planners :
+planners that return deterministic policies. We show that there
+are cases where the rational behavior is not informative at all,
+whereas some (irrational) deterministic planner achieves the
+theoretical upper bound on informativeness.
+Proposition 1. There exists a family of URMDPs with
+state spaces of any size, such there exists a deterministic
+planner dIrrational satisfying I(θ,d Irrational(θ)) = log |Θ| and
+I(θ,d Rational(θ)) = 0.
+3) Boltzmann-rationality is (arbitrarily) more informative
+than full rationality.: Of course, the upper bound is attained
+by some irrational planner. It demonstrates that an human
+can perform better than rational when speciﬁcally optimizing
+for informativeness. But this is an artiﬁcial, contrived kind of
+irrationality. In fact, prior work that maximized informativeness
+did so by solving a more difﬁcult problem than rationality [ 11,
+16]. Here, we provide evidence that Boltzmann-rationality, a
+standard model of stochastic choice, outperforms full rationality
+for reward inference. (Proof in appendix.)
+Proposition 2. There exists a family of one-state two-action
+MDPs, with arbitrarily large |Θ| such that I(θ,d Boltz(θ)) =
+log|Θ| and I(θ,d Rational(θ)) = 0.
+V. E FFECTS OF MISSPECIFICATION ON REWARD INFERENCE
+We see that irrationalities sometimes hinder, but sometimes
+help reward inference. So far, the robot had access to the type
+(and degree of irrationality) during inference. Next, we ask how
+important it is to know this. Can we not bother with irrationality,
+make the default assumption (of Boltzmann-rationality), and
+run inference?
+
+--- PDF page 7 ---
+Rational Optimism Illusion Prospect Extremal Myopic
+γ
+Myopic
+h
+Hyperbolic
+Random MDPs
+0
+20
+40
+60
+80Mean Log Loss
+True Model
+Boltzmann
+H=5 H=7
+Car Environment
+0
+20
+40
+60
+80 True H
+H = 3
+(a)
+ (b)
+Fig. 6: (a) A comparison of reward inference using a correct model of the irrationality type, versus always using a Boltzmann-rational model
+(β = 10), on the random MDPs (left) and the car environment (right). The impairment due to model misspeciﬁcation greatly outweighs the
+variation in inference performance caused by various irrationalities. The error bars show the standard error of the mean, calculated by the
+bootstrap across environments. (b) An example of why assuming Boltzmann is bad when the ground truth human is Myopic in the gridworld
+environment - the Boltzmann rational agent would take the trajectory depicted only if the reward at the bottom was not much less than the
+reward at the top. A myopic human with n≤ 4, however, only "sees" the reward at the bottom. Consequently, inferring the preferences of
+the myopic agent as if it were Boltzmann leads to poor performance in this case.
+A. Assuming noisy rationality can lead to very poor inference
+Fig. 6a suggests that the answer is no. We start by comparing
+inference with the true model on random MDPs versus with as-
+suming the standard Boltzmann model as a default. The results
+are quite striking: not knowing the correct irrationality harms
+inference tremendously.1 We then conﬁrm that misspeciﬁcation
+greatly harms inference in the autonomous driving environment.
+In Fig. 6b, we provide an example of why assuming Boltzmann-
+rationality when the human is Myopic leads to bad inference.
+This emphasizes the importance of understanding irrationality
+when doing reward inference going forward.
+B. Approximate models of irrationality might be enough
+This ﬁnding is rather daunting, as perfect models of irra-
+tionality are very challenging to develop. But do they need
+to be perfect? Our ﬁnal analysis suggests that the answer is
+no as well. In Fig. 7, we report the log loss of inference with
+the correct type, but under misspeciﬁcation of the parameter.
+Encouragingly, we ﬁnd that in many cases, merely getting the
+type of the human irrationality correct is actually sufﬁcient
+to lead to much better inference than assuming Boltzmann
+rationality. Further, we also ﬁnd evidence that the robot does
+not need to get the type exactly right either: as shown in Fig.
+8, if the robot accounts for the human’s myopia, but gets the
+type of the myopia wrong, this still leads to signiﬁcantly better
+inference than assuming Boltzmann rationality.
+1Shah et al. [30] proposed a way to model irrationality and analyzed its
+beneﬁt over assuming Boltzmann; the beneﬁt was very limited, which they
+attributed due to their deep learning model’s brittleness compared to exact
+planning. Here, we compare to perfect modeling to analyze the headroom that
+modeling has.
+VI. D ISCUSSION
+1) Summary: In this work, we analyzed how the "ground
+truth" human pairs with the robot’s model of the human to
+affect the performance of reward inference. To investigate this,
+we deﬁned irrationalities as deviations from the Bellman update
+(Sec. II-C).
+On the model side, we found that if the human is irrational,
+incorrectly modeling them via the standard noisy-rationality
+assumption can lead to so poor performance of reward inference,
+that it could be better to stick with the prior and skip inference.
+While it is natural for incorrect models to lead to worse
+performance, this gap is particularly daunting. Fortunately,
+even approximate models of irrationalities may be enough -
+merely getting the type of the human irrationality correct led to
+signiﬁcantly better inference than assuming noisy-rationality.
+On the ground truth human side, we asked what the best-case
+performance of learning is for different human irrationalities
+– that is, if the robot models the human correctly, how well
+can it hope to infer the reward? We expected that noisy and
+irrational humans would be less informative about what they
+want than perfectly rational humans, and therefore make the
+reward inference problem inherently more difﬁcult. However,
+we found that irrationality can actually make human behavior
+more informative, by increasing the mutual information between
+reward and policy. In three domains, we found that irrational
+behavior varies more as a function of the reward, and ultimately
+results in better learning performance. This is not only a
+theoretically interesting observation about the upper bound
+of the problem, but also encourages further research on
+modeling human irrationality, so that robots can beneﬁt from
+this additional information in human behavior.
+2) Limitations and Future Work: Much of our results are
+in the relatively random MDP and gridworld environments.
+
+--- PDF page 8 ---
+100 102 104
+β
+0
+20
+40
+60
+80Mean Log Loss
+Boltzmann
+100 102
+n
+Illusion
+−101 −100 0 100 101
+ω
+Optimism
+0.25 0.50 0.75 1.00
+α
+Extremal
+100 102
+c
+5
+10
+15
+20
+25Mean Log Loss
+Prospect
+0.25 0.50 0.75 1.00
+γ
+Myopic γ
+2.5 5.0 7.5 10.0
+h
+Myopic h
+100 102
+k
+Hyperbolic
+Learner assumes Boltzmann
+Learner assumes Prospect
+Learner assumes Illusion
+Learner assumes Myopic γ
+Learner assumes Optimism
+Learner assumes Myopic h
+Learner assumes Extremal
+Learner assumes Hyperbolic
+Fig. 7: The log loss (lower = better) of various models under parameter misspeciﬁcation. Each x-axis shows the parameter that the robot
+assumes. The orange line represents the performance when the robot makes the faulty assumption that the human is Boltzmann-rational. In
+many cases, the robot perform better than by assuming Boltzmann-rational just by getting the type of the planner correct, even if they don’t
+get the exact parameter correct. The error bars show the standard error of the mean, calculated by the bootstrap across environments.
+0.2 0.4 0.6 0.8 1.0
+γ
+5
+10
+15
+20
+25Mean Log Loss
+Demonstrator has Myopic h
+2 4 6 8 10
+h
+Demonstrator has Myopic γ
+Learner assumes Boltzmann Learner assumes Myopic γ Learner assumes Myopic h
+Fig. 8: The log loss (lower = better) of two myopic humans under
+type misspeciﬁcation. On the left, the human performs myopic value
+iteration (Myopic h), but the robot assumes the human has a myopic
+discount rate γ (Myopic γ). On the right, the human has a myopic
+discount rateγ but the robot assumes myopic value iteration. However,
+in both cases, this leads to better inference than assuming Boltzmann-
+rationality.
+Though we conﬁrmed our key results in a higher-dimensional,
+continuous autonomous driving task, future work is needed to
+replicate these results in more realistic domains. Future work
+is also needed to develop reward learning algorithms that can
+account for a variety human biases in larger domains.
+Further, our paper presents an analysis, not a practical
+algorithm for improving reward learning. Our most interesting
+ﬁnding, and the one we dedicate most of the paper to, is the
+fact that irrationalities can improve reward inference. Though
+we showed that even approximate models of irrationality sufﬁce
+to outperform the standard noisily-rational assumption, actually
+beneﬁting from irrationality still requires precise models of the
+human’s irrationality. Nonetheless, we think the result is still
+important, because it encourages treating biases more seriously.
+In the end, our paper makes a perhaps fortunate observation –
+that the irrational human, when correctly modelled, is better
+than the rational human correctly: since real humans are likely
+not perfectly rational, this might be good news in the end.
+In fact, is is probably easier to learn irrationality models of
+people, than to make people act rationally – so in the end, it
+is a good thing that irrational behavior is the more informative
+one.
+What is more, our results also point to an untapped
+opportunity: training people to act irrationality (e.g. myopically)
+when demonstrating behavior in order to be more informative
+to our robots. User studies with real people will be important
+to understand how to make use of this opportunity.
+
+--- PDF page 9 ---
+REFERENCES
+[1] Pieter Abbeel and Andrew Y Ng. Appren-
+ticeship learning via inverse reinforcement learn-
+ing. In Proceedings of the twenty-ﬁrst interna-
+tional conference on Machine learning , page 1. ACM,
+2004. URL: http://people.eecs.berkeley.edu/~russell/
+classes/cs294/s11/readings/Abbeel+Ng:2004.pdf.
+[2] William H Alexander and Joshua W Brown. Hyperbol-
+ically discounted temporal difference learning. Neural
+computation, 22(6):1511–1527, 2010.
+[3] Kavosh Asadi and Michael L Littman. An alternative
+softmax operator for reinforcement learning. In Proceed-
+ings of the 34th International Conference on Machine
+Learning-Volume 70, pages 243–252. JMLR. org, 2017.
+[4] J Andrew Bagnell, Andrew Y Ng, and Jeff G Schneider.
+Solving uncertain markov decision processes. 2001.
+[5] Greg Brockman, Vicki Cheung, Ludwig Pettersson,
+Jonas Schneider, John Schulman, Jie Tang, and Woj-
+ciech Zaremba. Openai gym.(2016). arXiv preprint
+arXiv:1606.01540, 2016.
+[6] Susan E. F. Chipman. The Oxford Handbook
+of Cognitive Science . Oxford University Press,
+11 2014. ISBN 9780199842193. URL https:
+//www.oxfordhandbooks.com/view/10.1093/oxfordhb/
+9780199842193.001.0001/oxfordhb-9780199842193.
+[7] Antoine Cully, Jeff Clune, Danesh Tarapore, and Jean-
+Baptiste Mouret. Robots that can adapt like animals.
+Nature, 521(7553):503–507, 2015.
+[8] Nishant Desai. Uncertain reward-transition mdps for
+negotiable reinforcement learning. Technical report, UC
+Berkeley, Berkeley, California, USA, 2017.
+[9] Coline Devin, Abhishek Gupta, Trevor Darrell, Pieter
+Abbeel, and Sergey Levine. Learning modular neural
+network policies for multi-task and multi-robot transfer.
+In 2017 IEEE International Conference on Robotics and
+Automation (ICRA), pages 2169–2176. IEEE, 2017.
+[10] Amy M Do, Alexander V Rupert, and George Wolford.
+Evaluations of pleasurable experiences: The peak-end rule.
+Psychonomic Bulletin & Review , 15(1):96–98, 2008.
+[11] Anca D Dragan, Kenton CT Lee, and Siddhartha S
+Srinivasa. Legibility and predictability of robot motion.
+In Proceedings of the 8th ACM/IEEE international
+conference on Human-robot interaction , pages 301–308.
+IEEE Press, 2013.
+[12] Owain Evans, Andreas Stuhlmüller, and Noah Good-
+man. Learning the preferences of ignorant, inconsistent
+agents. In Thirtieth AAAI Conference on Artiﬁcial
+Intelligence, 2016. URL: https://pdfs.semanticscholar.org/
+31bf/e42e77a572bd83c0529e0f03bc3dc8af52c2.pdf.
+[13] Jaime F Fisac, Monica A Gates, Jessica B Hamrick,
+Chang Liu, Dylan Hadﬁeld-Menell, Malayandi Pala-
+niappan, Dhruv Malik, S Shankar Sastry, Thomas L
+Grifﬁths, and Anca D Dragan. Pragmatic-pedagogic value
+alignment. arXiv preprint arXiv:1707.06354, 2017. URL:
+https://arxiv.org/pdf/1707.06354.pdf.
+[14] Justin Fu, Katie Luo, and Sergey Levine. Learning robust
+rewards with adverserial inverse reinforcement learning.
+In International Conference on Learning Representations ,
+2018. URL https://openreview.net/forum?id=rkHywl-A-.
+[15] Till Grüne-Yanoff. Models of temporal discounting 1937–
+2000: An interdisciplinary exchange between economics
+and psychology. Science in context , 28(4):675–713, 2015.
+[16] Dylan Hadﬁeld-Menell, Stuart J Russell, Pieter Abbeel,
+and Anca Dragan. Cooperative inverse reinforcement
+learning. In Advances in neural information processing
+systems, pages 3909–3917, 2016.
+[17] Antony Jameson and Eliezer Kreindler. Inverse problem
+of linear optimal control. SIAM Journal on Control , 11
+(1):1–19, 1973. URL: https://epubs.siam.org/doi/pdf/10.
+1137/0311001.
+[18] Mingxuan Jing, Xiaojian Ma, Wenbing Huang, Fuchun
+Sun, and Huaping Liu. Task transfer by preference-based
+cost learning. In Proceedings of the AAAI Conference
+on Artiﬁcial Intelligence , volume 33, pages 2471–2478,
+2019.
+[19] Daniel Kahneman and Amos Tversky. Prospect theory:
+An analysis of decision under risk. In Handbook of the
+fundamentals of ﬁnancial decision making: Part I , pages
+99–127. World Scientiﬁc, 2013.
+[20] Rudolf Emil Kalman. When is a linear control sys-
+tem optimal? Journal of Basic Engineering , 86(1):51–
+60, 1964. URL: https://asmedigitalcollection.asme.org/
+ﬂuidsengineering/article-abstract/86/1/51/392203.
+[21] Joel Lehman, Jeff Clune, Dusan Misevic, Christoph
+Adami, Lee Altenberg, Julie Beaulieu, Peter J Bentley,
+Samuel Bernard, Guillaume Beslon, David M Bryson,
+et al. The surprising creativity of digital evolution: A
+collection of anecdotes from the evolutionary computation
+and artiﬁcial life research communities. arXiv preprint
+arXiv:1803.03453, 2018.
+[22] Sergey Levine and Vladlen Koltun. Continuous inverse
+optimal control with locally optimal examples. arXiv
+preprint arXiv:1206.4617, 2012.
+[23] Katja Mombaur, Anh Truong, and Jean-Paul Laumond.
+From human to humanoid locomotion—an inverse optimal
+control approach. Autonomous robots, 28(3):369–383,
+2010. URL: https://link.springer.com/content/pdf/10.1007/
+s10514-009-9170-7.pdf.
+[24] Andrew Y Ng, Stuart J Russell, et al. Algorithms for
+inverse reinforcement learning. In Icml, volume 1, page 2,
+2000. URL: http://ai.stanford.edu/~ang/papers/icml00-irl.
+pdf.
+[25] Deepak Ramachandran and Eyal Amir. Bayesian inverse
+reinforcement learning. In IJCAI, volume 7, pages 2586–
+2591, 2007.
+[26] Sid Reddy, Anca Dragan, and Sergey Levine. Where do
+you think you’re going?: Inferring beliefs about dynamics
+from behavior. In Advances in Neural Information
+Processing Systems, pages 1454–1465, 2018.
+[27] Kevin Regan and Craig Boutilier. Robust online opti-
+mization of reward-uncertain mdps. In Twenty-Second
+
+--- PDF page 10 ---
+International Joint Conference on Artiﬁcial Intelligence ,
+2011.
+[28] Dorsa Sadigh, Shankar Sastry, Sanjit A Seshia, and
+Anca D Dragan. Planning for autonomous cars that
+leverage effects on human actions. In Robotics: Science
+and Systems, volume 2. Ann Arbor, MI, USA, 2016.
+[29] Dorsa Sadigh, Anca D. Dragan, Shankar Sastry, and
+Sanjit A Seshia. Active preference-based learning of
+reward functions. In Robotics: Science and Systems (RSS),
+2017.
+[30] Rohin Shah, Noah Gundotra, Pieter Abbeel, and Anca D
+Dragan. On the feasibility of learning, rather than
+assuming, human biases for reward inference. arXiv
+preprint arXiv:1906.09624, 2019. URL: https://arxiv.org/
+pdf/1906.09624.pdf.
+[31] Tali Sharot, Alison M Riccardi, Candace M Raio, and
+Elizabeth A Phelps. Neural mechanisms mediating
+optimism bias. Nature, 450(7166):102–105, 2007.
+[32] Sumeet Singh, Jonathan Lacotte, Anirudha Majumdar,
+and Marco Pavone. Risk-sensitive inverse reinforcement
+learning via semi-and non-parametric methods. arXiv
+preprint arXiv:1711.10055, 2017.
+[33] Matthew E Taylor and Peter Stone. Transfer learning for
+reinforcement learning domains: A survey. Journal of
+Machine Learning Research , 10(Jul):1633–1685, 2009.
+[34] Suzanne C Thompson. Illusions of control: How we
+overestimate our personal inﬂuence. Current Directions
+in Psychological Science , 8(6):187–190, 1999.
+[35] Brian D Ziebart, Andrew L Maas, J Andrew Bagnell, and
+Anind K Dey. Maximum entropy inverse reinforcement
+learning. In Aaai, volume 8, pages 1433–1438. Chicago,
+IL, USA, 2008.
+[36] Brian D Ziebart, J Andrew Bagnell, and Anind K Dey.
+Modeling interaction via the principle of maximum causal
+entropy. 2010.
+Fig. 9: Optimism bias ( ω = 3.16) produces different actions for
+θ∗ = (4, 1) vs. θ∗ = (1, 4) in the states shown: the rational policy is
+to go away from the hole regardless of θ, but an optimistic human
+takes the chance and goes for the larger reward – up in the ﬁrst case,
+down in the second.
+Appendices
+VII. A DDITIONAL DETAILS FOR RANDOM MDP S
+To calculate the policies corresponding to particular planners
+with a particular θ, we perform value iteration using the
+Bellman equation until convergence (deﬁned as ||Vi+1−
+Vi||∞ < 0.001).
+VIII. D ETAILS FOR GRIDWORLD
+In this section, we investigate the effects of irrationality
+on inference in an MDP based on OpenAI Gym’s ‘Frozen-
+Lake-v0’ [5]. This a small 5x5 gridworld (Fig. 5), consisting
+of three types of cells: ice, holes, and rewards. The human
+can start in any ice cell. At each ice cell, the human can
+move in one of the four cardinal directions. With probability
+0.8, they will go in that direction. With probability 0.2, they
+will instead go in one of the two adjacent directions. Holes
+and rewards are terminal states, and return the human back
+to their start state. They receive a penalty of −10 for falling
+into a hole and θi∈ [0, 4] (|Θ| = 25) for entering into the
+ith reward cell. As with the random MDPs, to calculate the
+policies corresponding to particular planners, we perform value
+iteration using the Bellman equation until convergence (deﬁned
+as||Vt+1−Vt||∞ < 0.001)
+To visualize why inference quality is improved, we show
+examples of how the policy of several irrational humans
+differ on the gridworld when the rational human’s policies
+are identical in Fig. 9, Fig. 5, and Fig. 10.
+Finally, Fig. 6b example of why using the wrong model
+for reward inference leads to bad inference. In it, the reward
+inference algorithm assumes that the human in Boltzmann
+when it is actually Myopic. The Boltzmann rational agent
+would take this trajectory only if the reward at the bottom was
+not much less than the reward at the top. The myopic agent
+with n≤ 4, however, only "sees" the reward at the bottom.
+Consequently, inferring the preferences of the myopic agent as
+if it were Boltzmann leads to poor performance in this case.
+IX. D ETAILS FOR AUTONOMOUS DRIVING ENVIRONMENT
+Even if known irrationality helps reward inference both
+empirically and theoretically in small MDPs, the question still
+
+--- PDF page 11 ---
+Fig. 10: Boltzmann (β = 100) produces different policies for θ∗ =
+(1, 1) vs. θ∗ = (4, 4): when||θ|| is larger, the policy becomes closer
+to that of the rational human, as the differences in Q-values becomes
+larger.
+remains whether this result will matter in practice. As a result,
+we investigate the effect of human irrationality on reward
+inference in the self-driving car domain [28].
+Simulation environment. As in previous work in the car
+domain [ 28, 29], we model the dynamics of cars using a
+point-mass model. The state of each car is a 4-dimensional
+vectors = [x y h v], where x,y are the coordinates of the car,
+h is the heading, and v is the speed. The control input for the
+car is a two dimensional vector a = [u1 u2], where u1 is the
+steering input and u2 is the acceleration. We also include a
+friction coefﬁcientα. The dynamics model of the vehicle is:
+[ ˙x ˙y ˙h ˙v] = [v· cosh v · sinh v ·u1 u2−α·v].
+For ease of simulation, we discretized the simulation along
+the time dimension using the following dynamics:
+∆st = [∆xt ∆yt ∆ht ∆vt]
+= [¯vt coshtdt ¯vt sinhtdt ¯vtu1dt (u2−αvt)dt],
+where ∆st = st+1−st and ¯vt = vt + 0.5·u2·dt. In our
+experiments, we used dt = 0.1s.
+Reward functions in this environment are assumed to be a
+linear combination of features:
+rθ(s,a ) =θ⊤f(s,a ), f :S×A→ Rn
+Due to environment complexity, we can’t solve for optimal
+trajectories in our environment directly. Instead, we suppose that
+the planner of is performing Model Predictive Control (MPC)
+at every iteration – that is, it will plan a ﬁnite horizon sequence
+of actions to maximize its reward, execute the ﬁrst action in
+the sequence, then replan. As a basic model of irrationality, we
+consider shorter planning horizons. We assume that the reward
+inference procedure knows the planninng horizon exactly.
+a) Bayesian IRL in the car environment: First, we
+consider the analogue of the results in Sec. III-B in the car
+environment: what is the log-loss of the posterior on θ, given
+different planning horizons? Since the demonstrations used in
+this work are generated via trajectory optimization (and not
+an inherently stochastic process), using Bayesian IRL requires
+us to specify a “fake" observation model P (ξ|θ).
+We use the following distribution, normal in feature space,
+for P (ξ|θ):
+P (ξ|θ)∝e
+(E[f(ξ)]−E[f(ξ∗
+θ])T Σ−1
+ξ∗
+θ
+(E[f(ξ)]−E[f(ξ∗
+θ])
+,
+whereE[f(ξ∗
+θ] is the expectation of the features of the optimal
+trajectory ξ∗
+θ for rθ.
+b) Maximum likelihood IRL in cars: In practice, full
+Bayesian inference is completely intractable for complicated
+domains such as cars. Instead, the state of the art for reward in-
+ference are approximate, maximum-likelihood estimate (MLE)
+based methods.To study the effects of irrationality on MLE-
+based inference methods, we also perform Levine and Koltun’s
+Continuous IOC with Locally Optimal Examples (CIOC) [ 22],
+which uses a Boltzmann model of the human with a second
+order Laplace approximation of the normalizing constant. Since
+our humans are actually locally optimal, we rectify the bias
+induced by the Boltzmann model by using a large β = 104. To
+rectify the issue of local optimization in CIOC, we initialize
+the optimization procedure with the true reward weights.
+As CIOC returns an (approximate) MLE estimate for the
+reward parameter θ, we cannot use the log-loss metric. Instead,
+we evaluate the reward functions by the cosine similarity of
+θ∗ and ˆθ, as well as the normalized return of the trajectory
+when optimizing the recovered ˆθ. (We normalize the returns
+so that the optimal trajectory has return 1 and the trajectory
+that goes forward at constant speed 0.)
+Driving Scenario: Merging Our experiments were performed
+in a simple merging environment (Fig. 1). In it, the human
+wants to merge into the right lane while trying to maintain
+its 1.2 forward speed. In addition to the human car, the right
+lane contains two constant velocity cars, traveling at 0.8 speed.
+The features of this environment are composed of a squared
+penalty for deviating from 1.2 forward speed, features for the
+squared distances to the medians of each of the lanes, a feature
+for the minimum squared distance to any of the medians of
+the lanes, and a smooth collision feature.
+For the Bayesian IRL scenario, we considered four different
+reward functions on this domain, consisting of varying the
+weight on the penalty for deviating from the target speed. All
+the other weights are unchanged. In particular, we considered
+θspeed∈{ 0.5, 1, 2, 4}. In the CIOC scenario, we usedθspeed = 1.
+We also consider 3 different planning horizons: h = 3, h = 5,
+and h = 7. This means we had 12 conditions for Bayesian
+IRL and 3 for CIOC.
+X. P ROOFS FOR SEC. IV-C
+First, note that for deterministic planners, there that there are
+|A||S| such policies, and thus we have I(θ;d(θ))≤H(d(θ))≤
+|S| log|A| (as the entropy of a discrete random variable X is
+bounded above by the logarithm of the size of its support |X|).
+Similarly, we also have that I(θ;d(θ))≤H(θ)≤ log|Θ|. For
+deterministic planners, we thus have
+I(θ;d(θ))≤ min(log|Θ|,|S| log|A|),
+We will now prove a stronger version of proposition 3.
+Proposition 3. There exists a family of URMDPs with state
+and action spaces of any size, such that the rational planner
+provides no information, and there exists a deterministic
+planner that provides min(log|Θ|,|S| log|A|) bits worth of
+information.
+
+--- PDF page 12 ---
+Proof: Consider a set of environments where Θ =
+{1, 2,...,|A||S|}, the prior p is uniform over Θ (and thus
+H(θ) = log|Θ|), and where
+rθ(s,a,s′) =
+{
+θ a =a∗
+0 a̸=a∗
+for some a∗. Then the unique optimal policy has π(s) = a∗
+for every θ (as θ> 0). This implies that
+I(θ,d Rational(θ))≤H(dRational(θ)) = 0.
+However, the planner d′ :θ↦→π(θ), with some ﬁxed some
+ordering{π(i)}i∈{1,2,...,|A||S|} of the possible policies, satisﬁes
+H(θ|d′(θ)) = 0 and thus I(θ;d′(θ)) = H(θ) = log |Θ| =
+|S| log|A|.
+By choosing A such that |A| ≥ |θ|1/|S|, we get the
+Proposition 3 in the text.
+Proposition 4. There exists a family of one-state two-action
+MDPs, with arbitrarily large |Θ| such that I(θ,d Boltz(θ)) =
+log|Θ| and I(θ,d Rational(θ)) = 0.
+Proof: Suppose ﬁrst action a1 has reward θ, where θ∈
+{1, 2,...,−|Θ|}, and the second action a2 has reward 0. Then
+the rational planner dRational will always return a policy that
+always takes the ﬁrst action, while dBoltz(θ) is the policy
+πθ(a1|s1) = eβ(θ+V (s1))
+eβ(θ+V (s1)) +eβV (s1) = 1
+1 +e−βθ
+πθ(a2|s1) = 1
+1 +eβθ
+This mapping is injective, and so H(θ|dBoltz(θ)) = 0 and thus
+I(θ;dBoltz(θ)) =H(θ) = log|Θ|.
+XI. M ORE THEORY
+a) Why recover the reward parameter?: Even if irrational-
+ities can help with inference, a natural question why we wish
+to infer the reward. If the actual goal is acting optimally, a
+rational human would be great because we can just imitate
+them. In addition to the fact that real people are not perfectly
+rational, the reason we focus on inference is that imitation is
+not enough in some cases, e.g. if we need to behave in new
+environments [33, 9, 18], or transfer the policy to a robot with
+different dynamics [7, 14, 26].
+In fact, there are cases where being robust to changes in
+dynamics requires identifying the reward parameters. Indeed,
+there exist such cases where it is impossible to identify the
+parameters from rational humans, but possible from Boltzmann
+humans:
+Proposition 5. There exists an URMDP M and a set of
+new transition probabilities {{P (i)
+s,a}}i∈{1,2,...,|Θ|} such that
+log|Θ| bits of information are needed to compute the opti-
+mal policy under all the transition probabilities; and where
+I(θ,d Rational(θ)) = 0, whereas I(θ,d Boltz(θ)) = log|Θ|.
+Proof: We construct a 2 state, 2 action URMDP. Label
+the two states s1 and s2. Let Θ = {1, 2,...,|Θ|}, the prior
+be uniform over Θ, and let r(s,a,s 1) = θ for all s,a and
+r(s,a 1,s 2) = 0, r(s,a 2,s 2) =−1 for all s.
+Under the original transition probabilities {Ps,a}, a1 leads
+deterministically to s1 while a2 deterministically leads to s2.
+Then, the unique optimal policy is π(s) =a∗ for every θ (as
+θ >0). This implies that I(θ,d Rational(θ)) = 0. On the other
+hand, dBoltz is an injective map (as in Proposition 2), and thus
+I(θ;dBoltz(θ)) = log|Θ|.
+Now, we construct{P (i)
+s,a} such that a1 is optimal for θ≤i−1,
+and a2 is optimal for θ≥i. First, let a1 deterministically lead
+to a2, thus, leading to reward 0. Next, let a2 lead to s1 with
+probability 2
+2i+1. Therefore:
+Es′∼P (i)
+s,a2
+[rθ(s,a 2,s′)] = 2
+2i + 1θ− 2i− 1
+2i + 1
+Then for θ≥i, we have Es′∼P (i)
+s,a2
+[rθ(s,a 2,s′)]≥ 1
+2i+1 > 0
+and for θ≤i−1, we have Es′∼P (i)
+s,a2
+[rθ(s,a 2,s′)]≤− 1
+2i+1 <
+0.
+By construction, in order to compute the optimal policy for
+every new transition probabilities {P (i)
+s,a}, we must know the
+value of θ, and thus need log|Θ| bits of information.

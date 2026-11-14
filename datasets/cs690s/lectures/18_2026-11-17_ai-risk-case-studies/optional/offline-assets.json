@@ -1,0 +1,209 @@
+{
+  "sources": {
+    "aisi-report.html": "https://www.aisi.gov.uk/blog/incident-report-unsanctioned-agent-behaviour-during-cyber-testing"
+  },
+  "assets": [
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7a63_x-close.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7a63_x-close.svg",
+      "bytes": 217,
+      "sha256": "6af05fa957eb6f951c8c8b6da6444666b8d9a9286db86fde6ceb4e86f7777bea"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7abf_flysmoother-check.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7abf_flysmoother-check.svg",
+      "bytes": 564,
+      "sha256": "2cd0bd8712c9781c861c626d4a91e171388d01757d767353840644a6d6d678d0"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7b52_toth-logo-darkgradient-b.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7b52_toth-logo-darkgradient-b.svg",
+      "bytes": 1723,
+      "sha256": "ad067a605607a58c820dff34561667cd4ad92dbf5a6ccb28e0512c9a0c9fd2e8"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7bb5_toth-cap-logo-silver-a.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7bb5_toth-cap-logo-silver-a.svg",
+      "bytes": 1027,
+      "sha256": "110ceb8d097b91383ba7d0ed6d52aef2e345a5361bce4b9e74f69084aaf414d6"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7bcc_TothRing.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7bcc_TothRing.svg",
+      "bytes": 565,
+      "sha256": "c2ae79f34edb6d63c6846d484a932ac53da29361eda833a261969b985f3cabca"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7c06_Janitell-9182.webp",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd486c5e4c81588db7c06_Janitell-9182.webp",
+      "bytes": 166258,
+      "sha256": "58d6d83fdde39ce537786e95f13685900b623e757f21ad6f29cc9442ff3fde1a"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd707781f664f2b1fc511_9f6492186d20b0648bbb07a28a20df4d_AISI%20Logo%20Dark.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd707781f664f2b1fc511_9f6492186d20b0648bbb07a28a20df4d_AISI Logo Dark.svg",
+      "bytes": 7361,
+      "sha256": "c7e218f7d0e9db7325a890f355724b3d6c143ad12c3d59abe3768df7f003e6c0"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd707a74f2d5ce76ec1df_722beecd083374105961f1fbce0641c4_AISI%20Logo%20Colour%20White.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd707a74f2d5ce76ec1df_722beecd083374105961f1fbce0641c4_AISI Logo Colour White.svg",
+      "bytes": 7321,
+      "sha256": "62e5697de12a4d2c1cfdb67d21cb67c7470b67e619f39d85f6a01b8e913a0d5b"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd707cb0214d8b72951b5_5a103bfcb506b52b4e099f3dc675c649_AISI%20Logo%20Colour%20Dark.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd707cb0214d8b72951b5_5a103bfcb506b52b4e099f3dc675c649_AISI Logo Colour Dark.svg",
+      "bytes": 7361,
+      "sha256": "e98736e8675b6af2071ed5678004ef0435b5e95c0761d93f400e47ab4e3bc180"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8858d9bfca7e5f553_Onest-Black.ttf",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8858d9bfca7e5f553_Onest-Black.ttf",
+      "bytes": 64188,
+      "sha256": "b9d64e480229b00769aa36a9a64e337cc0e5ef2f5a6d50f327ed6a000ef1b365"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8d83f20a424b6d08f_Onest-Bold.ttf",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8d83f20a424b6d08f_Onest-Bold.ttf",
+      "bytes": 64416,
+      "sha256": "ca20b7ae5ff98ec55db6e08009eed0a17d4a6864bcbe1090ebb1adcd7a8786c3"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8da8437b3bdd56d89_Onest-ExtraBold.ttf",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8da8437b3bdd56d89_Onest-ExtraBold.ttf",
+      "bytes": 64388,
+      "sha256": "38de0ac88d98c52758d0cfeb89889265164733ed7bf136967fb9556bc38ee8f5"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8dadde1ecd0d3a901_Onest-Light.ttf",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8dadde1ecd0d3a901_Onest-Light.ttf",
+      "bytes": 64376,
+      "sha256": "18b48d9ac6d9efc087d0aa6af33e27d81112097c233d0cbe5496160dd65d7345"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8e4d18693800df5c7_Onest-SemiBold.ttf",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8e4d18693800df5c7_Onest-SemiBold.ttf",
+      "bytes": 64444,
+      "sha256": "a688b7d4988c21529bcf6d68d216a47210e1fd73a43855e23bbb9ca777279209"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8e97dc9c5f2e941c5_Onest-Regular.ttf",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8e97dc9c5f2e941c5_Onest-Regular.ttf",
+      "bytes": 64272,
+      "sha256": "e4f3c821cfb8e8e4b77680dca62a9799c5f73e2774e0adbe4d435ec3c1549fb9"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8e9f6a9b51871ceba_Onest-Medium.ttf",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663bd7d8e9f6a9b51871ceba_Onest-Medium.ttf",
+      "bytes": 64444,
+      "sha256": "6eb0a7675edf9be0790257e2e601d0cdb408835d8e16a5572671a86eb646ec76"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663c34247f53bf67ff868426_plus-lg-15.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/663c34247f53bf67ff868426_plus-lg-15.svg",
+      "bytes": 215,
+      "sha256": "2d44cfdbe514093f3946fbdebdc94d9497a2565ee095be7ed965163172ae8cb0"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/664278cbf162c3ad69eeddf9_AISI-art-05.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/664278cbf162c3ad69eeddf9_AISI-art-05.svg",
+      "bytes": 16954,
+      "sha256": "f8f0f55df30553663293f9c06cba0c17374df81d7d56c3fd0d12eb1a4eab17d8"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6642912c25ec45f2f0a274bc_check-circle-white.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6642912c25ec45f2f0a274bc_check-circle-white.svg",
+      "bytes": 443,
+      "sha256": "538e8110858c4dc7199243283407403eece9d88f1b5a71882a20e5c2a65a6e72"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6642a8237822093ceec7f1de_Labrada-Italic.ttf",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6642a8237822093ceec7f1de_Labrada-Italic.ttf",
+      "bytes": 75948,
+      "sha256": "2837b9a8c483b1da0e4876339fca96c588c5ed64c6cb3da625a90336b396c1d2"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6642a87b76dcbe9883297d1b_Labrada-LightItalic.ttf",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6642a87b76dcbe9883297d1b_Labrada-LightItalic.ttf",
+      "bytes": 76312,
+      "sha256": "835d5d739f758b29b464151b8f12f2d99117971f61448b217ada57d76b0476a1"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6642a884280bdec3dea4f5b4_Labrada-Light.ttf",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6642a884280bdec3dea4f5b4_Labrada-Light.ttf",
+      "bytes": 76776,
+      "sha256": "5b0640baca8310c56f8a0c5b287f5a6eae8812ef1d38639f8a96f216586effd8"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6642bb74eeb0c1dc6291359b_search-md.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6642bb74eeb0c1dc6291359b_search-md.svg",
+      "bytes": 595,
+      "sha256": "87e823c8ba4b4b5037294e4ecbb5bb407e734fc3889062d892c102d578da3714"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6646c86d44e81b7c43a4369b_uk-gov-dsit.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6646c86d44e81b7c43a4369b_uk-gov-dsit.svg",
+      "bytes": 165287,
+      "sha256": "eca49a74570832391e54c35ef69b444e5d203e93ac6bf6c2a988453fd7cd0dff"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6647cc620febcc71b4e44539_LinkedIn%20Icon.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6647cc620febcc71b4e44539_LinkedIn Icon.svg",
+      "bytes": 999,
+      "sha256": "7a7f36e51fea65b726f520a13fdcb3a57349b1705451f9bfb48eeb316464e41e"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6647cc62f3c15916016bba7c_Twitter%20Icon.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6647cc62f3c15916016bba7c_Twitter Icon.svg",
+      "bytes": 338,
+      "sha256": "e33aabc414c8d9ef81e1a2c920f9075b07a0bc73697d6ea23e7b34c394c9c2c4"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6647fc6fbefa6f83f0ea2f86_white-check.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6647fc6fbefa6f83f0ea2f86_white-check.svg",
+      "bytes": 187,
+      "sha256": "a80716476fb26ceb588730c81948db62faf292896f251cf95f06e853c7cf5df4"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6851b4a9c117f83c4217e827_AISI%20icon%2032.png",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/6851b4a9c117f83c4217e827_AISI icon 32.png",
+      "bytes": 517,
+      "sha256": "c3d9218f3ce54ecf2633c298e043c7d0971f7571055167880aba5000733d6ed4"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/694079f22cc6f30fb45b8b61_download-02.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/694079f22cc6f30fb45b8b61_download-02.svg",
+      "bytes": 236,
+      "sha256": "39a237ce4002a6cdc04033eff01b9e26ac434fc47635006b356e51c2bc4aa595"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/69f1411b74da79dab8b59b56_chevron-down.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/69f1411b74da79dab8b59b56_chevron-down.svg",
+      "bytes": 212,
+      "sha256": "a554bfded0725bfd27e6ea03d525a848932719577a09d0dc46fcd0565bca432c"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/69f141922cdac92b749c15b1_chevron-down%20(1).svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/69f141922cdac92b749c15b1_chevron-down (1).svg",
+      "bytes": 212,
+      "sha256": "cde6cd3ec19b5f772926e0e9c3fcc5bb8a4155f833874d2cf50852a0eaf8e95e"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/css/odw-aisi-01j1-a181.webflow.shared.9cd1f918c.min.css",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/cdn.prod.website-files.com/663bd486c5e4c81588db7a1d/css/odw-aisi-01j1-a181.webflow.shared.9cd1f918c.min.css",
+      "bytes": 161386,
+      "sha256": "37c1cab3aa78ea894a4fdb52cadde7586907ba2b1b0d80f84e7a34f2cff000ff"
+    },
+    {
+      "url": "https://d3e54v103j8qbb.cloudfront.net/static/custom-checkbox-checkmark.589d534424.svg",
+      "file": "lectures/18_2026-11-17_ai-risk-case-studies/optional/_assets/d3e54v103j8qbb.cloudfront.net/static/custom-checkbox-checkmark.589d534424.svg",
+      "bytes": 167,
+      "sha256": "121f8dc257d116b52e8d91b2c735fd52e7516c268b6c721c60ac45d22d5e6404"
+    }
+  ],
+  "unavailable_assets": {
+    "https://cdn.prod.website-files.com/plugins/Basic/assets/placeholder.60f9b1840c.svg": "HTTP Error 403: Forbidden"
+  },
+  "limitations": "Local reading snapshot, not a full offline website. Embedded videos, search and links to other pages require internet. Any unavailable assets are listed; font fallbacks may differ."
+}

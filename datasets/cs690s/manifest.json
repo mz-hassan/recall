@@ -1,0 +1,834 @@
+{
+  "course": "CS 690S",
+  "title": "AI Alignment",
+  "term": "Fall 2026",
+  "course_url": "https://people.cs.umass.edu/~sniekum/classes/AIA-F26/desc.php",
+  "lectures": [
+    {
+      "number": 0,
+      "date": "2026-09-08",
+      "title": "Course overview",
+      "folder": "lectures/00_2026-09-08_course-overview",
+      "required": [],
+      "optional": [
+        {
+          "title": "The Alignment Problem from a Deep Learning Perspective",
+          "source_url": "https://arxiv.org/pdf/2209.00626",
+          "files": [
+            "lectures/00_2026-09-08_course-overview/optional/alignment-perspective.pdf",
+            "lectures/00_2026-09-08_course-overview/optional/alignment-perspective.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "No usable transcript was available in the local course library."
+      }
+    },
+    {
+      "number": 1,
+      "date": "2026-09-10",
+      "title": "Behavior cloning",
+      "folder": "lectures/01_2026-09-10_behavior-cloning",
+      "required": [
+        {
+          "title": "Behavioral Cloning from Observation",
+          "source_url": "https://arxiv.org/pdf/1805.01954.pdf",
+          "files": [
+            "lectures/01_2026-09-10_behavior-cloning/required/bco.pdf",
+            "lectures/01_2026-09-10_behavior-cloning/required/bco.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "π_0: A Vision-Language-Action Flow Model for General Robot Control",
+          "source_url": "https://arxiv.org/pdf/2410.24164",
+          "files": [
+            "lectures/01_2026-09-10_behavior-cloning/optional/pi0.pdf",
+            "lectures/01_2026-09-10_behavior-cloning/optional/pi0.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "No September 10 transcript was found in the local library or Downloads. The authenticated Echo360 class list starts on September 17."
+      }
+    },
+    {
+      "number": 2,
+      "date": "2026-09-15",
+      "title": "Limitations of behavior cloning",
+      "folder": "lectures/02_2026-09-15_limitations-of-behavior-cloning",
+      "required": [
+        {
+          "title": "A Reduction of Imitation Learning and Structured Prediction to No-Regret Online Learning",
+          "source_url": "https://proceedings.mlr.press/v15/ross11a/ross11a.pdf",
+          "files": [
+            "lectures/02_2026-09-15_limitations-of-behavior-cloning/required/dagger.pdf",
+            "lectures/02_2026-09-15_limitations-of-behavior-cloning/required/dagger.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Of Moments and Matching: A Game-Theoretic Framework for Closing the Imitation Gap",
+          "source_url": "https://arxiv.org/pdf/2103.03236",
+          "files": [
+            "lectures/02_2026-09-15_limitations-of-behavior-cloning/optional/moments-matching.pdf",
+            "lectures/02_2026-09-15_limitations-of-behavior-cloning/optional/moments-matching.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/02_2026-09-15_limitations-of-behavior-cloning/transcripts/2026-09-15-transcript.txt"
+        ],
+        "note": "User-supplied transcript with speaker labels and sparse timestamps."
+      }
+    },
+    {
+      "number": 3,
+      "date": "2026-09-17",
+      "title": "Reinforcement Learning",
+      "folder": "lectures/03_2026-09-17_reinforcement-learning",
+      "required": [
+        {
+          "title": "Spinning Up in Deep RL",
+          "source_url": "https://spinningup.openai.com/en/latest/spinningup/rl_intro.html",
+          "files": [
+            "lectures/03_2026-09-17_reinforcement-learning/required/rl-intro-1.html",
+            "lectures/03_2026-09-17_reinforcement-learning/required/rl-intro-1.txt"
+          ]
+        },
+        {
+          "title": "Spinning Up Introduction Part 2",
+          "source_url": "https://spinningup.openai.com/en/latest/spinningup/rl_intro2.html",
+          "files": [
+            "lectures/03_2026-09-17_reinforcement-learning/required/rl-intro-2.html",
+            "lectures/03_2026-09-17_reinforcement-learning/required/rl-intro-2.txt"
+          ]
+        },
+        {
+          "title": "Spinning Up PPO Algorithm Docs",
+          "source_url": "https://spinningup.openai.com/en/latest/algorithms/ppo.html",
+          "files": [
+            "lectures/03_2026-09-17_reinforcement-learning/required/ppo-doc.html",
+            "lectures/03_2026-09-17_reinforcement-learning/required/ppo-doc.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Sutton/Barto RL Book",
+          "source_url": "http://incompleteideas.net/book/RLbook2020.pdf",
+          "files": [
+            "lectures/03_2026-09-17_reinforcement-learning/optional/sutton-barto-rl-book.pdf",
+            "lectures/03_2026-09-17_reinforcement-learning/optional/sutton-barto-rl-book.txt"
+          ]
+        },
+        {
+          "title": "Proximal Policy Optimization Algorithms",
+          "source_url": "https://arxiv.org/pdf/1707.06347.pdf",
+          "files": [
+            "lectures/03_2026-09-17_reinforcement-learning/optional/ppo.pdf",
+            "lectures/03_2026-09-17_reinforcement-learning/optional/ppo.txt"
+          ]
+        },
+        {
+          "title": "Soft Actor-Critic",
+          "source_url": "https://arxiv.org/pdf/1801.01290.pdf",
+          "files": [
+            "lectures/03_2026-09-17_reinforcement-learning/optional/sac.pdf",
+            "lectures/03_2026-09-17_reinforcement-learning/optional/sac.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/03_2026-09-17_reinforcement-learning/transcripts/transcript-rl.txt"
+        ]
+      }
+    },
+    {
+      "number": 4,
+      "date": "2026-09-22",
+      "title": "Reward hacking",
+      "folder": "lectures/04_2026-09-22_reward-hacking",
+      "required": [
+        {
+          "title": "Specification gaming: the flip side of AI ingenuity",
+          "source_url": "https://deepmind.google/blog/specification-gaming-the-flip-side-of-ai-ingenuity/",
+          "files": [
+            "lectures/04_2026-09-22_reward-hacking/required/specification-gaming.html",
+            "lectures/04_2026-09-22_reward-hacking/required/specification-gaming.txt"
+          ]
+        },
+        {
+          "title": "Goal Misgeneralization: Why Correct Specifications Aren't Enough For Correct Goals",
+          "source_url": "https://arxiv.org/pdf/2210.01790.pdf",
+          "files": [
+            "lectures/04_2026-09-22_reward-hacking/required/goal-misgeneralization.pdf",
+            "lectures/04_2026-09-22_reward-hacking/required/goal-misgeneralization.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "The Perils of Trial-and-Error Reward Design: Misdesign through Overfitting and Invalid Task Specifications",
+          "source_url": "https://ojs.aaai.org/index.php/AAAI/article/view/25733/25505",
+          "files": [
+            "lectures/04_2026-09-22_reward-hacking/optional/reward-overfitting.pdf",
+            "lectures/04_2026-09-22_reward-hacking/optional/reward-overfitting.txt"
+          ]
+        },
+        {
+          "title": "Consequences of Misaligned AI",
+          "source_url": "https://arxiv.org/pdf/2102.03896",
+          "files": [
+            "lectures/04_2026-09-22_reward-hacking/optional/consequences.pdf",
+            "lectures/04_2026-09-22_reward-hacking/optional/consequences.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/04_2026-09-22_reward-hacking/transcripts/transcript-reward-hacking.txt"
+        ]
+      }
+    },
+    {
+      "number": 5,
+      "date": "2026-09-24",
+      "title": "Inverse reinforcement learning",
+      "folder": "lectures/05_2026-09-24_inverse-reinforcement-learning",
+      "required": [
+        {
+          "title": "Apprenticeship Learning via Inverse Reinforcement Learning",
+          "source_url": "https://ai.stanford.edu/~ang/papers/icml04-apprentice.pdf",
+          "files": [
+            "lectures/05_2026-09-24_inverse-reinforcement-learning/required/apprenticeship-irl.pdf",
+            "lectures/05_2026-09-24_inverse-reinforcement-learning/required/apprenticeship-irl.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "A Game-Theoretic Approach to Apprenticeship Learning",
+          "source_url": "https://proceedings.neurips.cc/paper_files/paper/2007/file/ca3ec598002d2e7662e2ef4bdd58278b-Paper.pdf",
+          "files": [
+            "lectures/05_2026-09-24_inverse-reinforcement-learning/optional/game-theoretic-irl.pdf",
+            "lectures/05_2026-09-24_inverse-reinforcement-learning/optional/game-theoretic-irl.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/05_2026-09-24_inverse-reinforcement-learning/transcripts/transcript-irl.txt"
+        ]
+      }
+    },
+    {
+      "number": 6,
+      "date": "2026-09-29",
+      "title": "Maximum entropy inverse reinforcement learning",
+      "folder": "lectures/06_2026-09-29_maximum-entropy-inverse-reinforcement-learning",
+      "required": [
+        {
+          "title": "Maximum Entropy Inverse Reinforcement Learning",
+          "source_url": "https://www.ri.cmu.edu/pub_files/2008/7/AAAI2008-bziebart.pdf",
+          "files": [
+            "lectures/06_2026-09-29_maximum-entropy-inverse-reinforcement-learning/required/maxent-irl.pdf",
+            "lectures/06_2026-09-29_maximum-entropy-inverse-reinforcement-learning/required/maxent-irl.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Maximum Entropy Deep Inverse Reinforcement Learning",
+          "source_url": "https://arxiv.org/abs/1507.04888",
+          "files": [
+            "lectures/06_2026-09-29_maximum-entropy-inverse-reinforcement-learning/optional/deep-maxent-irl.pdf",
+            "lectures/06_2026-09-29_maximum-entropy-inverse-reinforcement-learning/optional/deep-maxent-irl.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/06_2026-09-29_maximum-entropy-inverse-reinforcement-learning/transcripts/2026-09-29_maxent-irl_original.txt"
+        ]
+      }
+    },
+    {
+      "number": 7,
+      "date": "2026-10-01",
+      "title": "Bayesian inverse reinforcement learning",
+      "folder": "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning",
+      "required": [
+        {
+          "title": "Efficient Probabilistic Performance Bounds for Inverse Reinforcement Learning",
+          "source_url": "https://arxiv.org/pdf/1707.00724.pdf",
+          "files": [
+            "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning/required/bayesian-performance-bounds.pdf",
+            "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning/required/bayesian-performance-bounds.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Bayesian Inverse Reinforcement Learning",
+          "source_url": "https://www.ijcai.org/Proceedings/07/Papers/416.pdf",
+          "files": [
+            "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning/optional/bayesian-inverse-reinforcement-learning.pdf",
+            "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning/optional/bayesian-inverse-reinforcement-learning.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning/transcripts/2026-10-01_bayesian-irl_original.txt",
+          "lectures/07_2026-10-01_bayesian-inverse-reinforcement-learning/transcripts/2026-10-01_bayesian-irl_original.vtt"
+        ]
+      }
+    },
+    {
+      "number": 8,
+      "date": "2026-10-06",
+      "title": "Occupancy matching",
+      "folder": "lectures/08_2026-10-06_occupancy-matching",
+      "required": [
+        {
+          "title": "Generative Adversarial Imitation Learning",
+          "source_url": "https://arxiv.org/abs/1606.03476",
+          "files": [
+            "lectures/08_2026-10-06_occupancy-matching/required/generative-adversarial-imitation-learning.pdf",
+            "lectures/08_2026-10-06_occupancy-matching/required/generative-adversarial-imitation-learning.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Dual RL: Unification and New Methods for Reinforcement and Imitation Learning",
+          "source_url": "https://arxiv.org/abs/2302.08560",
+          "files": [
+            "lectures/08_2026-10-06_occupancy-matching/optional/dual-rl-unification-and-new-methods-for-reinforcement-and-imitation-learning.pdf",
+            "lectures/08_2026-10-06_occupancy-matching/optional/dual-rl-unification-and-new-methods-for-reinforcement-and-imitation-learning.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/08_2026-10-06_occupancy-matching/transcripts/2026-10-06_lecture-08_original.txt"
+        ]
+      }
+    },
+    {
+      "number": 9,
+      "date": "2026-10-08",
+      "title": "Interactive RL",
+      "folder": "lectures/09_2026-10-08_interactive-rl",
+      "required": [
+        {
+          "title": "Interactively shaping agents via human reinforcement: The TAMER framework",
+          "source_url": "https://www.cs.utexas.edu/~bradknox/papers/kcap09-knox.pdf",
+          "files": [
+            "lectures/09_2026-10-08_interactive-rl/required/interactively-shaping-agents-via-human-reinforcement-the-tamer-framework.pdf",
+            "lectures/09_2026-10-08_interactive-rl/required/interactively-shaping-agents-via-human-reinforcement-the-tamer-framework.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Interactive Learning from Policy-Dependent Human Feedback",
+          "source_url": "https://proceedings.mlr.press/v70/macglashan17a/macglashan17a.pdf",
+          "files": [
+            "lectures/09_2026-10-08_interactive-rl/optional/interactive-learning-from-policy-dependent-human-feedback.pdf",
+            "lectures/09_2026-10-08_interactive-rl/optional/interactive-learning-from-policy-dependent-human-feedback.txt"
+          ]
+        },
+        {
+          "title": "Efficiently Guiding Imitation Learning Agents with Human Gaze",
+          "source_url": "https://arxiv.org/abs/2002.12500",
+          "files": [
+            "lectures/09_2026-10-08_interactive-rl/optional/efficiently-guiding-imitation-learning-agents-with-human-gaze.pdf",
+            "lectures/09_2026-10-08_interactive-rl/optional/efficiently-guiding-imitation-learning-agents-with-human-gaze.txt"
+          ]
+        },
+        {
+          "title": "The EMPATHIC Framework for Task Learning from Implicit Human Feedback",
+          "source_url": "https://arxiv.org/pdf/2009.13649.pdf",
+          "files": [
+            "lectures/09_2026-10-08_interactive-rl/optional/the-empathic-framework-for-task-learning-from-implicit-human-feedback.pdf",
+            "lectures/09_2026-10-08_interactive-rl/optional/the-empathic-framework-for-task-learning-from-implicit-human-feedback.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/09_2026-10-08_interactive-rl/transcripts/2026-10-08_lecture-09_original.txt"
+        ]
+      }
+    },
+    {
+      "number": 10,
+      "date": "2026-10-15",
+      "title": "Reinforcement learning from human feedback: indirect methods",
+      "folder": "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods",
+      "required": [
+        {
+          "title": "Extrapolating Beyond Suboptimal Demonstrations via Inverse Reinforcement Learning from Observations",
+          "source_url": "https://arxiv.org/pdf/1904.06387.pdf",
+          "files": [
+            "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/required/extrapolating-beyond-suboptimal-demonstrations-via-inverse-reinforcement-learning-from-observations.pdf",
+            "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/required/extrapolating-beyond-suboptimal-demonstrations-via-inverse-reinforcement-learning-from-observations.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Training language models to follow instructions with human feedback",
+          "source_url": "https://proceedings.neurips.cc/paper_files/paper/2022/file/b1efde53be364a73914f58805a001731-Paper-Conference.pdf",
+          "files": [
+            "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/optional/training-language-models-to-follow-instructions-with-human-feedback.pdf",
+            "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/optional/training-language-models-to-follow-instructions-with-human-feedback.txt"
+          ]
+        },
+        {
+          "title": "Open Problems and Fundamental Limitations of Reinforcement Learning from Human Feedback",
+          "source_url": "https://arxiv.org/pdf/2307.15217.pdf",
+          "files": [
+            "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/optional/open-problems-and-fundamental-limitations-of-reinforcement-learning-from-human-feedback.pdf",
+            "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/optional/open-problems-and-fundamental-limitations-of-reinforcement-learning-from-human-feedback.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/transcripts/2026-10-15_lecture-10_original.txt",
+          "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/transcripts/2026-10-15_lecture-10_original.vtt"
+        ]
+      }
+    },
+    {
+      "number": 11,
+      "date": "2026-10-20",
+      "title": "Models of human preference",
+      "folder": "lectures/11_2026-10-20_models-of-human-preference",
+      "required": [
+        {
+          "title": "Models of Human Preference for Learning Reward Functions",
+          "source_url": "https://arxiv.org/pdf/2206.02231.pdf",
+          "files": [
+            "lectures/11_2026-10-20_models-of-human-preference/required/models-of-human-preference-for-learning-reward-functions.pdf",
+            "lectures/11_2026-10-20_models-of-human-preference/required/models-of-human-preference-for-learning-reward-functions.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Human Irrationality: Both Bad and Good for Reward Inference",
+          "source_url": "https://arxiv.org/abs/2111.06956",
+          "files": [
+            "lectures/11_2026-10-20_models-of-human-preference/optional/human-irrationality-both-bad-and-good-for-reward-inference.pdf",
+            "lectures/11_2026-10-20_models-of-human-preference/optional/human-irrationality-both-bad-and-good-for-reward-inference.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "shared",
+        "files": [
+          "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/transcripts/2026-10-15_lecture-10_original.txt",
+          "lectures/10_2026-10-15_reinforcement-learning-from-human-feedback-indirect-methods/transcripts/2026-10-15_lecture-10_original.vtt"
+        ],
+        "note": "The October 15 lecture transcript covers much of this topic. The October 20 recording had no usable transcript in the course library."
+      }
+    },
+    {
+      "number": 12,
+      "date": "2026-10-22",
+      "title": "Reinforcement learning from human feedback: direct methods",
+      "folder": "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods",
+      "required": [
+        {
+          "title": "Direct Preference Optimization: Your Language Model is Secretly a Reward Model",
+          "source_url": "https://arxiv.org/pdf/2305.18290.pdf",
+          "files": [
+            "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods/required/direct-preference-optimization-your-language-model-is-secretly-a-reward-model.pdf",
+            "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods/required/direct-preference-optimization-your-language-model-is-secretly-a-reward-model.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Contrastive Preference Learning: Learning from Human Feedback without RL",
+          "source_url": "https://arxiv.org/pdf/2310.13639.pdf",
+          "files": [
+            "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods/optional/contrastive-preference-learning-learning-from-human-feedback-without-rl.pdf",
+            "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods/optional/contrastive-preference-learning-learning-from-human-feedback-without-rl.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods/transcripts/2026-10-22_lecture-12_original.txt",
+          "lectures/12_2026-10-22_reinforcement-learning-from-human-feedback-direct-methods/transcripts/2026-10-22_lecture-12_original.vtt"
+        ]
+      }
+    },
+    {
+      "number": 13,
+      "date": "2026-10-27",
+      "title": "Performance Guarantees for RLHF",
+      "folder": "lectures/13_2026-10-27_performance-guarantees-for-rlhf",
+      "required": [
+        {
+          "title": "Safe Imitation Learning via Fast Bayesian Reward Inference from Preferences",
+          "source_url": "https://arxiv.org/pdf/2002.09089.pdf",
+          "files": [
+            "lectures/13_2026-10-27_performance-guarantees-for-rlhf/required/safe-imitation-learning-via-fast-bayesian-reward-inference-from-preferences.pdf",
+            "lectures/13_2026-10-27_performance-guarantees-for-rlhf/required/safe-imitation-learning-via-fast-bayesian-reward-inference-from-preferences.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Value Alignment Verification",
+          "source_url": "https://arxiv.org/pdf/2012.01557.pdf",
+          "files": [
+            "lectures/13_2026-10-27_performance-guarantees-for-rlhf/optional/value-alignment-verification.pdf",
+            "lectures/13_2026-10-27_performance-guarantees-for-rlhf/optional/value-alignment-verification.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "available",
+        "files": [
+          "lectures/13_2026-10-27_performance-guarantees-for-rlhf/transcripts/2026-10-27_lecture-13_original.txt",
+          "lectures/13_2026-10-27_performance-guarantees-for-rlhf/transcripts/2026-10-27_lecture-13_original.vtt"
+        ]
+      }
+    },
+    {
+      "number": 14,
+      "date": "2026-10-29",
+      "title": "Reward design and inference from language",
+      "folder": "lectures/14_2026-10-29_reward-design-and-inference-from-language",
+      "required": [
+        {
+          "title": "Eureka: Human-Level Reward Design via Coding Large Language Models",
+          "source_url": "https://arxiv.org/pdf/2310.12931.pdf",
+          "files": [
+            "lectures/14_2026-10-29_reward-design-and-inference-from-language/required/eureka-human-level-reward-design-via-coding-large-language-models.pdf",
+            "lectures/14_2026-10-29_reward-design-and-inference-from-language/required/eureka-human-level-reward-design-via-coding-large-language-models.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "RL Zero: Zero-Shot Language to Behaviors Without Any Supervision",
+          "source_url": "https://arxiv.org/pdf/2412.05718",
+          "files": [
+            "lectures/14_2026-10-29_reward-design-and-inference-from-language/optional/rl-zero-zero-shot-language-to-behaviors-without-any-supervision.pdf",
+            "lectures/14_2026-10-29_reward-design-and-inference-from-language/optional/rl-zero-zero-shot-language-to-behaviors-without-any-supervision.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "The course library records an empty TXT export and a header-only VTT for October 29."
+      }
+    },
+    {
+      "number": 15,
+      "date": "2026-11-05",
+      "title": "Cooperation and Assistance Games",
+      "folder": "lectures/15_2026-11-05_cooperation-and-assistance-games",
+      "required": [
+        {
+          "title": "Cooperative Inverse Reinforcement Learning",
+          "source_url": "https://arxiv.org/pdf/1606.03137.pdf",
+          "files": [
+            "lectures/15_2026-11-05_cooperation-and-assistance-games/required/cooperative-inverse-reinforcement-learning.pdf",
+            "lectures/15_2026-11-05_cooperation-and-assistance-games/required/cooperative-inverse-reinforcement-learning.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "AssistanceZero: Scalably Solving Assistance Games",
+          "source_url": "https://arxiv.org/pdf/2504.07091",
+          "files": [
+            "lectures/15_2026-11-05_cooperation-and-assistance-games/optional/assistancezero-scalably-solving-assistance-games.pdf",
+            "lectures/15_2026-11-05_cooperation-and-assistance-games/optional/assistancezero-scalably-solving-assistance-games.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "No usable transcript was available in the local course library."
+      }
+    },
+    {
+      "number": 16,
+      "date": "2026-11-10",
+      "title": "AI risks",
+      "folder": "lectures/16_2026-11-10_ai-risks",
+      "required": [
+        {
+          "title": "Unsolved Problems in AI Safety",
+          "source_url": "https://arxiv.org/pdf/2109.13916",
+          "files": [
+            "lectures/16_2026-11-10_ai-risks/required/unsolved-problems-in-ai-safety.pdf",
+            "lectures/16_2026-11-10_ai-risks/required/unsolved-problems-in-ai-safety.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Gradual Disempowerment: Systemic Existential Risks from Incremental AI Development",
+          "source_url": "https://arxiv.org/pdf/2501.16946",
+          "files": [
+            "lectures/16_2026-11-10_ai-risks/optional/gradual-disempowerment-systemic-existential-risks-from-incremental-ai-development.pdf",
+            "lectures/16_2026-11-10_ai-risks/optional/gradual-disempowerment-systemic-existential-risks-from-incremental-ai-development.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "No usable transcript was available in the local course library."
+      }
+    },
+    {
+      "number": 17,
+      "date": "2026-11-12",
+      "title": "Scalable oversight",
+      "folder": "lectures/17_2026-11-12_scalable-oversight",
+      "required": [
+        {
+          "title": "Measuring Progress on Scalable Oversight for Large Language Models",
+          "source_url": "https://arxiv.org/pdf/2211.03540.pdf",
+          "files": [
+            "lectures/17_2026-11-12_scalable-oversight/required/measuring-progress-on-scalable-oversight-for-large-language-models.pdf",
+            "lectures/17_2026-11-12_scalable-oversight/required/measuring-progress-on-scalable-oversight-for-large-language-models.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Constitutional AI: Harmlessness from AI Feedback",
+          "source_url": "https://arxiv.org/pdf/2212.08073.pdf",
+          "files": [
+            "lectures/17_2026-11-12_scalable-oversight/optional/constitutional-ai-harmlessness-from-ai-feedback.pdf",
+            "lectures/17_2026-11-12_scalable-oversight/optional/constitutional-ai-harmlessness-from-ai-feedback.txt"
+          ]
+        },
+        {
+          "title": "Let's Verify Step by Step",
+          "source_url": "https://arxiv.org/pdf/2305.20050",
+          "files": [
+            "lectures/17_2026-11-12_scalable-oversight/optional/let-s-verify-step-by-step.pdf",
+            "lectures/17_2026-11-12_scalable-oversight/optional/let-s-verify-step-by-step.txt"
+          ]
+        },
+        {
+          "title": "Weak-to-Strong Generalization: Eliciting Strong Capabilities With Weak Supervision",
+          "source_url": "https://arxiv.org/pdf/2312.09390.pdf",
+          "files": [
+            "lectures/17_2026-11-12_scalable-oversight/optional/weak-to-strong-generalization-eliciting-strong-capabilities-with-weak-supervision.pdf",
+            "lectures/17_2026-11-12_scalable-oversight/optional/weak-to-strong-generalization-eliciting-strong-capabilities-with-weak-supervision.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "No usable transcript was available in the local course library."
+      }
+    },
+    {
+      "number": 18,
+      "date": "2026-11-17",
+      "title": "AI risk case studies",
+      "folder": "lectures/18_2026-11-17_ai-risk-case-studies",
+      "required": [
+        {
+          "title": "OpenAI Hugging Face Incident Report",
+          "source_url": "https://cdn.openai.com/pdf/67869394-cb91-4c12-888c-5cbd85c7814c/OpenAI-Hugging-Face%20Incident-Technical-Report.pdf",
+          "files": [
+            "lectures/18_2026-11-17_ai-risk-case-studies/required/openai-hugging-face-incident-report.pdf",
+            "lectures/18_2026-11-17_ai-risk-case-studies/required/openai-hugging-face-incident-report.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "AISI report",
+          "source_url": "https://www.aisi.gov.uk/blog/incident-report-unsanctioned-agent-behaviour-during-cyber-testing",
+          "files": [
+            "lectures/18_2026-11-17_ai-risk-case-studies/optional/aisi-report.html"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "No usable transcript was available in the local course library."
+      }
+    },
+    {
+      "number": 19,
+      "date": "2026-11-19",
+      "title": "Mechanistic interpretability",
+      "folder": "lectures/19_2026-11-19_mechanistic-interpretability",
+      "required": [
+        {
+          "title": "Mechanistic Interpretability for AI Safety (Section 4 only)",
+          "source_url": "https://arxiv.org/pdf/2404.14082/",
+          "files": [
+            "lectures/19_2026-11-19_mechanistic-interpretability/required/mechanistic-interpretability-for-ai-safety-section-4-only.pdf",
+            "lectures/19_2026-11-19_mechanistic-interpretability/required/mechanistic-interpretability-for-ai-safety-section-4-only.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Locate, Steer, and Improve: A Practical Survey of Actionable Mechanistic Interpretability in Large Language Models for Mechanistic Interpretability",
+          "source_url": "https://aclanthology.org/2026.findings-acl.502.pdf",
+          "files": [
+            "lectures/19_2026-11-19_mechanistic-interpretability/optional/locate-steer-and-improve-a-practical-survey-of-actionable-mechanistic-interpretability-in-large-lang.pdf",
+            "lectures/19_2026-11-19_mechanistic-interpretability/optional/locate-steer-and-improve-a-practical-survey-of-actionable-mechanistic-interpretability-in-large-lang.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "No usable transcript was available in the local course library."
+      }
+    },
+    {
+      "number": 20,
+      "date": "2026-12-01",
+      "title": "Red teaming",
+      "folder": "lectures/20_2026-12-01_red-teaming",
+      "required": [
+        {
+          "title": "Red Teaming Language Models with Language Models",
+          "source_url": "https://arxiv.org/pdf/2202.03286",
+          "files": [
+            "lectures/20_2026-12-01_red-teaming/required/red-teaming-language-models-with-language-models.pdf",
+            "lectures/20_2026-12-01_red-teaming/required/red-teaming-language-models-with-language-models.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Explore, Establish, Exploit: Red Teaming Language Models from Scratch",
+          "source_url": "https://arxiv.org/pdf/2306.09442",
+          "files": [
+            "lectures/20_2026-12-01_red-teaming/optional/explore-establish-exploit-red-teaming-language-models-from-scratch.pdf",
+            "lectures/20_2026-12-01_red-teaming/optional/explore-establish-exploit-red-teaming-language-models-from-scratch.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "No usable transcript was available in the local course library."
+      }
+    },
+    {
+      "number": 21,
+      "date": "2026-12-03",
+      "title": "Adversarial robustness",
+      "folder": "lectures/21_2026-12-03_adversarial-robustness",
+      "required": [
+        {
+          "title": "Universal and Transferable Adversarial Attacks on Aligned Language Models",
+          "source_url": "https://arxiv.org/pdf/2307.15043",
+          "files": [
+            "lectures/21_2026-12-03_adversarial-robustness/required/universal-and-transferable-adversarial-attacks-on-aligned-language-models.pdf",
+            "lectures/21_2026-12-03_adversarial-robustness/required/universal-and-transferable-adversarial-attacks-on-aligned-language-models.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Fundamental Limitations of Alignment in Large Language Models",
+          "source_url": "https://arxiv.org/pdf/2304.11082",
+          "files": [
+            "lectures/21_2026-12-03_adversarial-robustness/optional/fundamental-limitations-of-alignment-in-large-language-models.pdf",
+            "lectures/21_2026-12-03_adversarial-robustness/optional/fundamental-limitations-of-alignment-in-large-language-models.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "No usable transcript was available in the local course library."
+      }
+    },
+    {
+      "number": 22,
+      "date": "2026-12-08",
+      "title": "Frontiers of misalignment",
+      "folder": "lectures/22_2026-12-08_frontiers-of-misalignment",
+      "required": [
+        {
+          "title": "Emergent Misalignment: Narrow finetuning can produce broadly misaligned LLMs",
+          "source_url": "https://arxiv.org/pdf/2502.17424",
+          "files": [
+            "lectures/22_2026-12-08_frontiers-of-misalignment/required/emergent-misalignment-narrow-finetuning-can-produce-broadly-misaligned-llms.pdf",
+            "lectures/22_2026-12-08_frontiers-of-misalignment/required/emergent-misalignment-narrow-finetuning-can-produce-broadly-misaligned-llms.txt"
+          ]
+        }
+      ],
+      "optional": [
+        {
+          "title": "Sleeper Agents: Training Deceptive LLMs that Persist Through Safety Training",
+          "source_url": "https://arxiv.org/pdf/2401.05566",
+          "files": [
+            "lectures/22_2026-12-08_frontiers-of-misalignment/optional/sleeper-agents-training-deceptive-llms-that-persist-through-safety-training.pdf",
+            "lectures/22_2026-12-08_frontiers-of-misalignment/optional/sleeper-agents-training-deceptive-llms-that-persist-through-safety-training.txt"
+          ]
+        },
+        {
+          "title": "Evaluating Frontier Models for Stealth and Situational Awareness",
+          "source_url": "https://arxiv.org/pdf/2505.01420",
+          "files": [
+            "lectures/22_2026-12-08_frontiers-of-misalignment/optional/evaluating-frontier-models-for-stealth-and-situational-awareness.pdf",
+            "lectures/22_2026-12-08_frontiers-of-misalignment/optional/evaluating-frontier-models-for-stealth-and-situational-awareness.txt"
+          ]
+        },
+        {
+          "title": "Sycophancy to subterfuge: Investigating reward-tampering in large language models",
+          "source_url": "https://arxiv.org/pdf/2406.10162",
+          "files": [
+            "lectures/22_2026-12-08_frontiers-of-misalignment/optional/sycophancy-to-subterfuge-investigating-reward-tampering-in-large-language-models.pdf",
+            "lectures/22_2026-12-08_frontiers-of-misalignment/optional/sycophancy-to-subterfuge-investigating-reward-tampering-in-large-language-models.txt"
+          ]
+        }
+      ],
+      "transcript": {
+        "status": "missing",
+        "files": [],
+        "note": "No usable transcript was available in the local course library."
+      }
+    }
+  ]
+}

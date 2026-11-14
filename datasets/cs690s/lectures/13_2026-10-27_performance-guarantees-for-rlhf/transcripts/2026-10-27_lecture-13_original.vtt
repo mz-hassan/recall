@@ -1,0 +1,6021 @@
+WEBVTT
+
+00:01:15.199 --> 00:01:16.160
+<v Speaker 0>Check, check, check.
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:01:47.500 --> 00:01:49.260
+<v Speaker 0>All right, let's, uh, let's go ahead and get started,
+
+NOTE CONF {"raw":[49,43,99,99,99,99,19,98,99,100]}
+
+00:01:49.349 --> 00:01:53.069
+<v Speaker 0>um, so today we're gonna sort of continue in our
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,100,100,100]}
+
+00:01:53.069 --> 00:01:57.860
+<v Speaker 0>series of lectures that have parallel structure to the ones
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,99]}
+
+00:01:57.860 --> 00:01:59.209
+<v Speaker 0>that we saw in IRL.
+
+NOTE CONF {"raw":[99,100,100,99,99]}
+
+00:01:59.709 --> 00:02:01.900
+<v Speaker 0>So you know if you remember, you know, in IRL
+
+NOTE CONF {"raw":[85,99,99,99,99,99,99,99,99,99]}
+
+00:02:01.900 --> 00:02:05.550
+<v Speaker 0>we sort of went through this, uh, progression of starting
+
+NOTE CONF {"raw":[99,99,99,100,100,100,99,100,100,100]}
+
+00:02:05.550 --> 00:02:10.500
+<v Speaker 0>with inferring single reward functions, um, and then doing RL
+
+NOTE CONF {"raw":[100,100,100,99,100,99,99,99,99,99]}
+
+00:02:10.500 --> 00:02:12.630
+<v Speaker 0>on top of them to doing sort of a direct
+
+NOTE CONF {"raw":[99,100,100,100,100,100,99,99,99,100]}
+
+00:02:12.630 --> 00:02:15.229
+<v Speaker 0>method like GL that just works directly in the policy
+
+NOTE CONF {"raw":[100,100,39,99,99,99,99,99,99,100]}
+
+00:02:15.229 --> 00:02:16.690
+<v Speaker 0>space and sort of implicitly.
+
+NOTE CONF {"raw":[100,99,99,99,99]}
+
+00:02:17.100 --> 00:02:20.830
+<v Speaker 0>Uh, optimizes for an inferred reward function, um, and then
+
+NOTE CONF {"raw":[73,64,99,99,99,99,99,69,99,99]}
+
+00:02:20.830 --> 00:02:23.229
+<v Speaker 0>moved on to looking not just at inference of single
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,98,99,99]}
+
+00:02:23.229 --> 00:02:27.389
+<v Speaker 0>reward functions, um, but various types of Bayesian approaches that
+
+NOTE CONF {"raw":[99,99,73,99,99,99,99,99,99,99]}
+
+00:02:27.389 --> 00:02:30.740
+<v Speaker 0>infer whole distributions over reward functions and can give some
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,89]}
+
+00:02:30.800 --> 00:02:33.770
+<v Speaker 0>some probabilistic guarantees under some assumptions.
+
+NOTE CONF {"raw":[96,98,99,99,99,99]}
+
+00:02:34.270 --> 00:02:35.869
+<v Speaker 0>So we're doing that same thing here, you know, where
+
+NOTE CONF {"raw":[99,99,100,99,100,100,100,99,99,99]}
+
+00:02:35.869 --> 00:02:38.919
+<v Speaker 0>we started with kind of standard RLHF of, you know,
+
+NOTE CONF {"raw":[100,100,100,99,99,100,99,99,99,99]}
+
+00:02:39.070 --> 00:02:41.589
+<v Speaker 0>doing the same thing of, of inferring a reward function,
+
+NOTE CONF {"raw":[100,100,100,100,99,99,100,99,100,100]}
+
+00:02:41.710 --> 00:02:44.149
+<v Speaker 0>doing RL on top just with preferences rather than the
+
+NOTE CONF {"raw":[99,99,99,100,99,100,100,100,100,99]}
+
+00:02:44.149 --> 00:02:48.789
+<v Speaker 0>demonstrations we saw direct methods like DPO and CPL, and
+
+NOTE CONF {"raw":[100,87,100,100,100,100,99,100,99,100]}
+
+00:02:48.789 --> 00:02:53.229
+<v Speaker 0>now we're moving on to having guarantees, um, and, and
+
+NOTE CONF {"raw":[100,99,100,100,99,100,100,99,99,99]}
+
+00:02:53.229 --> 00:02:55.949
+<v Speaker 0>I think you know it's useful, uh, to think a
+
+NOTE CONF {"raw":[100,100,99,99,100,100,99,100,100,100]}
+
+00:02:55.949 --> 00:02:57.479
+<v Speaker 0>little bit about, um.
+
+NOTE CONF {"raw":[100,100,100,99]}
+
+00:02:59.929 --> 00:03:02.970
+<v Speaker 0>What we're really giving guarantees over in the, you know,
+
+NOTE CONF {"raw":[99,99,100,99,99,99,99,99,99,99]}
+
+00:03:03.050 --> 00:03:06.350
+<v Speaker 0>in IRL, uh, we're really just thinking about performance like,
+
+NOTE CONF {"raw":[99,99,99,82,99,99,99,100,100,99]}
+
+00:03:06.369 --> 00:03:09.169
+<v Speaker 0>you know, we're, we're giving a demonstration, we, we wanna
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,98,99,99]}
+
+00:03:09.169 --> 00:03:11.000
+<v Speaker 0>see how well we can do in comparison to the
+
+NOTE CONF {"raw":[100,99,99,100,99,100,99,99,99,99]}
+
+00:03:11.000 --> 00:03:14.169
+<v Speaker 0>expert, but especially in like LLM world, you know, it's
+
+NOTE CONF {"raw":[100,99,99,99,99,99,99,99,99,99]}
+
+00:03:14.169 --> 00:03:16.690
+<v Speaker 0>a little bit, uh, more useful maybe to think about.
+
+NOTE CONF {"raw":[100,100,99,99,99,100,99,100,100,99]}
+
+00:03:17.759 --> 00:03:21.119
+<v Speaker 0>Uh, maybe not so much a performance metric, but really
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,99,99,99]}
+
+00:03:21.119 --> 00:03:22.800
+<v Speaker 0>thinking about it in terms of like what can we
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:03:22.800 --> 00:03:27.320
+<v Speaker 0>guarantee about alignment with the human and what does that
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:03:27.320 --> 00:03:27.839
+<v Speaker 0>even mean?
+
+NOTE CONF {"raw":[99,100]}
+
+00:03:27.960 --> 00:03:30.080
+<v Speaker 0>How is it different from what we would normally call
+
+NOTE CONF {"raw":[66,99,99,100,99,99,99,70,99,99]}
+
+00:03:30.080 --> 00:03:30.720
+<v Speaker 0>performance?
+
+NOTE CONF {"raw":[99]}
+
+00:03:30.979 --> 00:03:32.279
+<v Speaker 0>So that's a little bit of what I hope to,
+
+NOTE CONF {"raw":[72,99,99,99,99,99,99,99,99,99]}
+
+00:03:32.360 --> 00:03:33.100
+<v Speaker 0>to get through today.
+
+NOTE CONF {"raw":[99,99,99,99]}
+
+00:03:34.899 --> 00:03:37.940
+<v Speaker 0>Um, you know, so far, you know, we've been looking
+
+NOTE CONF {"raw":[99,99,100,100,100,99,99,99,100,100]}
+
+00:03:37.940 --> 00:03:40.580
+<v Speaker 0>at RLHF and, you know, we've just been kind of
+
+NOTE CONF {"raw":[100,99,99,99,99,99,100,99,99,99]}
+
+00:03:40.580 --> 00:03:43.020
+<v Speaker 0>like doing it and crossing our fingers that it works
+
+NOTE CONF {"raw":[99,100,99,99,100,100,100,100,99,99]}
+
+00:03:43.020 --> 00:03:45.779
+<v Speaker 0>and like this is, this was true years ago, this
+
+NOTE CONF {"raw":[99,99,99,99,99,98,99,99,100,99]}
+
+00:03:45.779 --> 00:03:48.770
+<v Speaker 0>is true now, unfortunately, that like the state of the
+
+NOTE CONF {"raw":[99,100,99,99,99,99,99,100,100,100]}
+
+00:03:48.770 --> 00:03:51.539
+<v Speaker 0>art in the field is really just like kind of
+
+NOTE CONF {"raw":[100,99,99,99,99,100,100,100,98,96]}
+
+00:03:51.539 --> 00:03:52.300
+<v Speaker 0>do stuff.
+
+NOTE CONF {"raw":[100,100]}
+
+00:03:52.710 --> 00:03:56.229
+<v Speaker 0>And you know, maybe do like really large, you know,
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:03:56.330 --> 00:04:01.270
+<v Speaker 0>sweeps of different hyperparameter settings, you know, uh, do data
+
+NOTE CONF {"raw":[99,99,99,97,99,99,99,90,99,99]}
+
+00:04:01.270 --> 00:04:03.419
+<v Speaker 0>cleaning is possible that we update every time we train
+
+NOTE CONF {"raw":[99,72,100,99,99,100,99,99,99,99]}
+
+00:04:03.419 --> 00:04:07.429
+<v Speaker 0>a new model, uh, you know, tweak our, our algorithm
+
+NOTE CONF {"raw":[99,99,100,84,99,99,99,99,99,99]}
+
+00:04:07.429 --> 00:04:08.149
+<v Speaker 0>slightly.
+
+NOTE CONF {"raw":[99]}
+
+00:04:08.225 --> 00:04:11.865
+<v Speaker 0>Like it's still just kind of an empirical science of
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:04:11.865 --> 00:04:14.044
+<v Speaker 0>like trying a bunch of things and seeing what works
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:04:14.425 --> 00:04:16.785
+<v Speaker 0>and hoping that it doesn't do something really bad when
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,100,99]}
+
+00:04:16.785 --> 00:04:19.105
+<v Speaker 0>we deploy it, which you know it often does, or
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:04:19.105 --> 00:04:21.665
+<v Speaker 0>even you know do something really bad when we're training
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,98,99]}
+
+00:04:21.665 --> 00:04:23.345
+<v Speaker 0>it like we saw in you know the hugging face
+
+NOTE CONF {"raw":[99,99,99,99,91,98,87,99,99,99]}
+
+00:04:23.345 --> 00:04:23.744
+<v Speaker 0>hack.
+
+NOTE CONF {"raw":[99]}
+
+00:04:24.130 --> 00:04:27.450
+<v Speaker 0>Um, so you know, a lot of what I think
+
+NOTE CONF {"raw":[99,99,99,99,100,100,99,99,100,100]}
+
+00:04:27.450 --> 00:04:30.609
+<v Speaker 0>is important and I hope is the future is, you
+
+NOTE CONF {"raw":[99,100,99,99,100,99,99,100,99,99]}
+
+00:04:30.609 --> 00:04:33.329
+<v Speaker 0>know, coming up with, with more principled methods that even
+
+NOTE CONF {"raw":[99,100,99,99,99,99,99,99,99,100]}
+
+00:04:33.329 --> 00:04:37.970
+<v Speaker 0>in really, really large problem spaces like LLMs, um, can
+
+NOTE CONF {"raw":[99,99,99,100,99,99,99,98,99,99]}
+
+00:04:37.970 --> 00:04:40.820
+<v Speaker 0>give us some sort of guarantee about performance.
+
+NOTE CONF {"raw":[99,99,100,100,99,99,99,100]}
+
+00:04:41.500 --> 00:04:44.700
+<v Speaker 0>Even if the assumptions are a bit strong and we'll
+
+NOTE CONF {"raw":[99,100,99,100,100,100,100,100,100,99]}
+
+00:04:44.700 --> 00:04:46.279
+<v Speaker 0>kind of come back to this idea at the end
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,100]}
+
+00:04:46.279 --> 00:04:50.239
+<v Speaker 0>of like how much should we really care about guarantees
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:04:50.399 --> 00:04:52.940
+<v Speaker 0>if the assumptions that come with them are a bit
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:04:52.940 --> 00:04:55.119
+<v Speaker 0>strong and not entirely realistic.
+
+NOTE CONF {"raw":[100,100,100,100,100]}
+
+00:04:57.179 --> 00:05:00.709
+<v Speaker 0>Um, so, you know, uh, uh, the, the classic, you
+
+NOTE CONF {"raw":[99,99,100,100,99,99,99,99,100,99]}
+
+00:05:00.709 --> 00:05:04.429
+<v Speaker 0>know, example of empirical alignment, right, goes back to, you
+
+NOTE CONF {"raw":[99,100,100,99,99,99,99,100,100,100]}
+
+00:05:04.429 --> 00:05:07.510
+<v Speaker 0>know, the, the instruct GPT paper which, you know, was
+
+NOTE CONF {"raw":[100,99,99,66,99,99,100,99,99,99]}
+
+00:05:07.510 --> 00:05:09.450
+<v Speaker 0>sort of the, you know, uh.
+
+NOTE CONF {"raw":[99,100,100,100,100,99]}
+
+00:05:10.109 --> 00:05:12.480
+<v Speaker 0>Thing that came out kind of like right before chat
+
+NOTE CONF {"raw":[99,99,100,100,98,98,99,100,100,60]}
+
+00:05:12.480 --> 00:05:15.359
+<v Speaker 0>GPT came out, um, and this was, you know, the
+
+NOTE CONF {"raw":[99,100,100,99,100,100,100,100,100,100]}
+
+00:05:15.359 --> 00:05:19.519
+<v Speaker 0>first work that really used, you know, RLHF at scale,
+
+NOTE CONF {"raw":[100,100,100,100,100,99,99,99,100,100]}
+
+00:05:19.600 --> 00:05:21.820
+<v Speaker 0>right, and it, it follows the pipeline we've been talking
+
+NOTE CONF {"raw":[100,99,96,99,99,100,100,100,100,100]}
+
+00:05:21.820 --> 00:05:24.290
+<v Speaker 0>about, right, you know, they start with the base model,
+
+NOTE CONF {"raw":[100,100,97,100,100,100,100,99,99,100]}
+
+00:05:24.640 --> 00:05:28.000
+<v Speaker 0>um, you know, which was GPT 3 they do SFT
+
+NOTE CONF {"raw":[99,100,100,100,100,99,99,94,100,99]}
+
+00:05:28.000 --> 00:05:30.920
+<v Speaker 0>on top of that, uh, you know, then they collect
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,99,100,99]}
+
+00:05:30.920 --> 00:05:33.339
+<v Speaker 0>human preferences, they perform RLHF.
+
+NOTE CONF {"raw":[99,100,99,100,99]}
+
+00:05:33.869 --> 00:05:38.269
+<v Speaker 0>And then they do evaluation, but again, the evaluation doesn't
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,100,99]}
+
+00:05:38.279 --> 00:05:39.320
+<v Speaker 0>provide any guarantees.
+
+NOTE CONF {"raw":[100,100,100]}
+
+00:05:39.399 --> 00:05:41.799
+<v Speaker 0>They just, you know, did some user studies and see
+
+NOTE CONF {"raw":[97,100,99,99,100,100,100,100,100,100]}
+
+00:05:41.799 --> 00:05:44.119
+<v Speaker 0>like, you know, how, what kind of prompts do people
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,100]}
+
+00:05:44.119 --> 00:05:48.000
+<v Speaker 0>use, uh, you know, sort of using various metrics of
+
+NOTE CONF {"raw":[100,86,99,100,100,100,100,100,100,100]}
+
+00:05:48.000 --> 00:05:49.760
+<v Speaker 0>evaluation, how did the model do?
+
+NOTE CONF {"raw":[100,86,97,100,100,100]}
+
+00:05:49.859 --> 00:05:50.459
+<v Speaker 0>Did it help?
+
+NOTE CONF {"raw":[94,100,100]}
+
+00:05:50.709 --> 00:05:52.160
+<v Speaker 0>Did it do anything terrible, etc.
+
+NOTE CONF {"raw":[94,99,100,100,100,99]}
+
+00:05:53.279 --> 00:05:55.049
+<v Speaker 0>But yeah, very empirical science.
+
+NOTE CONF {"raw":[99,70,99,99,99]}
+
+00:05:56.350 --> 00:05:59.880
+<v Speaker 0>OK, so you know, before thinking about guaran the types
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,54,99,99]}
+
+00:05:59.880 --> 00:06:02.640
+<v Speaker 0>of guarantees we can give, I think it's worth, you
+
+NOTE CONF {"raw":[100,100,100,99,99,99,99,99,99,99]}
+
+00:06:02.640 --> 00:06:06.040
+<v Speaker 0>know, reviewing, uh, sort of, you know, why alignment is
+
+NOTE CONF {"raw":[100,100,99,100,100,99,99,99,99,100]}
+
+00:06:06.040 --> 00:06:10.119
+<v Speaker 0>hard, and this is going to, I think, connect strongly
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,100,100]}
+
+00:06:10.119 --> 00:06:13.230
+<v Speaker 0>both to why we need guarantees perhaps and also why
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:06:13.230 --> 00:06:15.299
+<v Speaker 0>it's going to be hard to provide guarantees.
+
+NOTE CONF {"raw":[99,99,99,100,100,100,100,100]}
+
+00:06:15.760 --> 00:06:18.279
+<v Speaker 0>Um, so you know we've already beaten this horse to
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:06:18.279 --> 00:06:21.640
+<v Speaker 0>death, you know, of reward misspecification, right, that it's hard
+
+NOTE CONF {"raw":[100,100,100,99,100,98,100,99,100,100]}
+
+00:06:21.640 --> 00:06:25.029
+<v Speaker 0>to capture and balance, uh, complex preferences either when we're
+
+NOTE CONF {"raw":[100,100,99,99,99,100,100,100,100,100]}
+
+00:06:25.029 --> 00:06:27.720
+<v Speaker 0>writing things down or doing inference, um, you know, there
+
+NOTE CONF {"raw":[100,100,100,100,100,100,91,100,100,100]}
+
+00:06:27.720 --> 00:06:30.279
+<v Speaker 0>are a million edge cases, side effects, reward hacking that
+
+NOTE CONF {"raw":[100,100,100,99,99,100,100,100,100,100]}
+
+00:06:30.279 --> 00:06:32.640
+<v Speaker 0>can happen, um, and you know it's challenging to infer
+
+NOTE CONF {"raw":[100,100,99,100,100,99,99,100,100,99]}
+
+00:06:32.640 --> 00:06:35.160
+<v Speaker 0>from demonstrations or preferences, um.
+
+NOTE CONF {"raw":[100,100,100,100,99]}
+
+00:06:35.980 --> 00:06:38.589
+<v Speaker 0>But then even if you have a good reward function
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:06:38.589 --> 00:06:40.209
+<v Speaker 0>like let's say you, you know, you have a perfect
+
+NOTE CONF {"raw":[100,100,100,99,99,99,100,100,100,100]}
+
+00:06:40.209 --> 00:06:43.589
+<v Speaker 0>reward function that is exactly aligned, you know, exactly the
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,100,100,100]}
+
+00:06:43.589 --> 00:06:47.470
+<v Speaker 0>ground truth human reward function, um, you know it can
+
+NOTE CONF {"raw":[100,99,100,100,100,99,100,100,100,99]}
+
+00:06:47.470 --> 00:06:50.350
+<v Speaker 0>still be hard to learn so you know maybe you
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,100,100]}
+
+00:06:50.350 --> 00:06:53.700
+<v Speaker 0>had a poor choice of state action representation and there
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,99]}
+
+00:06:53.709 --> 00:06:55.309
+<v Speaker 0>there are various flavors of this, right?
+
+NOTE CONF {"raw":[99,99,99,100,99,100,100]}
+
+00:06:55.390 --> 00:06:57.709
+<v Speaker 0>You know there are you just left out, you know,
+
+NOTE CONF {"raw":[90,100,99,100,99,100,100,100,100,100]}
+
+00:06:57.820 --> 00:07:01.309
+<v Speaker 0>some important dimension or something, um, but I think like
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,100,100]}
+
+00:07:01.309 --> 00:07:03.940
+<v Speaker 0>the more nuanced, you know, type of problem is that,
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:07:03.950 --> 00:07:04.290
+<v Speaker 0>uh.
+
+NOTE CONF {"raw":[99]}
+
+00:07:04.709 --> 00:07:09.190
+<v Speaker 0>You know, maybe you have a representation that technically can
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:07:09.190 --> 00:07:13.269
+<v Speaker 0>represent everything you need, um, but it's just a poor
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,100]}
+
+00:07:13.269 --> 00:07:16.260
+<v Speaker 0>choice from the point of view of optimization dynamics.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,99,100]}
+
+00:07:16.579 --> 00:07:18.109
+<v Speaker 0>So, you know, for those of you that have like
+
+NOTE CONF {"raw":[86,100,100,100,100,100,100,100,100,100]}
+
+00:07:18.109 --> 00:07:21.070
+<v Speaker 0>a decent amount of hands-on experience with neural networks, you
+
+NOTE CONF {"raw":[100,100,100,100,82,100,99,99,99,100]}
+
+00:07:21.070 --> 00:07:24.250
+<v Speaker 0>know, you may have experienced, uh, you know, this thing
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,100,100]}
+
+00:07:24.250 --> 00:07:26.260
+<v Speaker 0>where like, you know, let's say you have some discrete
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,99]}
+
+00:07:26.260 --> 00:07:28.100
+<v Speaker 0>actions, you have 4 of them, right?
+
+NOTE CONF {"raw":[100,99,100,99,100,100,100]}
+
+00:07:28.350 --> 00:07:30.549
+<v Speaker 0>You know, one way to represent that is you have
+
+NOTE CONF {"raw":[99,100,99,100,100,100,100,100,100,100]}
+
+00:07:30.549 --> 00:07:33.350
+<v Speaker 0>actions and they're just numbered 1 through 4, right?
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,100]}
+
+00:07:33.739 --> 00:07:36.579
+<v Speaker 0>Uh, another way of representing that is one hot encoding,
+
+NOTE CONF {"raw":[99,99,100,100,100,100,98,99,99,99]}
+
+00:07:36.899 --> 00:07:39.459
+<v Speaker 0>uh, you know, where you have, uh, you know, action
+
+NOTE CONF {"raw":[99,99,99,99,100,100,99,99,99,99]}
+
+00:07:39.459 --> 00:07:42.700
+<v Speaker 0>two would be 0100, right, and you're just, you know,
+
+NOTE CONF {"raw":[98,99,99,100,99,97,100,99,99,99]}
+
+00:07:42.820 --> 00:07:46.779
+<v Speaker 0>flipping a bit for, uh, you know, whichever one, is,
+
+NOTE CONF {"raw":[100,100,100,100,99,99,99,99,99,99]}
+
+00:07:46.899 --> 00:07:47.700
+<v Speaker 0>is active, right?
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:07:47.739 --> 00:07:49.940
+<v Speaker 0>And it turns out that for a lot of reasons,
+
+NOTE CONF {"raw":[93,100,100,100,96,100,100,100,100,100]}
+
+00:07:50.059 --> 00:07:52.380
+<v Speaker 0>you know, that, uh, for like discrete action spaces, for
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,100,100,100]}
+
+00:07:52.380 --> 00:07:54.500
+<v Speaker 0>example, that works a lot better.
+
+NOTE CONF {"raw":[100,100,100,100,100,100]}
+
+00:07:54.779 --> 00:07:55.140
+<v Speaker 0>Why?
+
+NOTE CONF {"raw":[99]}
+
+00:07:55.260 --> 00:07:56.899
+<v Speaker 0>Well, uh, you know.
+
+NOTE CONF {"raw":[99,99,99,99]}
+
+00:07:57.440 --> 00:07:59.679
+<v Speaker 0>If, if you just have discrete actions, they have nothing
+
+NOTE CONF {"raw":[99,99,100,100,100,99,100,100,100,100]}
+
+00:07:59.679 --> 00:08:00.420
+<v Speaker 0>to do with each other.
+
+NOTE CONF {"raw":[100,100,100,100,100]}
+
+00:08:00.480 --> 00:08:01.640
+<v Speaker 0>It's not a matrix space.
+
+NOTE CONF {"raw":[96,100,99,0,99]}
+
+00:08:01.720 --> 00:08:05.040
+<v Speaker 0>There's, there's no relationship between, you know, action 2 and
+
+NOTE CONF {"raw":[96,99,100,100,100,99,99,99,42,100]}
+
+00:08:05.040 --> 00:08:07.910
+<v Speaker 0>action 3, so it doesn't make sense for, you know,
+
+NOTE CONF {"raw":[99,74,99,100,100,100,100,100,100,100]}
+
+00:08:08.079 --> 00:08:09.799
+<v Speaker 0>actions 1 and 2 to be next to each other
+
+NOTE CONF {"raw":[100,73,100,80,100,100,100,100,100,100]}
+
+00:08:09.799 --> 00:08:11.380
+<v Speaker 0>any more than 1 and 4.
+
+NOTE CONF {"raw":[99,99,100,99,98,99]}
+
+00:08:11.640 --> 00:08:13.200
+<v Speaker 0>So it makes generalization kind of weird.
+
+NOTE CONF {"raw":[93,100,100,100,99,99,100]}
+
+00:08:13.299 --> 00:08:15.440
+<v Speaker 0>But also when you do one hot, right, it kind
+
+NOTE CONF {"raw":[71,100,100,100,100,88,99,99,99,100]}
+
+00:08:15.440 --> 00:08:17.450
+<v Speaker 0>of acts as like a switch, right?
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100]}
+
+00:08:17.600 --> 00:08:19.880
+<v Speaker 0>Like you can, you can, uh, you get a hard
+
+NOTE CONF {"raw":[99,100,100,100,100,99,100,99,100,100]}
+
+00:08:19.880 --> 00:08:22.299
+<v Speaker 0>switch of 0 or 1 between.
+
+NOTE CONF {"raw":[100,100,99,100,99,100]}
+
+00:08:22.540 --> 00:08:25.260
+<v Speaker 0>Um, you know, sort of different things that the network
+
+NOTE CONF {"raw":[75,68,93,93,88,99,99,99,99,99]}
+
+00:08:25.260 --> 00:08:29.470
+<v Speaker 0>does and, and those, uh, neurons can sort of act
+
+NOTE CONF {"raw":[99,99,96,99,81,99,99,99,99,99]}
+
+00:08:29.470 --> 00:08:33.820
+<v Speaker 0>as a router, um, to, to represent, uh, piecewise functions
+
+NOTE CONF {"raw":[99,99,99,69,89,99,99,80,66,99]}
+
+00:08:33.820 --> 00:08:34.710
+<v Speaker 0>really nicely.
+
+NOTE CONF {"raw":[99,99]}
+
+00:08:35.059 --> 00:08:37.979
+<v Speaker 0>So again, either one of those can learn exactly what
+
+NOTE CONF {"raw":[96,99,99,99,99,99,99,99,99,99]}
+
+00:08:37.979 --> 00:08:39.739
+<v Speaker 0>you need, but one is just a heck of a
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:08:39.739 --> 00:08:41.900
+<v Speaker 0>lot easier from an optimization perspective.
+
+NOTE CONF {"raw":[99,99,99,99,99,99]}
+
+00:08:42.359 --> 00:08:45.549
+<v Speaker 0>Um, as we know, you know, our our our algorithms,
+
+NOTE CONF {"raw":[99,99,100,100,99,99,99,90,62,99]}
+
+00:08:45.718 --> 00:08:49.518
+<v Speaker 0>even with good representations, can just perform arbitrarily poorly, and
+
+NOTE CONF {"raw":[100,100,100,99,99,100,100,99,100,100]}
+
+00:08:49.518 --> 00:08:52.078
+<v Speaker 0>we can always have, you know, dis distribution shift which
+
+NOTE CONF {"raw":[100,99,100,99,99,99,97,99,100,100]}
+
+00:08:52.078 --> 00:08:54.598
+<v Speaker 0>leads to, like, you know, the misgeneralization issues we've seen.
+
+NOTE CONF {"raw":[100,99,99,99,99,99,98,99,99,99]}
+
+00:08:55.640 --> 00:09:00.659
+<v Speaker 0>But even if we have a perfect reward function and
+
+NOTE CONF {"raw":[99,100,100,99,99,99,99,99,100,99]}
+
+00:09:01.119 --> 00:09:03.719
+<v Speaker 0>learn a good policy, um, the problem is, you know,
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,99,99,99]}
+
+00:09:03.799 --> 00:09:06.260
+<v Speaker 0>how do we know we learned a good policy, right?
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:09:06.559 --> 00:09:09.679
+<v Speaker 0>Um, so you know we typically can't do exhaustive testing
+
+NOTE CONF {"raw":[76,99,99,99,99,99,99,99,99,99]}
+
+00:09:09.679 --> 00:09:12.559
+<v Speaker 0>for, you know, huge, uh, input output space like an
+
+NOTE CONF {"raw":[99,99,99,99,99,99,89,99,99,99]}
+
+00:09:12.559 --> 00:09:16.239
+<v Speaker 0>LLM or, uh, you know, self-driving cars or something like
+
+NOTE CONF {"raw":[99,99,99,99,99,49,99,99,99,99]}
+
+00:09:16.239 --> 00:09:22.049
+<v Speaker 0>that, um, and There's very often a lack of ground
+
+NOTE CONF {"raw":[99,99,99,99,99,100,100,100,100,100]}
+
+00:09:22.049 --> 00:09:25.090
+<v Speaker 0>truth data to compare against, um.
+
+NOTE CONF {"raw":[99,100,100,100,99,79]}
+
+00:09:25.840 --> 00:09:28.090
+<v Speaker 0>And so you know for an LLM, uh, you know
+
+NOTE CONF {"raw":[100,100,100,100,100,99,99,99,100,100]}
+
+00:09:28.090 --> 00:09:30.250
+<v Speaker 0>you ask it to write an essay, right?
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100]}
+
+00:09:30.559 --> 00:09:32.409
+<v Speaker 0>Well, what's like the ground truth if it, you know,
+
+NOTE CONF {"raw":[99,100,100,100,99,100,100,99,100,100]}
+
+00:09:32.530 --> 00:09:34.250
+<v Speaker 0>did a good job writing the essay, right?
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100]}
+
+00:09:34.409 --> 00:09:38.130
+<v Speaker 0>Um, and so I even coming up with what it
+
+NOTE CONF {"raw":[95,99,100,94,100,100,100,100,100,100]}
+
+00:09:38.130 --> 00:09:42.719
+<v Speaker 0>would mean to have probabilistic guarantees about essay writing performance,
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,100]}
+
+00:09:42.770 --> 00:09:47.130
+<v Speaker 0>right, uh, you know, requires a lot of assumptions about
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,100,100]}
+
+00:09:47.130 --> 00:09:50.270
+<v Speaker 0>like what quality means, how you're measuring it, etc.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99]}
+
+00:09:50.849 --> 00:09:51.289
+<v Speaker 0>um.
+
+NOTE CONF {"raw":[99]}
+
+00:09:51.719 --> 00:09:54.510
+<v Speaker 0>So there there's a whole bunch more difficulties I could
+
+NOTE CONF {"raw":[99,99,99,99,99,100,100,99,99,99]}
+
+00:09:54.510 --> 00:09:56.349
+<v Speaker 0>list with verification, but I think the main point I
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,100,99,99]}
+
+00:09:56.349 --> 00:09:58.270
+<v Speaker 0>wanted to make is that, you know, even if you've
+
+NOTE CONF {"raw":[99,99,100,99,99,99,99,99,99,99]}
+
+00:09:58.270 --> 00:10:00.309
+<v Speaker 0>done a very good job and you have a great
+
+NOTE CONF {"raw":[100,99,99,100,100,99,99,99,99,100]}
+
+00:10:00.309 --> 00:10:02.630
+<v Speaker 0>policy in front of you, you don't necessarily know you
+
+NOTE CONF {"raw":[100,100,100,99,99,99,99,99,99,99]}
+
+00:10:02.630 --> 00:10:04.469
+<v Speaker 0>have a great policy in front of you and same
+
+NOTE CONF {"raw":[99,99,99,100,99,100,99,99,98,99]}
+
+00:10:04.469 --> 00:10:06.669
+<v Speaker 0>with like, uh, well.
+
+NOTE CONF {"raw":[99,99,99,99]}
+
+00:10:07.510 --> 00:10:08.909
+<v Speaker 0>I think it's not quite symmetric.
+
+NOTE CONF {"raw":[99,99,99,99,99,99]}
+
+00:10:09.030 --> 00:10:11.549
+<v Speaker 0>If you have a terrible policy, you know, you don't
+
+NOTE CONF {"raw":[77,99,99,99,100,100,91,92,99,99]}
+
+00:10:11.549 --> 00:10:14.789
+<v Speaker 0>really need exhaustive testing to notice that because bad things
+
+NOTE CONF {"raw":[99,100,100,100,100,99,99,99,99,99]}
+
+00:10:14.789 --> 00:10:16.010
+<v Speaker 0>happen pretty frequently.
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:10:16.349 --> 00:10:19.260
+<v Speaker 0>But you know if bad and really dangerous behavior kind
+
+NOTE CONF {"raw":[98,97,96,99,99,99,99,99,99,91]}
+
+00:10:19.260 --> 00:10:21.219
+<v Speaker 0>of gets pushed to the tails, it can be a
+
+NOTE CONF {"raw":[87,99,99,99,99,99,99,99,99,99]}
+
+00:10:21.219 --> 00:10:22.650
+<v Speaker 0>lot more difficult to hunt down.
+
+NOTE CONF {"raw":[99,99,99,99,98,99]}
+
+00:10:24.080 --> 00:10:26.210
+<v Speaker 0>OK, so this is very similar to a slide, you
+
+NOTE CONF {"raw":[99,99,100,99,99,100,99,99,99,99]}
+
+00:10:26.210 --> 00:10:28.409
+<v Speaker 0>know, that I had, uh, you know, last time we
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:10:28.409 --> 00:10:32.210
+<v Speaker 0>talked about this, you know, just to set a bar
+
+NOTE CONF {"raw":[99,100,99,99,99,99,99,100,99,100]}
+
+00:10:32.210 --> 00:10:34.460
+<v Speaker 0>for like what do we really mean by a guarantee.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,99,99,99]}
+
+00:10:35.000 --> 00:10:36.919
+<v Speaker 0>And you know, a guarantee in my mind is just
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:10:36.919 --> 00:10:39.250
+<v Speaker 0>a metric plus confidence plus assumptions.
+
+NOTE CONF {"raw":[100,100,99,100,99,100]}
+
+00:10:39.570 --> 00:10:41.900
+<v Speaker 0>So you know me trick is how we're measuring alignment
+
+NOTE CONF {"raw":[99,100,100,99,38,100,100,99,100,100]}
+
+00:10:41.900 --> 00:10:42.849
+<v Speaker 0>or performance.
+
+NOTE CONF {"raw":[99,100]}
+
+00:10:43.250 --> 00:10:47.250
+<v Speaker 0>Confidence is some type of, of bound or statistic with
+
+NOTE CONF {"raw":[99,100,100,100,100,99,100,100,100,100]}
+
+00:10:47.250 --> 00:10:48.049
+<v Speaker 0>respect to the metric.
+
+NOTE CONF {"raw":[100,100,42,100]}
+
+00:10:48.090 --> 00:10:49.530
+<v Speaker 0>This could be a formal guarantee.
+
+NOTE CONF {"raw":[99,99,100,100,100,100]}
+
+00:10:49.809 --> 00:10:52.130
+<v Speaker 0>This could be a probabilistic guarantee like we looked at
+
+NOTE CONF {"raw":[99,100,100,100,99,100,99,100,100,99]}
+
+00:10:52.130 --> 00:10:54.049
+<v Speaker 0>with like Bayesian IRL, um.
+
+NOTE CONF {"raw":[100,99,73,99,99]}
+
+00:10:54.150 --> 00:10:57.109
+<v Speaker 0>And then there's assumptions, right, like what are the assumptions
+
+NOTE CONF {"raw":[99,100,99,100,99,94,99,100,100,100]}
+
+00:10:57.109 --> 00:11:00.469
+<v Speaker 0>we have to make for, uh, so that this, this
+
+NOTE CONF {"raw":[100,100,100,100,99,99,100,100,99,99]}
+
+00:11:00.469 --> 00:11:02.950
+<v Speaker 0>confidence bound is actually accurate.
+
+NOTE CONF {"raw":[100,99,100,99,99]}
+
+00:11:03.030 --> 00:11:05.669
+<v Speaker 0>So if we, if we say something is, you know,
+
+NOTE CONF {"raw":[92,99,99,99,99,99,100,100,99,99]}
+
+00:11:05.809 --> 00:11:09.510
+<v Speaker 0>uh, 95% confidence, we truly are calibrated that, you know,
+
+NOTE CONF {"raw":[99,100,100,100,100,100,99,100,99,99]}
+
+00:11:09.640 --> 00:11:11.750
+<v Speaker 0>uh, 5% of the time it's going to fail and
+
+NOTE CONF {"raw":[97,99,100,100,99,99,68,35,100,99]}
+
+00:11:11.750 --> 00:11:13.229
+<v Speaker 0>95% of the time it doesn't.
+
+NOTE CONF {"raw":[100,100,100,100,100,99]}
+
+00:11:16.770 --> 00:11:18.929
+<v Speaker 0>So yeah, some examples then, you know, a metric could
+
+NOTE CONF {"raw":[100,99,99,100,99,100,100,88,99,99]}
+
+00:11:18.929 --> 00:11:21.369
+<v Speaker 0>be returned to the policy under some unknown ground truth
+
+NOTE CONF {"raw":[99,99,99,99,100,99,99,99,99,99]}
+
+00:11:21.570 --> 00:11:24.289
+<v Speaker 0>we might have like a 95% confidence bound, but for
+
+NOTE CONF {"raw":[96,99,100,99,99,100,100,99,99,100]}
+
+00:11:24.289 --> 00:11:26.010
+<v Speaker 0>that to be valid, we might need to assume, you
+
+NOTE CONF {"raw":[100,100,100,100,100,99,99,100,100,99]}
+
+00:11:26.010 --> 00:11:28.630
+<v Speaker 0>know, reward is a linear function of some known features.
+
+NOTE CONF {"raw":[99,99,99,99,100,100,99,99,99,100]}
+
+00:11:31.000 --> 00:11:34.750
+<v Speaker 0>So You know what, to frame this lecture, maybe.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,100,99]}
+
+00:11:35.780 --> 00:11:37.070
+<v Speaker 0>Maybe I'm gonna go all the way to the end
+
+NOTE CONF {"raw":[99,100,99,100,100,100,100,99,100,100]}
+
+00:11:37.070 --> 00:11:40.630
+<v Speaker 0>actually, uh, briefly and talk about something I was gonna
+
+NOTE CONF {"raw":[100,99,99,100,100,100,100,100,100,99]}
+
+00:11:40.630 --> 00:11:42.789
+<v Speaker 0>say for the end but actually I think maybe frames
+
+NOTE CONF {"raw":[99,100,100,100,99,100,100,100,99,100]}
+
+00:11:42.789 --> 00:11:46.969
+<v Speaker 0>the discussion better by just doing it now so um.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,83,99]}
+
+00:11:48.159 --> 00:11:50.000
+<v Speaker 0>I gave it, I gave a talk on some of
+
+NOTE CONF {"raw":[100,99,99,99,99,100,100,100,100,100]}
+
+00:11:50.000 --> 00:11:52.710
+<v Speaker 0>this work that we're going to talk about today, um,
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,99]}
+
+00:11:52.960 --> 00:11:55.440
+<v Speaker 0>as part of a keynote at at this RL conference
+
+NOTE CONF {"raw":[99,99,99,97,99,99,96,99,99,99]}
+
+00:11:55.440 --> 00:11:58.359
+<v Speaker 0>a few years ago, RLDM, and Rich Sutton, you know,
+
+NOTE CONF {"raw":[100,100,100,99,99,100,100,99,100,100]}
+
+00:11:58.429 --> 00:12:00.390
+<v Speaker 0>one of the two founders of RL, who asked the
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,86,99,100]}
+
+00:12:00.390 --> 00:12:02.400
+<v Speaker 0>first question, and he said, Yeah, this is all very
+
+NOTE CONF {"raw":[100,100,100,100,100,87,100,100,100,100]}
+
+00:12:02.400 --> 00:12:05.179
+<v Speaker 0>nice, Scott, but aren't you just selling us illusions?
+
+NOTE CONF {"raw":[100,99,99,100,100,100,99,100,99]}
+
+00:12:05.640 --> 00:12:07.719
+<v Speaker 0>And, and what he meant by that was, um.
+
+NOTE CONF {"raw":[98,99,99,99,100,100,100,100,99]}
+
+00:12:09.989 --> 00:12:12.880
+<v Speaker 0>What good is it to to give.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99]}
+
+00:12:14.000 --> 00:12:19.359
+<v Speaker 0>Performance guarantees, alignment guarantees, whatever if they do make these
+
+NOTE CONF {"raw":[99,100,100,100,100,99,100,100,100,100]}
+
+00:12:19.359 --> 00:12:21.400
+<v Speaker 0>assumptions, you know, that we're that we're talking about and
+
+NOTE CONF {"raw":[100,100,100,99,98,99,99,99,100,100]}
+
+00:12:21.400 --> 00:12:24.520
+<v Speaker 0>we say, well, you know, this only holds if, you
+
+NOTE CONF {"raw":[100,100,99,100,100,99,100,100,100,100]}
+
+00:12:24.520 --> 00:12:27.380
+<v Speaker 0>know, the reward function can be written down in terms
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,100]}
+
+00:12:27.380 --> 00:12:30.359
+<v Speaker 0>of, uh, you know, uh, linearly with respect to some
+
+NOTE CONF {"raw":[100,99,100,100,99,99,100,100,100,99]}
+
+00:12:30.359 --> 00:12:33.359
+<v Speaker 0>known features, uh, if that's not true, this doesn't hold
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,100,100,100]}
+
+00:12:33.359 --> 00:12:34.559
+<v Speaker 0>at all so like.
+
+NOTE CONF {"raw":[100,100,99,100]}
+
+00:12:35.349 --> 00:12:39.030
+<v Speaker 0>I is it at all useful to to have that
+
+NOTE CONF {"raw":[84,92,99,99,99,100,99,99,99,99]}
+
+00:12:39.030 --> 00:12:42.190
+<v Speaker 0>kind of guarantee if we know that the assumption probably
+
+NOTE CONF {"raw":[100,99,100,99,100,100,99,99,100,99]}
+
+00:12:42.190 --> 00:12:43.309
+<v Speaker 0>isn't true, right?
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:12:43.590 --> 00:12:45.830
+<v Speaker 0>Uh, it, it probably just gives us, uh, or it
+
+NOTE CONF {"raw":[59,52,99,99,99,99,99,99,99,99]}
+
+00:12:45.830 --> 00:12:47.549
+<v Speaker 0>could be argued that it gives us a false sense
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:12:47.549 --> 00:12:49.869
+<v Speaker 0>of confidence and actually isn't particularly.
+
+NOTE CONF {"raw":[99,100,99,100,99,99]}
+
+00:12:50.590 --> 00:12:52.559
+<v Speaker 0>Um, and you know if we want to translate this
+
+NOTE CONF {"raw":[99,99,100,100,100,100,42,38,100,100]}
+
+00:12:52.559 --> 00:12:55.500
+<v Speaker 0>from machine learning into like the engineering world for example,
+
+NOTE CONF {"raw":[99,100,100,99,100,100,100,100,100,100]}
+
+00:12:55.719 --> 00:12:59.280
+<v Speaker 0>right, uh, you know we have all kinds of guarantees
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,100,100]}
+
+00:12:59.280 --> 00:13:01.960
+<v Speaker 0>that we can make about bridges, for example, uh, under
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,100]}
+
+00:13:01.960 --> 00:13:04.159
+<v Speaker 0>certain models of physics, etc.
+
+NOTE CONF {"raw":[100,100,100,100,99]}
+
+00:13:04.559 --> 00:13:06.679
+<v Speaker 0>but I don't know if you've seen this video before
+
+NOTE CONF {"raw":[99,100,100,99,100,100,100,100,100,100]}
+
+00:13:06.679 --> 00:13:10.159
+<v Speaker 0>of the Tacoma Narrows Bridge, uh, that this was about
+
+NOTE CONF {"raw":[99,100,100,99,99,99,99,99,83,99]}
+
+00:13:10.159 --> 00:13:13.640
+<v Speaker 0>a century ago at this point, I think, um, and
+
+NOTE CONF {"raw":[99,99,99,99,99,100,100,100,99,99]}
+
+00:13:13.640 --> 00:13:15.859
+<v Speaker 0>anyway, the bridge was built in Tacoma, Washington.
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100]}
+
+00:13:16.479 --> 00:13:18.719
+<v Speaker 0>Um, it seemed like it was going to, you know,
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,99,99]}
+
+00:13:18.909 --> 00:13:21.520
+<v Speaker 0>be a good bridge, uh, and all of a sudden
+
+NOTE CONF {"raw":[100,100,100,100,99,99,100,99,100,100]}
+
+00:13:21.520 --> 00:13:24.280
+<v Speaker 0>one day it just started undulating like this, and I
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,100]}
+
+00:13:24.280 --> 00:13:26.119
+<v Speaker 0>mean the, the video is insane if you haven't seen
+
+NOTE CONF {"raw":[100,99,99,100,99,100,99,100,100,100]}
+
+00:13:26.119 --> 00:13:26.229
+<v Speaker 0>it.
+
+NOTE CONF {"raw":[100]}
+
+00:13:26.270 --> 00:13:28.559
+<v Speaker 0>It's like tossing things off of it, and anyway, it
+
+NOTE CONF {"raw":[86,100,100,100,100,100,100,99,99,99]}
+
+00:13:28.559 --> 00:13:32.280
+<v Speaker 0>breaks itself and what happened was, um, one thing they
+
+NOTE CONF {"raw":[99,99,98,99,100,100,99,100,100,100]}
+
+00:13:32.280 --> 00:13:35.520
+<v Speaker 0>didn't model was, uh, certain properties of the wind and
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,100,99]}
+
+00:13:35.520 --> 00:13:38.000
+<v Speaker 0>resonance of the bridge, and it turns out that the
+
+NOTE CONF {"raw":[99,100,100,100,99,100,100,100,99,100]}
+
+00:13:38.000 --> 00:13:40.630
+<v Speaker 0>wind going through the canyon made the bridge re, uh,
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,96,99]}
+
+00:13:40.640 --> 00:13:43.799
+<v Speaker 0>resonate at its resonant frequency, and you know, energy just
+
+NOTE CONF {"raw":[99,100,100,99,100,99,99,99,100,99]}
+
+00:13:43.799 --> 00:13:45.440
+<v Speaker 0>build up and build up and the bridge tore itself
+
+NOTE CONF {"raw":[79,99,100,95,99,99,100,100,100,100]}
+
+00:13:45.440 --> 00:13:45.799
+<v Speaker 0>apart.
+
+NOTE CONF {"raw":[100]}
+
+00:13:46.460 --> 00:13:49.190
+<v Speaker 0>Um, and so, you know, maybe you could argue that
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,100]}
+
+00:13:49.190 --> 00:13:51.950
+<v Speaker 0>it's not particularly useful to have those physical models either.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:13:52.109 --> 00:13:54.869
+<v Speaker 0>So, anyway, what, what do you, what do you think
+
+NOTE CONF {"raw":[99,99,99,99,100,99,99,100,100,99]}
+
+00:13:54.869 --> 00:13:55.150
+<v Speaker 0>about this?
+
+NOTE CONF {"raw":[100,100]}
+
+00:13:55.250 --> 00:13:57.710
+<v Speaker 0>Do you, do you agree with this selling illusions part,
+
+NOTE CONF {"raw":[99,99,99,100,100,100,100,100,99,99]}
+
+00:13:57.789 --> 00:14:00.349
+<v Speaker 0>uh, argument, or do you feel like maybe there's still
+
+NOTE CONF {"raw":[99,99,99,100,100,100,100,100,96,100]}
+
+00:14:00.349 --> 00:14:07.130
+<v Speaker 0>really, uh, really value in having some guarantees even when
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,100,100]}
+
+00:14:07.789 --> 00:14:09.510
+<v Speaker 0>they make assumptions that might not be true?
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,99]}
+
+00:14:11.489 --> 00:14:13.690
+<v Speaker 1>It really depends on how strict the assumptions are.
+
+NOTE CONF {"raw":[99,99,99,99,99,98,39,20,99]}
+
+00:14:13.770 --> 00:14:16.890
+<v Speaker 1>If they're like very idealistic, then like it wouldn't make
+
+NOTE CONF {"raw":[94,74,99,99,99,99,99,99,96,99]}
+
+00:14:16.890 --> 00:14:17.450
+<v Speaker 1>sense like.
+
+NOTE CONF {"raw":[99,99]}
+
+00:14:19.049 --> 00:14:20.179
+<v Speaker 1>They are sort of a bit more.
+
+NOTE CONF {"raw":[32,51,56,60,79,50,53]}
+
+00:14:22.000 --> 00:14:25.130
+<v Speaker 0>Yeah, so it, it certainly depends on the strength of
+
+NOTE CONF {"raw":[100,100,67,100,99,100,100,100,100,100]}
+
+00:14:25.130 --> 00:14:28.000
+<v Speaker 0>the assumptions, um, you know, and if they're, it matters
+
+NOTE CONF {"raw":[100,100,99,100,100,99,100,99,99,100]}
+
+00:14:28.000 --> 00:14:30.679
+<v Speaker 0>if they're way off base versus, you know, maybe just
+
+NOTE CONF {"raw":[100,99,100,100,99,100,100,100,100,100]}
+
+00:14:30.679 --> 00:14:34.280
+<v Speaker 0>a little bit wrong, especially if the guarantees you believe
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,99,100,100]}
+
+00:14:34.280 --> 00:14:36.599
+<v Speaker 0>are of the form that they kind of degrade.
+
+NOTE CONF {"raw":[99,99,100,99,99,100,100,100,99]}
+
+00:14:37.909 --> 00:14:41.190
+<v Speaker 0>Smoothly as you know, assumptions aren't met rather than just
+
+NOTE CONF {"raw":[99,100,100,100,100,93,99,100,100,100]}
+
+00:14:41.190 --> 00:14:43.669
+<v Speaker 0>like falling off a cliff, um.
+
+NOTE CONF {"raw":[99,100,100,100,100,99]}
+
+00:14:44.349 --> 00:14:47.130
+<v Speaker 0>And you know, a, a whole thrust of research can
+
+NOTE CONF {"raw":[100,100,100,97,99,99,100,100,100,100]}
+
+00:14:47.130 --> 00:14:50.070
+<v Speaker 0>be just, you know, finding methods that loosen the assumptions.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,99,100,99]}
+
+00:14:50.270 --> 00:14:51.429
+<v Speaker 0>So I think that's definitely true.
+
+NOTE CONF {"raw":[40,100,99,99,100,100]}
+
+00:14:51.789 --> 00:14:53.030
+<v Speaker 0>Are there, other thoughts?
+
+NOTE CONF {"raw":[96,97,99,100]}
+
+00:15:04.190 --> 00:15:05.919
+<v Speaker 0>So maybe make it easier to think about like think
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:15:05.919 --> 00:15:08.500
+<v Speaker 0>about the bridge example like given that things like this
+
+NOTE CONF {"raw":[99,99,100,99,98,99,86,99,99,99]}
+
+00:15:08.500 --> 00:15:10.679
+<v Speaker 0>can happen even though we do physical modeling, do you
+
+NOTE CONF {"raw":[99,100,99,99,99,99,100,99,99,100]}
+
+00:15:10.679 --> 00:15:15.520
+<v Speaker 0>think it's useful to take physical modeling, for example, into
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,100,99]}
+
+00:15:15.520 --> 00:15:16.700
+<v Speaker 0>account when you're building bridges?
+
+NOTE CONF {"raw":[100,99,99,100,100]}
+
+00:15:22.789 --> 00:15:25.109
+<v Speaker 2>Uh, yeah, I, I feel like you need to make
+
+NOTE CONF {"raw":[90,98,99,99,99,99,99,96,98,99]}
+
+00:15:25.109 --> 00:15:26.270
+<v Speaker 2>sure you don't miss some.
+
+NOTE CONF {"raw":[99,99,99,99,88]}
+
+00:15:27.320 --> 00:15:31.429
+<v Speaker 2>Assumption Under which your system will operate, but I certainly
+
+NOTE CONF {"raw":[0,98,93,99,99,64,98,95,99,99]}
+
+00:15:31.429 --> 00:15:31.669
+<v Speaker 2>don't.
+
+NOTE CONF {"raw":[98]}
+
+00:15:34.210 --> 00:15:36.729
+<v Speaker 0>Yeah, so you know, I think just because models can
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,99]}
+
+00:15:36.729 --> 00:15:38.880
+<v Speaker 0>be wrong doesn't make them useless, right?
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99]}
+
+00:15:39.130 --> 00:15:41.460
+<v Speaker 0>If you have a decent model that might be missing
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:15:41.460 --> 00:15:46.169
+<v Speaker 0>things, it's still going to catch some bad designs that
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,100,100]}
+
+00:15:46.169 --> 00:15:47.369
+<v Speaker 0>you shouldn't use, right?
+
+NOTE CONF {"raw":[100,100,99,99]}
+
+00:15:47.570 --> 00:15:50.530
+<v Speaker 0>Uh, you, you know, we, we don't build bridges.
+
+NOTE CONF {"raw":[99,70,99,99,99,99,99,100,100]}
+
+00:15:50.614 --> 00:15:53.974
+<v Speaker 0>By just randomly, uh, trying them and taking an empirical
+
+NOTE CONF {"raw":[85,99,99,99,100,99,99,99,99,99]}
+
+00:15:53.974 --> 00:15:55.414
+<v Speaker 0>approach to bridge building, right?
+
+NOTE CONF {"raw":[99,99,99,99,99]}
+
+00:15:55.494 --> 00:15:57.335
+<v Speaker 0>Like we don't just come up with like, oh, it'd
+
+NOTE CONF {"raw":[59,99,98,99,99,99,99,99,96,76]}
+
+00:15:57.335 --> 00:15:59.065
+<v Speaker 0>be kind of cool if a bridge looked like this,
+
+NOTE CONF {"raw":[99,81,93,99,99,99,99,99,99,99]}
+
+00:15:59.094 --> 00:16:02.174
+<v Speaker 0>like, you know, we have engineering best principles that have
+
+NOTE CONF {"raw":[93,99,99,99,99,99,99,99,99,99]}
+
+00:16:02.174 --> 00:16:07.815
+<v Speaker 0>come from, you know, mathematical and physical analysis, um, and
+
+NOTE CONF {"raw":[99,100,99,99,99,99,100,99,57,99]}
+
+00:16:07.815 --> 00:16:10.244
+<v Speaker 0>so and when something like this does happen and we
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:16:10.244 --> 00:16:12.895
+<v Speaker 0>realized there was something we weren't modeling, it doesn't mean
+
+NOTE CONF {"raw":[2,99,99,99,99,99,99,99,99,99]}
+
+00:16:12.895 --> 00:16:14.534
+<v Speaker 0>that modeling is dumb, it means that we need to
+
+NOTE CONF {"raw":[99,99,85,99,93,99,99,99,99,99]}
+
+00:16:14.534 --> 00:16:15.794
+<v Speaker 0>add something to our model.
+
+NOTE CONF {"raw":[99,99,99,99,99]}
+
+00:16:16.539 --> 00:16:20.270
+<v Speaker 0>Um, now you might also have models that eliminate good
+
+NOTE CONF {"raw":[99,99,100,99,100,100,100,99,100,100]}
+
+00:16:20.270 --> 00:16:25.109
+<v Speaker 0>candidates, but in really safety critical domains, uh, uh, you
+
+NOTE CONF {"raw":[100,99,100,100,99,99,94,99,53,99]}
+
+00:16:25.109 --> 00:16:28.099
+<v Speaker 0>know, I'd argue that's OK, um, you know, the priority
+
+NOTE CONF {"raw":[99,99,99,99,99,84,99,99,99,100]}
+
+00:16:28.099 --> 00:16:32.159
+<v Speaker 0>is making sure you eliminate as many bad candidates, uh,
+
+NOTE CONF {"raw":[100,100,100,100,99,99,100,100,100,99]}
+
+00:16:32.169 --> 00:16:34.909
+<v Speaker 0>as, as possible, um, and that you can still learn
+
+NOTE CONF {"raw":[99,99,100,99,99,99,100,99,100,100]}
+
+00:16:34.909 --> 00:16:37.489
+<v Speaker 0>a lot from that and, and do better science.
+
+NOTE CONF {"raw":[100,100,100,100,99,99,100,100,99]}
+
+00:16:37.909 --> 00:16:40.469
+<v Speaker 0>That's, that's at least my feeling that this is not
+
+NOTE CONF {"raw":[77,99,99,99,100,100,99,99,99,100]}
+
+00:16:40.469 --> 00:16:44.789
+<v Speaker 0>all just illusions, even if the assumptions aren't met.
+
+NOTE CONF {"raw":[99,99,99,99,100,99,99,98,99]}
+
+00:16:46.549 --> 00:16:51.010
+<v Speaker 0>Um, OK.
+
+NOTE CONF {"raw":[99,99]}
+
+00:16:52.580 --> 00:16:53.219
+<v Speaker 0>So.
+
+NOTE CONF {"raw":[99]}
+
+00:16:56.840 --> 00:16:59.250
+<v Speaker 0>We're gonna look at sort of a range of types
+
+NOTE CONF {"raw":[100,98,100,100,99,100,100,100,100,100]}
+
+00:16:59.250 --> 00:17:01.890
+<v Speaker 0>of alignment guarantees, so you know, all the way on
+
+NOTE CONF {"raw":[100,100,100,99,99,99,100,100,100,99]}
+
+00:17:01.890 --> 00:17:03.770
+<v Speaker 0>one end you have no guarantees at all, right?
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,99]}
+
+00:17:03.890 --> 00:17:06.569
+<v Speaker 0>We just have like the empirical approach like instruct GPT.
+
+NOTE CONF {"raw":[96,99,99,99,100,100,100,100,97,99]}
+
+00:17:07.469 --> 00:17:10.750
+<v Speaker 0>Um, in the middle we're going to look at probabilistic
+
+NOTE CONF {"raw":[99,99,100,100,99,99,99,100,99,99]}
+
+00:17:10.750 --> 00:17:14.160
+<v Speaker 0>methods, um, so this will be sort of a Bayesian
+
+NOTE CONF {"raw":[100,97,99,100,99,99,99,99,99,99]}
+
+00:17:14.160 --> 00:17:14.709
+<v Speaker 0>version of T.
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:17:14.719 --> 00:17:19.719
+<v Speaker 0>rex called, called Bayesian Rex, um, and, uh, then all
+
+NOTE CONF {"raw":[38,99,98,99,96,99,99,99,99,100]}
+
+00:17:19.719 --> 00:17:21.959
+<v Speaker 0>the way at the extreme end of really, really strong
+
+NOTE CONF {"raw":[99,99,99,99,100,99,99,99,99,99]}
+
+00:17:21.959 --> 00:17:26.270
+<v Speaker 0>guarantees, uh, we will have, uh, formal methods that are,
+
+NOTE CONF {"raw":[99,99,88,99,100,99,100,99,100,99]}
+
+00:17:26.319 --> 00:17:30.359
+<v Speaker 0>are not probabilistic but give absolute guarantees under assumptions.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99]}
+
+00:17:31.030 --> 00:17:32.680
+<v Speaker 0>And so as you go to the right here you
+
+NOTE CONF {"raw":[100,100,99,100,100,100,100,99,99,99]}
+
+00:17:32.680 --> 00:17:35.859
+<v Speaker 0>know you have stronger guarantees, but you also are making
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:17:35.859 --> 00:17:40.880
+<v Speaker 0>more assumptions to get those, those stronger forms of guarantees
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,99,100]}
+
+00:17:40.880 --> 00:17:45.079
+<v Speaker 0>and so there's, you know, sort of trade-offs based on,
+
+NOTE CONF {"raw":[99,100,99,100,99,100,100,40,100,100]}
+
+00:17:45.459 --> 00:17:48.319
+<v Speaker 0>on what your objectives really are and like what you're
+
+NOTE CONF {"raw":[99,100,99,100,100,100,99,100,100,100]}
+
+00:17:48.319 --> 00:17:49.489
+<v Speaker 0>trying to reason about.
+
+NOTE CONF {"raw":[99,100,100,100]}
+
+00:17:52.319 --> 00:17:54.479
+<v Speaker 0>And where you want to shove the uncertainty.
+
+NOTE CONF {"raw":[99,100,100,49,45,100,100,100]}
+
+00:17:56.979 --> 00:17:59.060
+<v Speaker 0>So you know, and I think this ties into like
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,99,99]}
+
+00:17:59.060 --> 00:18:01.140
+<v Speaker 0>the bridge argument, you know, I think the central claim
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,100,100]}
+
+00:18:01.140 --> 00:18:04.260
+<v Speaker 0>is that, you know, strong guarantees aren't always possible, um,
+
+NOTE CONF {"raw":[100,100,99,99,100,100,99,100,100,99]}
+
+00:18:04.339 --> 00:18:07.380
+<v Speaker 0>but value alignment research should aim to provide the strongest
+
+NOTE CONF {"raw":[100,99,99,99,100,100,100,100,100,100]}
+
+00:18:07.380 --> 00:18:10.130
+<v Speaker 0>guarantees that are any given setting allows with as few
+
+NOTE CONF {"raw":[100,100,99,100,99,99,99,100,99,100]}
+
+00:18:10.130 --> 00:18:11.239
+<v Speaker 0>assumptions as possible.
+
+NOTE CONF {"raw":[100,100,100]}
+
+00:18:11.540 --> 00:18:13.250
+<v Speaker 0>So we wanna crank up the strength of the guarantees,
+
+NOTE CONF {"raw":[83,100,99,99,99,99,100,99,99,99]}
+
+00:18:13.260 --> 00:18:15.640
+<v Speaker 0>we wanna lower the bar for the assumptions we're making
+
+NOTE CONF {"raw":[84,99,100,100,100,100,100,100,99,100]}
+
+00:18:15.859 --> 00:18:18.500
+<v Speaker 0>and, and continually get better and, um, you know, I
+
+NOTE CONF {"raw":[99,99,94,100,100,98,99,99,99,100]}
+
+00:18:18.500 --> 00:18:19.439
+<v Speaker 0>had hoped when I gave.
+
+NOTE CONF {"raw":[99,99,99,100,99]}
+
+00:18:19.869 --> 00:18:22.199
+<v Speaker 0>You know, a lecture related to this, uh, a bunch
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,99,99,100]}
+
+00:18:22.199 --> 00:18:24.719
+<v Speaker 0>of places years ago that this would be like a
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,100]}
+
+00:18:24.719 --> 00:18:27.959
+<v Speaker 0>fairly uncontroversial idea, um, and it, it actually, it, it,
+
+NOTE CONF {"raw":[100,99,100,99,99,60,99,99,99,99]}
+
+00:18:28.040 --> 00:18:29.839
+<v Speaker 0>it raised a lot of debate, um, I think there
+
+NOTE CONF {"raw":[99,99,100,100,100,99,73,100,100,99]}
+
+00:18:29.839 --> 00:18:33.260
+<v Speaker 0>are a lot of people who are deeply suspicious of,
+
+NOTE CONF {"raw":[99,100,100,100,100,100,99,100,100,100]}
+
+00:18:33.280 --> 00:18:38.239
+<v Speaker 0>um, trying to provide guarantees of any form, um, in
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,99,99,99]}
+
+00:18:38.239 --> 00:18:41.560
+<v Speaker 0>especially like strongish AI systems, um.
+
+NOTE CONF {"raw":[99,100,100,99,100,99]}
+
+00:18:42.739 --> 00:18:44.619
+<v Speaker 0>Partly because it probably requires a little bit of a
+
+NOTE CONF {"raw":[99,100,99,100,99,99,99,99,99,99]}
+
+00:18:44.619 --> 00:18:47.709
+<v Speaker 0>redesign of how we we build models, um, and you
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:18:47.709 --> 00:18:49.989
+<v Speaker 0>know industry is very entrenched and wants to do things
+
+NOTE CONF {"raw":[99,99,68,99,99,99,99,99,99,99]}
+
+00:18:49.989 --> 00:18:52.670
+<v Speaker 0>a certain way but um also you know I think
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:18:52.670 --> 00:18:54.550
+<v Speaker 0>there's a generation of um.
+
+NOTE CONF {"raw":[99,99,100,99,99]}
+
+00:18:55.339 --> 00:18:58.219
+<v Speaker 0>Researchers in AI that have been that have sort of
+
+NOTE CONF {"raw":[99,99,99,99,99,99,95,84,99,99]}
+
+00:18:58.219 --> 00:19:01.219
+<v Speaker 0>come up under this empirical regime of like oh like
+
+NOTE CONF {"raw":[99,99,100,99,99,100,99,99,99,99]}
+
+00:19:01.219 --> 00:19:03.459
+<v Speaker 0>AI is mostly an empirical science like just kind of
+
+NOTE CONF {"raw":[99,99,99,77,99,99,99,99,80,85]}
+
+00:19:03.459 --> 00:19:07.339
+<v Speaker 0>try things and see what works um and that unfortunately
+
+NOTE CONF {"raw":[99,100,100,100,100,100,99,99,93,99]}
+
+00:19:07.339 --> 00:19:10.420
+<v Speaker 0>like that's taken us closer and closer to being like
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:19:10.420 --> 00:19:13.619
+<v Speaker 0>an uh an engineering discipline although a a sort of
+
+NOTE CONF {"raw":[99,99,99,100,99,99,56,99,99,99]}
+
+00:19:13.619 --> 00:19:17.540
+<v Speaker 0>very young somewhat unprincipled one that doesn't have engineering best
+
+NOTE CONF {"raw":[99,100,99,99,99,99,100,100,99,99]}
+
+00:19:17.540 --> 00:19:20.979
+<v Speaker 0>practices in a way from being a real science, um.
+
+NOTE CONF {"raw":[100,75,76,87,100,100,99,99,100,99]}
+
+00:19:21.739 --> 00:19:23.989
+<v Speaker 0>And I, I personally would at least like to see
+
+NOTE CONF {"raw":[99,99,100,100,100,99,100,100,100,100]}
+
+00:19:23.989 --> 00:19:25.469
+<v Speaker 0>us be more of a real science.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99]}
+
+00:19:26.160 --> 00:19:31.550
+<v Speaker 0>Um, So whether or not alignment uh guarantees are.
+
+NOTE CONF {"raw":[99,100,100,100,100,100,98,100,99]}
+
+00:19:32.569 --> 00:19:35.369
+<v Speaker 0>Able to be trusted and principled, there's also just the
+
+NOTE CONF {"raw":[99,100,100,100,100,100,97,99,99,98]}
+
+00:19:35.369 --> 00:19:37.599
+<v Speaker 0>question of like, do we actually need these things, right?
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,99,100,99]}
+
+00:19:37.930 --> 00:19:41.430
+<v Speaker 0>And again, probably unsurprisingly my opinion is yes, and that,
+
+NOTE CONF {"raw":[97,100,99,99,100,100,100,99,99,99]}
+
+00:19:41.449 --> 00:19:42.310
+<v Speaker 0>you know, if we.
+
+NOTE CONF {"raw":[99,99,100,99]}
+
+00:19:43.199 --> 00:19:45.040
+<v Speaker 0>Can't provide alignment guarantees in my view.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99]}
+
+00:19:45.119 --> 00:19:47.900
+<v Speaker 0>I don't think we can really address the core motivations
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,99,99,99]}
+
+00:19:48.160 --> 00:19:50.239
+<v Speaker 0>for doing alignment at all in the first place, whether
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,100,99]}
+
+00:19:50.239 --> 00:19:51.280
+<v Speaker 0>we're providing guarantees.
+
+NOTE CONF {"raw":[99,99,98]}
+
+00:19:52.170 --> 00:19:54.410
+<v Speaker 0>Um, so, you know, one of them is just, you
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,99]}
+
+00:19:54.410 --> 00:19:57.930
+<v Speaker 0>know, reasons of practicality and deployability, um.
+
+NOTE CONF {"raw":[99,100,100,100,100,100,99]}
+
+00:19:58.810 --> 00:20:02.410
+<v Speaker 0>You know, again, in, in like safety critical applications, uh,
+
+NOTE CONF {"raw":[100,100,99,99,99,99,100,99,100,99]}
+
+00:20:02.500 --> 00:20:04.469
+<v Speaker 0>like people working with robots that can injure them or
+
+NOTE CONF {"raw":[100,100,100,100,100,100,89,100,100,100]}
+
+00:20:04.469 --> 00:20:06.939
+<v Speaker 0>whatever, uh, you know, you probably don't just wanna toss
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,90,100]}
+
+00:20:06.939 --> 00:20:09.540
+<v Speaker 0>things out into the world, uh, you know, that don't
+
+NOTE CONF {"raw":[100,100,99,100,100,99,100,100,99,100]}
+
+00:20:09.540 --> 00:20:11.459
+<v Speaker 0>work very well, uh, you would like to have some
+
+NOTE CONF {"raw":[100,100,100,99,99,100,100,100,100,100]}
+
+00:20:11.459 --> 00:20:13.599
+<v Speaker 0>kinds of guarantees about that, um.
+
+NOTE CONF {"raw":[100,100,100,100,100,99]}
+
+00:20:15.199 --> 00:20:15.979
+<v Speaker 0>This has been.
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:20:17.770 --> 00:20:20.640
+<v Speaker 0>I shouldn't say proven wrong over and over again, but,
+
+NOTE CONF {"raw":[99,99,99,100,100,100,100,100,100,99]}
+
+00:20:20.650 --> 00:20:22.810
+<v Speaker 0>uh, you know, there are a lot of companies like
+
+NOTE CONF {"raw":[98,100,100,100,99,100,100,100,100,100]}
+
+00:20:22.810 --> 00:20:26.089
+<v Speaker 0>Tesla that are perfectly willing to put, you know, dangerous
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,99,99,100]}
+
+00:20:26.089 --> 00:20:28.250
+<v Speaker 0>products out into the world just to, you know, run
+
+NOTE CONF {"raw":[100,100,99,100,100,100,99,99,99,100]}
+
+00:20:28.250 --> 00:20:32.050
+<v Speaker 0>around and kill people, um, which I didn't necessarily expect
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,99,100]}
+
+00:20:32.050 --> 00:20:34.849
+<v Speaker 0>when I started doing this work, um, but you know
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,99,100,99]}
+
+00:20:34.849 --> 00:20:36.890
+<v Speaker 0>I think this is a reasonable ideal to want to
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,99,100]}
+
+00:20:36.890 --> 00:20:40.089
+<v Speaker 0>live up to, um, but also like no one even
+
+NOTE CONF {"raw":[100,100,99,99,99,100,100,100,100,100]}
+
+00:20:40.089 --> 00:20:42.209
+<v Speaker 0>like wants to be using a system generally that's gonna
+
+NOTE CONF {"raw":[99,100,100,100,100,99,100,100,99,99]}
+
+00:20:42.209 --> 00:20:42.530
+<v Speaker 0>like.
+
+NOTE CONF {"raw":[100]}
+
+00:20:43.099 --> 00:20:45.339
+<v Speaker 0>Be misaligned and just like go off and do something
+
+NOTE CONF {"raw":[94,100,100,100,100,100,100,100,100,100]}
+
+00:20:45.339 --> 00:20:47.900
+<v Speaker 0>else than like what you wanted it to do, right?
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,100,99]}
+
+00:20:48.099 --> 00:20:52.219
+<v Speaker 0>So like, even just for practical non-safety considerations, this still
+
+NOTE CONF {"raw":[99,100,100,100,100,100,98,99,99,100]}
+
+00:20:52.219 --> 00:20:54.969
+<v Speaker 0>feels pretty important like you want your LLM to be,
+
+NOTE CONF {"raw":[100,100,100,84,100,100,100,99,100,100]}
+
+00:20:55.089 --> 00:20:55.900
+<v Speaker 0>you know, helpful.
+
+NOTE CONF {"raw":[100,100,100]}
+
+00:20:57.619 --> 00:21:03.359
+<v Speaker 0>Um, Yeah, safety, social harm prevention, again, like, uh, you
+
+NOTE CONF {"raw":[99,99,99,100,100,100,99,100,99,100]}
+
+00:21:03.359 --> 00:21:05.300
+<v Speaker 0>know, I think we've, we've been over this a lot,
+
+NOTE CONF {"raw":[100,100,100,99,99,100,100,100,100,100]}
+
+00:21:05.599 --> 00:21:08.010
+<v Speaker 0>um, and you know I, but I think like the
+
+NOTE CONF {"raw":[99,99,100,100,89,99,100,100,100,100]}
+
+00:21:08.010 --> 00:21:11.180
+<v Speaker 0>extreme end of that of like existential risk, um.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99]}
+
+00:21:11.810 --> 00:21:15.089
+<v Speaker 0>It is a really good reason for this because you
+
+NOTE CONF {"raw":[40,99,100,100,100,100,100,100,100,100]}
+
+00:21:15.089 --> 00:21:18.319
+<v Speaker 0>can't turn existential risk into an empirical science, right?
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100]}
+
+00:21:18.650 --> 00:21:21.449
+<v Speaker 0>You don't get to say like, oh, you know, these
+
+NOTE CONF {"raw":[99,100,100,100,100,100,99,100,100,99]}
+
+00:21:21.449 --> 00:21:25.609
+<v Speaker 0>1st 8 systems we developed all, you know, killed us
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,100,100]}
+
+00:21:25.609 --> 00:21:27.810
+<v Speaker 0>all, and you know, but our next one's not going
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,99,100,100]}
+
+00:21:27.810 --> 00:21:28.130
+<v Speaker 0>to, right?
+
+NOTE CONF {"raw":[100,100]}
+
+00:21:28.170 --> 00:21:30.650
+<v Speaker 0>Like you only get one shot at that, um, and
+
+NOTE CONF {"raw":[97,100,100,100,99,100,100,100,99,100]}
+
+00:21:30.650 --> 00:21:36.650
+<v Speaker 0>so like really serious, uh, you know, global disrupting kinds
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,100]}
+
+00:21:36.650 --> 00:21:39.869
+<v Speaker 0>of risks you, you really need to be able to
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,100,100,100]}
+
+00:21:39.869 --> 00:21:41.650
+<v Speaker 0>forecast and reason about ahead of time.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100]}
+
+00:21:43.589 --> 00:21:46.349
+<v Speaker 0>Um, and speaking of which, I, I'm sure most of
+
+NOTE CONF {"raw":[99,99,100,99,99,50,100,100,99,99]}
+
+00:21:46.349 --> 00:21:47.170
+<v Speaker 0>you have seen the.
+
+NOTE CONF {"raw":[100,99,100,99]}
+
+00:21:48.000 --> 00:21:51.079
+<v Speaker 0>Exponential time hypothesis result that came out of OpenAI that
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,92,100]}
+
+00:21:51.079 --> 00:21:52.839
+<v Speaker 0>is completely bonkers.
+
+NOTE CONF {"raw":[100,100,100]}
+
+00:21:52.959 --> 00:21:57.040
+<v Speaker 0>Um, I, as someone who's followed theoretical computer science for
+
+NOTE CONF {"raw":[96,99,99,99,99,100,100,100,99,100]}
+
+00:21:57.040 --> 00:22:02.079
+<v Speaker 0>a long time, uh, I, I don't know anybody who
+
+NOTE CONF {"raw":[100,100,100,99,99,99,99,100,99,100]}
+
+00:22:02.079 --> 00:22:02.609
+<v Speaker 0>expected.
+
+NOTE CONF {"raw":[100]}
+
+00:22:03.270 --> 00:22:04.680
+<v Speaker 0>ETH to end up being false.
+
+NOTE CONF {"raw":[99,99,99,99,99,100]}
+
+00:22:04.829 --> 00:22:07.510
+<v Speaker 0>Um, if you haven't read about it, I, I really
+
+NOTE CONF {"raw":[87,99,100,100,100,100,100,99,99,100]}
+
+00:22:07.510 --> 00:22:08.469
+<v Speaker 0>strongly suggest you.
+
+NOTE CONF {"raw":[100,100,99]}
+
+00:22:09.119 --> 00:22:12.939
+<v Speaker 0>Um, OK, so how are we going to give guarantees?
+
+NOTE CONF {"raw":[99,100,99,100,100,100,99,100,99,100]}
+
+00:22:13.060 --> 00:22:15.260
+<v Speaker 0>Um, we're gonna look at two different types of guarantees,
+
+NOTE CONF {"raw":[99,99,99,100,100,99,100,100,100,100]}
+
+00:22:15.500 --> 00:22:16.839
+<v Speaker 0>one being formal.
+
+NOTE CONF {"raw":[99,100,100]}
+
+00:22:17.390 --> 00:22:19.800
+<v Speaker 0>Um, and this is going to be sort of inspired
+
+NOTE CONF {"raw":[99,99,100,100,99,100,100,100,100,100]}
+
+00:22:19.800 --> 00:22:22.670
+<v Speaker 0>by the idea of a human driver's test, um, that,
+
+NOTE CONF {"raw":[100,100,100,100,99,100,99,100,99,99]}
+
+00:22:22.680 --> 00:22:25.959
+<v Speaker 0>you know, we give driver's tests to people by, you
+
+NOTE CONF {"raw":[100,100,100,100,99,81,100,100,100,100]}
+
+00:22:25.959 --> 00:22:28.760
+<v Speaker 0>know, evaluating them on a small set of behaviors on
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,99]}
+
+00:22:28.760 --> 00:22:30.479
+<v Speaker 0>like a little test course that's supposed to be kind
+
+NOTE CONF {"raw":[99,100,100,100,99,99,99,99,99,99]}
+
+00:22:30.479 --> 00:22:33.439
+<v Speaker 0>of representative of the world, and we're supposed to figure
+
+NOTE CONF {"raw":[99,100,100,100,100,99,100,100,100,100]}
+
+00:22:33.439 --> 00:22:36.319
+<v Speaker 0>out like are they sort of aligned with, you know,
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:22:36.520 --> 00:22:38.170
+<v Speaker 0>are they, are they a decent driver and do they
+
+NOTE CONF {"raw":[99,98,99,99,99,100,100,99,100,100]}
+
+00:22:38.170 --> 00:22:40.569
+<v Speaker 0>have like a, a mental model of the rules of
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,100,100,100]}
+
+00:22:40.569 --> 00:22:43.119
+<v Speaker 0>the road that's aligned with, you know, what society or
+
+NOTE CONF {"raw":[100,100,99,100,99,99,99,99,100,99]}
+
+00:22:43.119 --> 00:22:46.160
+<v Speaker 0>the law wants them to, to have, um, and can
+
+NOTE CONF {"raw":[100,100,100,100,99,99,100,99,99,100]}
+
+00:22:46.160 --> 00:22:47.079
+<v Speaker 0>we certify that.
+
+NOTE CONF {"raw":[100,100,99]}
+
+00:22:49.589 --> 00:22:51.560
+<v Speaker 0>Um, so that, that, that'll be the first one we
+
+NOTE CONF {"raw":[99,99,93,96,99,99,100,100,99,99]}
+
+00:22:51.560 --> 00:22:53.520
+<v Speaker 0>talk about and then we'll move on to the, the
+
+NOTE CONF {"raw":[100,100,99,99,99,100,99,99,99,99]}
+
+00:22:53.520 --> 00:22:55.560
+<v Speaker 0>main paper that you read for today of, of looking
+
+NOTE CONF {"raw":[100,100,100,100,99,99,99,99,99,100]}
+
+00:22:55.560 --> 00:22:56.800
+<v Speaker 0>at a probabilistic method.
+
+NOTE CONF {"raw":[99,99,99,100]}
+
+00:22:58.250 --> 00:23:01.650
+<v Speaker 0>OK, so, You know, to, to jump into this driver's
+
+NOTE CONF {"raw":[99,99,100,100,98,99,100,100,100,99]}
+
+00:23:01.650 --> 00:23:03.530
+<v Speaker 0>test idea, right, you know, the question that we kind
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,100,37]}
+
+00:23:03.530 --> 00:23:05.050
+<v Speaker 0>of started with was like, you know, what if we
+
+NOTE CONF {"raw":[54,100,100,100,100,100,100,100,100,100]}
+
+00:23:05.050 --> 00:23:09.489
+<v Speaker 0>wanna verify, uh, the alignment of like a reward function
+
+NOTE CONF {"raw":[99,100,99,100,100,100,100,100,100,100]}
+
+00:23:09.489 --> 00:23:12.930
+<v Speaker 0>we have or the alignment of a policy of a
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:23:12.930 --> 00:23:15.489
+<v Speaker 0>semi-black box agent, and what I mean by that is
+
+NOTE CONF {"raw":[27,100,99,99,100,100,100,100,100,100]}
+
+00:23:15.489 --> 00:23:15.770
+<v Speaker 0>that.
+
+NOTE CONF {"raw":[100]}
+
+00:23:18.109 --> 00:23:21.069
+<v Speaker 0>We want this to work at different levels um depending
+
+NOTE CONF {"raw":[99,99,99,99,100,99,100,100,99,100]}
+
+00:23:21.069 --> 00:23:23.989
+<v Speaker 0>on what is available to us from the agents so
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,43,99]}
+
+00:23:23.989 --> 00:23:28.270
+<v Speaker 0>like maybe we can only observe behavior in certain scenarios
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,99,100,99]}
+
+00:23:28.270 --> 00:23:31.550
+<v Speaker 0>it's a totally black box model uh or maybe we
+
+NOTE CONF {"raw":[93,99,100,99,99,100,99,99,100,100]}
+
+00:23:31.550 --> 00:23:34.050
+<v Speaker 0>can poke around and we ask like.
+
+NOTE CONF {"raw":[99,99,100,100,99,99,99]}
+
+00:23:34.630 --> 00:23:36.839
+<v Speaker 0>Alternate questions of like oh what would have you done
+
+NOTE CONF {"raw":[99,100,100,100,99,100,99,99,100,100]}
+
+00:23:36.839 --> 00:23:40.540
+<v Speaker 0>in a slightly different, you know, uh, state or um
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,99,99]}
+
+00:23:40.540 --> 00:23:42.819
+<v Speaker 0>what was your second favorite action to take so like
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,99]}
+
+00:23:42.819 --> 00:23:45.380
+<v Speaker 0>maybe we can see the action logics or you know
+
+NOTE CONF {"raw":[100,100,99,100,100,100,98,100,100,100]}
+
+00:23:45.380 --> 00:23:47.739
+<v Speaker 0>maybe it's a really open model and like we can
+
+NOTE CONF {"raw":[100,100,99,100,100,100,99,99,100,100]}
+
+00:23:47.739 --> 00:23:49.939
+<v Speaker 0>look at the weights or whatever you know or the
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,99,92]}
+
+00:23:49.939 --> 00:23:50.979
+<v Speaker 0>it's value function.
+
+NOTE CONF {"raw":[51,100,100]}
+
+00:23:51.390 --> 00:23:54.160
+<v Speaker 0>Um, and so you know we'd like to, to be
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,99,99,99]}
+
+00:23:54.160 --> 00:23:56.079
+<v Speaker 0>able to reason about this in, in lots of different
+
+NOTE CONF {"raw":[99,99,100,100,99,98,99,99,99,100]}
+
+00:23:56.079 --> 00:24:01.119
+<v Speaker 0>settings, um, we don't wanna require policy rollouts of, of
+
+NOTE CONF {"raw":[99,89,99,100,97,100,100,95,99,99]}
+
+00:24:01.119 --> 00:24:03.319
+<v Speaker 0>actually rolling the thing out in the real world because
+
+NOTE CONF {"raw":[99,99,90,99,99,99,99,99,99,100]}
+
+00:24:03.319 --> 00:24:05.469
+<v Speaker 0>you know that's expensive and you know there are obvious
+
+NOTE CONF {"raw":[99,99,99,100,100,99,99,99,99,98]}
+
+00:24:05.469 --> 00:24:07.339
+<v Speaker 0>safety concerns, um.
+
+NOTE CONF {"raw":[100,100,99]}
+
+00:24:07.810 --> 00:24:10.180
+<v Speaker 0>And instead, you know what we would like is some
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:24:10.180 --> 00:24:12.900
+<v Speaker 0>kind of sort of driver's test like some small set
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,100]}
+
+00:24:12.900 --> 00:24:15.219
+<v Speaker 0>of questions to ask and again the types of those
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,99]}
+
+00:24:15.219 --> 00:24:17.500
+<v Speaker 0>questions are gonna depend on sort of how black box
+
+NOTE CONF {"raw":[100,100,99,100,100,99,99,100,99,99]}
+
+00:24:17.500 --> 00:24:19.650
+<v Speaker 0>the model is and what we have access to, um,
+
+NOTE CONF {"raw":[100,100,100,100,99,99,80,100,100,99]}
+
+00:24:19.660 --> 00:24:22.739
+<v Speaker 0>that's going to allow us to, to verify alignment without
+
+NOTE CONF {"raw":[99,99,100,100,100,99,99,100,100,100]}
+
+00:24:22.739 --> 00:24:25.380
+<v Speaker 0>actually running this thing in like the real world or
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:24:25.380 --> 00:24:27.079
+<v Speaker 0>like the the deployment setting.
+
+NOTE CONF {"raw":[99,99,99,100,100]}
+
+00:24:28.880 --> 00:24:31.780
+<v Speaker 0>Um, and roughly the way this is going to work
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,100]}
+
+00:24:31.780 --> 00:24:36.239
+<v Speaker 0>is that, you know, we're going to have, um, Some
+
+NOTE CONF {"raw":[100,99,99,99,99,99,100,100,99,100]}
+
+00:24:36.239 --> 00:24:40.640
+<v Speaker 0>human, um, and you know they have, uh, you know
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,99,99,99]}
+
+00:24:40.640 --> 00:24:43.250
+<v Speaker 0>this is who we want to sort of be, uh,
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,100,99]}
+
+00:24:43.439 --> 00:24:47.719
+<v Speaker 0>aligned with and they're going to sort of do one
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,99,100,100]}
+
+00:24:47.719 --> 00:24:49.520
+<v Speaker 0>of two things at least in our system, you know,
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,100]}
+
+00:24:49.599 --> 00:24:52.160
+<v Speaker 0>they're either going to sort of write down a, a
+
+NOTE CONF {"raw":[99,100,99,100,100,100,99,100,99,99]}
+
+00:24:52.160 --> 00:24:55.290
+<v Speaker 0>reward function, uh, that we wanna make sure we're aligned
+
+NOTE CONF {"raw":[100,100,99,100,100,87,100,100,99,100]}
+
+00:24:55.290 --> 00:24:59.229
+<v Speaker 0>with or if they can't do that provide preferences, um,
+
+NOTE CONF {"raw":[100,100,99,100,100,100,100,100,100,99]}
+
+00:24:59.810 --> 00:25:02.599
+<v Speaker 0>and, and we wanna make sure we're aligned, uh, to
+
+NOTE CONF {"raw":[49,99,100,98,100,100,99,100,99,100]}
+
+00:25:02.599 --> 00:25:04.520
+<v Speaker 0>something that makes sense under their preferences.
+
+NOTE CONF {"raw":[100,100,99,100,100,100,100]}
+
+00:25:05.069 --> 00:25:06.790
+<v Speaker 0>Um, and what we're going to do then is we're
+
+NOTE CONF {"raw":[95,93,100,99,99,99,100,99,99,99]}
+
+00:25:06.790 --> 00:25:10.430
+<v Speaker 0>going to use that information to automatically generate this test,
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,99,77]}
+
+00:25:10.510 --> 00:25:12.550
+<v Speaker 0>this series of questions we're going to ask.
+
+NOTE CONF {"raw":[87,100,100,100,99,99,100,100]}
+
+00:25:13.319 --> 00:25:16.599
+<v Speaker 0>And the, the kind of magic thing here is that
+
+NOTE CONF {"raw":[100,99,99,99,100,100,100,100,100,100]}
+
+00:25:16.920 --> 00:25:20.319
+<v Speaker 0>we're gonna generate a test that is a fairly small
+
+NOTE CONF {"raw":[100,99,100,100,99,100,100,28,100,100]}
+
+00:25:20.319 --> 00:25:25.920
+<v Speaker 0>finite size but under some reasonably weak assumptions, um, we're,
+
+NOTE CONF {"raw":[100,100,99,100,100,100,100,100,99,99]}
+
+00:25:26.199 --> 00:25:28.479
+<v Speaker 0>we're not gonna get a probabilistic result we're actually going
+
+NOTE CONF {"raw":[99,100,99,100,100,99,100,99,100,99]}
+
+00:25:28.479 --> 00:25:31.760
+<v Speaker 0>to be able to give a hard guarantee, um, of,
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,99,99]}
+
+00:25:31.959 --> 00:25:35.040
+<v Speaker 0>of alignment, uh, that either the agent is aligned or
+
+NOTE CONF {"raw":[99,100,99,99,100,100,100,99,99,99]}
+
+00:25:35.040 --> 00:25:35.640
+<v Speaker 0>not aligned.
+
+NOTE CONF {"raw":[100,99]}
+
+00:25:36.469 --> 00:25:38.709
+<v Speaker 0>And then, so then we'll just do this verification step.
+
+NOTE CONF {"raw":[99,99,99,99,99,100,99,99,100,99]}
+
+00:25:40.189 --> 00:25:41.199
+<v Speaker 0>OK, so how does this work?
+
+NOTE CONF {"raw":[100,100,100,91,100,100]}
+
+00:25:41.270 --> 00:25:43.189
+<v Speaker 0>Well, we do need to make some assumptions.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100]}
+
+00:25:43.719 --> 00:25:47.119
+<v Speaker 0>So we need to assume that the agent being tested
+
+NOTE CONF {"raw":[77,100,100,100,100,100,100,100,100,100]}
+
+00:25:47.119 --> 00:25:48.040
+<v Speaker 0>behaves rationally.
+
+NOTE CONF {"raw":[99,100]}
+
+00:25:48.199 --> 00:25:50.199
+<v Speaker 0>So like if it has like an internal value function,
+
+NOTE CONF {"raw":[99,99,100,100,100,99,99,100,100,100]}
+
+00:25:50.290 --> 00:25:53.319
+<v Speaker 0>for example, like a, a Q function, it's actually like
+
+NOTE CONF {"raw":[100,100,100,99,99,98,100,100,100,100]}
+
+00:25:53.319 --> 00:25:55.479
+<v Speaker 0>arg maxing with respect to it, and it's not just
+
+NOTE CONF {"raw":[2,95,100,100,100,100,99,100,100,100]}
+
+00:25:55.479 --> 00:25:55.760
+<v Speaker 0>like.
+
+NOTE CONF {"raw":[100]}
+
+00:25:56.560 --> 00:25:59.670
+<v Speaker 0>Doing something else just to mess with the tester, right?
+
+NOTE CONF {"raw":[99,100,100,99,100,100,100,100,100,100]}
+
+00:26:00.130 --> 00:26:00.670
+<v Speaker 0>Um.
+
+NOTE CONF {"raw":[99]}
+
+00:26:02.829 --> 00:26:06.270
+<v Speaker 0>The, the, you know, again back when we this paper
+
+NOTE CONF {"raw":[99,87,99,99,99,99,99,99,99,99]}
+
+00:26:06.270 --> 00:26:09.109
+<v Speaker 0>was written this seemed like a very reasonable assumption because
+
+NOTE CONF {"raw":[99,100,99,99,99,99,100,100,100,92]}
+
+00:26:09.109 --> 00:26:11.510
+<v Speaker 0>you can just build systems that do this, uh, if
+
+NOTE CONF {"raw":[99,99,99,100,99,98,99,99,95,99]}
+
+00:26:11.510 --> 00:26:14.310
+<v Speaker 0>you think about something like an LLM having some like
+
+NOTE CONF {"raw":[99,100,99,99,99,99,99,99,99,99]}
+
+00:26:14.310 --> 00:26:17.030
+<v Speaker 0>either explicit or implicit reward function for thing or uh
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,76,98,99]}
+
+00:26:17.030 --> 00:26:19.670
+<v Speaker 0>sorry value function for things, um, we now know that
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:26:19.670 --> 00:26:20.829
+<v Speaker 0>you know, uh.
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:26:22.099 --> 00:26:24.900
+<v Speaker 0>LLMs are, you know, becoming more and more aware of
+
+NOTE CONF {"raw":[49,99,99,99,99,99,99,99,100,99]}
+
+00:26:24.900 --> 00:26:28.339
+<v Speaker 0>whether they're in a testing or training scenario, uh, and
+
+NOTE CONF {"raw":[99,99,99,99,95,99,99,100,99,99]}
+
+00:26:28.339 --> 00:26:30.920
+<v Speaker 0>can behave differently in those, so it is, is, uh,
+
+NOTE CONF {"raw":[99,99,100,99,99,79,99,99,99,99]}
+
+00:26:31.449 --> 00:26:34.579
+<v Speaker 0>really not so much of a great assumption anymore, um,
+
+NOTE CONF {"raw":[99,99,99,100,99,99,99,100,99,99]}
+
+00:26:34.650 --> 00:26:36.900
+<v Speaker 0>and we're once again going to make like a linearity
+
+NOTE CONF {"raw":[99,99,100,100,99,99,100,99,99,99]}
+
+00:26:36.900 --> 00:26:40.099
+<v Speaker 0>assumption which again, you know, uh, can be rough in
+
+NOTE CONF {"raw":[100,100,99,99,100,99,99,100,100,99]}
+
+00:26:40.099 --> 00:26:42.170
+<v Speaker 0>practice because you have to find these features, but as
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,78,99]}
+
+00:26:42.170 --> 00:26:44.260
+<v Speaker 0>long as you have the features, you know, or, or
+
+NOTE CONF {"raw":[100,99,100,100,100,99,99,99,99,99]}
+
+00:26:44.260 --> 00:26:46.420
+<v Speaker 0>have a way of getting decent ones, we know that
+
+NOTE CONF {"raw":[99,99,100,99,100,100,100,99,100,99]}
+
+00:26:46.420 --> 00:26:48.180
+<v Speaker 0>we can do this without loss of generality.
+
+NOTE CONF {"raw":[100,100,100,100,99,99,100,100]}
+
+00:26:48.670 --> 00:26:51.640
+<v Speaker 0>Um, the restrictive assumption though is that we do have
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:26:51.640 --> 00:26:54.280
+<v Speaker 0>to assume that the human and the agent share the
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:26:54.280 --> 00:26:58.010
+<v Speaker 0>same features, so any feature that, you know, the human
+
+NOTE CONF {"raw":[100,99,80,100,100,100,99,99,100,100]}
+
+00:26:58.010 --> 00:27:01.760
+<v Speaker 0>is basing, uh, their values on, we need to make
+
+NOTE CONF {"raw":[100,100,99,100,100,100,100,100,100,100]}
+
+00:27:01.760 --> 00:27:04.680
+<v Speaker 0>sure we're capturing and vice versa that we need to
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,100]}
+
+00:27:04.680 --> 00:27:07.359
+<v Speaker 0>make sure the, the human has in mind, uh, sort
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,100,99,100]}
+
+00:27:07.359 --> 00:27:09.800
+<v Speaker 0>of the, you know, all the things that, um, you
+
+NOTE CONF {"raw":[100,99,99,99,100,100,100,100,99,99]}
+
+00:27:09.800 --> 00:27:12.510
+<v Speaker 0>know, that the robot is, is paying attention to, to
+
+NOTE CONF {"raw":[99,99,100,100,99,99,100,100,100,100]}
+
+00:27:12.510 --> 00:27:13.609
+<v Speaker 0>make sure that this works.
+
+NOTE CONF {"raw":[100,100,100,100,100]}
+
+00:27:16.079 --> 00:27:19.770
+<v Speaker 0>OK, so this whole idea of how to do verification
+
+NOTE CONF {"raw":[100,90,100,100,100,100,100,100,100,100]}
+
+00:27:19.770 --> 00:27:24.089
+<v Speaker 0>is going to be based on, uh, half spaces in
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,99,99,100]}
+
+00:27:24.089 --> 00:27:25.770
+<v Speaker 0>reward space, OK?
+
+NOTE CONF {"raw":[100,99,99]}
+
+00:27:26.209 --> 00:27:30.329
+<v Speaker 0>So, you know, if I say, hey, here's two trajectories,
+
+NOTE CONF {"raw":[98,99,99,100,100,100,99,99,99,100]}
+
+00:27:30.410 --> 00:27:34.930
+<v Speaker 0>tau 1 and tau 2, and, uh, somebody says, you
+
+NOTE CONF {"raw":[99,90,99,99,93,99,99,99,100,99]}
+
+00:27:34.930 --> 00:27:39.250
+<v Speaker 0>know, the human, uh, I prefer tau 1 over tau2,
+
+NOTE CONF {"raw":[100,100,99,99,100,100,99,77,100,98]}
+
+00:27:39.329 --> 00:27:39.689
+<v Speaker 0>right?
+
+NOTE CONF {"raw":[99]}
+
+00:27:40.310 --> 00:27:41.109
+<v Speaker 0>Well, what's that mean?
+
+NOTE CONF {"raw":[99,99,100,100]}
+
+00:27:41.229 --> 00:27:43.869
+<v Speaker 0>Well, we're going to be living in the world of
+
+NOTE CONF {"raw":[99,100,99,100,100,100,100,100,100,99]}
+
+00:27:43.869 --> 00:27:47.469
+<v Speaker 0>preferences mean return today, even though we know that that's
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,99,99]}
+
+00:27:47.469 --> 00:27:48.989
+<v Speaker 0>not the greatest assumption anymore.
+
+NOTE CONF {"raw":[100,100,100,100,100]}
+
+00:27:49.229 --> 00:27:51.150
+<v Speaker 0>But if that, if that is what they mean, right,
+
+NOTE CONF {"raw":[99,100,99,100,100,100,100,100,100,100]}
+
+00:27:51.709 --> 00:27:55.430
+<v Speaker 0>remember from all our, you know, linear IRL stuff, right?
+
+NOTE CONF {"raw":[89,100,100,100,99,99,100,99,100,100]}
+
+00:27:55.630 --> 00:27:57.670
+<v Speaker 0>How do you write down the return of a trajectory?
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,99,100]}
+
+00:27:57.780 --> 00:28:02.510
+<v Speaker 0>Well, you compute, you know, the, the, the, uh, feature
+
+NOTE CONF {"raw":[99,100,100,100,100,99,99,97,99,99]}
+
+00:28:02.510 --> 00:28:05.150
+<v Speaker 0>counts of that trajectory and you just multiply by the
+
+NOTE CONF {"raw":[99,100,99,100,100,99,99,99,100,100]}
+
+00:28:05.150 --> 00:28:05.750
+<v Speaker 0>weights, right?
+
+NOTE CONF {"raw":[99,100]}
+
+00:28:06.189 --> 00:28:08.979
+<v Speaker 0>And so if you just pull the weights outside of,
+
+NOTE CONF {"raw":[100,99,100,100,100,99,100,100,100,100]}
+
+00:28:09.150 --> 00:28:14.199
+<v Speaker 0>you know, this, the, the difference, you know, uh, in
+
+NOTE CONF {"raw":[99,100,100,99,99,99,100,100,99,100]}
+
+00:28:14.199 --> 00:28:19.229
+<v Speaker 0>the returns is just going to be W times, you
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,99,99,99]}
+
+00:28:19.229 --> 00:28:21.239
+<v Speaker 0>know, the difference in the feature counts.
+
+NOTE CONF {"raw":[99,100,100,100,100,99,99]}
+
+00:28:21.880 --> 00:28:25.640
+<v Speaker 0>And if we prefer T1 to T2, we know that,
+
+NOTE CONF {"raw":[99,95,99,100,99,100,99,99,100,99]}
+
+00:28:25.890 --> 00:28:29.849
+<v Speaker 0>you know, this whole uh expression here has to be
+
+NOTE CONF {"raw":[99,99,99,100,94,100,100,100,100,100]}
+
+00:28:29.849 --> 00:28:31.300
+<v Speaker 0>greater than 0, right?
+
+NOTE CONF {"raw":[100,100,75,99]}
+
+00:28:31.449 --> 00:28:35.010
+<v Speaker 0>So that the, the return associated with tau 1 is
+
+NOTE CONF {"raw":[96,99,98,99,100,100,100,99,34,100]}
+
+00:28:35.010 --> 00:28:37.270
+<v Speaker 0>greater than the return associated with tau 2.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,78]}
+
+00:28:38.260 --> 00:28:39.380
+<v Speaker 0>So what's that mean?
+
+NOTE CONF {"raw":[99,77,100,100]}
+
+00:28:39.579 --> 00:28:43.729
+<v Speaker 0>Well, the satisfying set of W's of reward functions or
+
+NOTE CONF {"raw":[99,100,100,100,100,54,99,100,100,96]}
+
+00:28:43.729 --> 00:28:47.819
+<v Speaker 0>these, these weights that parameterize the reward function that satisfy
+
+NOTE CONF {"raw":[93,98,100,99,99,99,100,100,99,100]}
+
+00:28:47.819 --> 00:28:48.469
+<v Speaker 0>this, right?
+
+NOTE CONF {"raw":[99,99]}
+
+00:28:48.739 --> 00:28:50.819
+<v Speaker 0>Well, anytime you have something like this that's greater than
+
+NOTE CONF {"raw":[99,71,100,100,100,100,99,90,99,100]}
+
+00:28:50.819 --> 00:28:54.339
+<v Speaker 0>zero, right, it's going to be a half space, right?
+
+NOTE CONF {"raw":[42,99,99,100,100,100,99,99,99,99]}
+
+00:28:54.400 --> 00:28:55.979
+<v Speaker 0>There's going to be some hyperplane.
+
+NOTE CONF {"raw":[99,99,99,100,100,99]}
+
+00:28:56.319 --> 00:28:59.670
+<v Speaker 0>And everything on on one side of that hyperplane is
+
+NOTE CONF {"raw":[99,100,99,99,100,100,100,100,99,100]}
+
+00:28:59.670 --> 00:29:02.469
+<v Speaker 0>going to satisfy this and everything on the other side
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,100,100]}
+
+00:29:02.469 --> 00:29:02.859
+<v Speaker 0>won't.
+
+NOTE CONF {"raw":[100]}
+
+00:29:03.189 --> 00:29:06.750
+<v Speaker 0>They should look familiar from the first like a Bealing
+
+NOTE CONF {"raw":[40,100,100,100,100,100,100,99,98,70]}
+
+00:29:06.750 --> 00:29:08.609
+<v Speaker 0>IRL paper we looked at, right, that like.
+
+NOTE CONF {"raw":[99,100,100,100,100,99,97,99]}
+
+00:29:09.000 --> 00:29:13.439
+<v Speaker 0>You know, you're, you, you, you have, uh, one policy
+
+NOTE CONF {"raw":[100,100,99,99,99,99,100,99,100,100]}
+
+00:29:13.439 --> 00:29:16.380
+<v Speaker 0>essentially that's better than another because you have an expert
+
+NOTE CONF {"raw":[100,99,100,100,100,99,100,100,100,100]}
+
+00:29:16.380 --> 00:29:19.880
+<v Speaker 0>and something that you know is suboptimal you're finding like
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,81,100,100]}
+
+00:29:19.880 --> 00:29:23.439
+<v Speaker 0>the maximum separating hyperplane and orthogonal of that is the
+
+NOTE CONF {"raw":[100,100,100,99,99,99,99,100,100,100]}
+
+00:29:23.439 --> 00:29:24.400
+<v Speaker 0>weight factor, right?
+
+NOTE CONF {"raw":[100,99,100]}
+
+00:29:25.030 --> 00:29:26.800
+<v Speaker 0>The and the weight factor sort of points toward the
+
+NOTE CONF {"raw":[67,99,100,99,58,100,100,100,99,100]}
+
+00:29:26.800 --> 00:29:29.800
+<v Speaker 0>expert to make the expert look maximally good and you
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,99,100]}
+
+00:29:29.800 --> 00:29:32.640
+<v Speaker 0>know anything in the opposite direction sort of looks maximally
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,100,99]}
+
+00:29:32.640 --> 00:29:33.660
+<v Speaker 0>bad, right?
+
+NOTE CONF {"raw":[100,100]}
+
+00:29:34.229 --> 00:29:34.959
+<v Speaker 0>So that's just this.
+
+NOTE CONF {"raw":[98,96,100,100]}
+
+00:29:37.040 --> 00:29:39.160
+<v Speaker 0>Any questions about this because everything else is kind of
+
+NOTE CONF {"raw":[100,99,100,100,91,99,100,99,99,99]}
+
+00:29:39.160 --> 00:29:39.910
+<v Speaker 0>built on this.
+
+NOTE CONF {"raw":[99,100,100]}
+
+00:29:40.680 --> 00:29:41.680
+<v Speaker 0>Half space idea.
+
+NOTE CONF {"raw":[98,99,99]}
+
+00:29:47.520 --> 00:29:47.910
+<v Speaker 0>OK.
+
+NOTE CONF {"raw":[99]}
+
+00:29:49.750 --> 00:29:50.979
+<v Speaker 0>So if we just have.
+
+NOTE CONF {"raw":[99,99,100,99,100]}
+
+00:29:51.760 --> 00:29:53.819
+<v Speaker 0>One preference, right?
+
+NOTE CONF {"raw":[99,100,100]}
+
+00:29:54.239 --> 00:29:54.699
+<v Speaker 0>Um.
+
+NOTE CONF {"raw":[99]}
+
+00:29:56.010 --> 00:29:57.319
+<v Speaker 0>This is a bit of an oversimplication.
+
+NOTE CONF {"raw":[99,99,100,100,100,100,99]}
+
+00:29:57.329 --> 00:29:59.380
+<v Speaker 0>I'm gonna say that it just generates one half space.
+
+NOTE CONF {"raw":[100,99,100,99,95,100,100,99,99,99]}
+
+00:29:59.479 --> 00:30:00.170
+<v Speaker 0>It's not really true.
+
+NOTE CONF {"raw":[99,100,100,100]}
+
+00:30:00.239 --> 00:30:01.839
+<v Speaker 0>You get a couple half spaces out of a preference,
+
+NOTE CONF {"raw":[96,99,100,100,99,99,99,99,99,100]}
+
+00:30:01.890 --> 00:30:03.709
+<v Speaker 0>but don't worry about that right now.
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100]}
+
+00:30:04.069 --> 00:30:06.729
+<v Speaker 0>Um, so let's say we have, you know, one half
+
+NOTE CONF {"raw":[74,99,100,100,100,100,100,99,99,99]}
+
+00:30:06.729 --> 00:30:07.229
+<v Speaker 0>space.
+
+NOTE CONF {"raw":[99]}
+
+00:30:07.849 --> 00:30:10.770
+<v Speaker 0>These are all the rewards that pass that test, right?
+
+NOTE CONF {"raw":[77,100,100,100,100,100,100,99,100,100]}
+
+00:30:11.400 --> 00:30:13.560
+<v Speaker 0>Um, and this is just, you know, a very simple
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,83,100,100]}
+
+00:30:13.560 --> 00:30:15.239
+<v Speaker 0>two dimensional reward space, right?
+
+NOTE CONF {"raw":[99,98,100,100,100]}
+
+00:30:16.030 --> 00:30:18.910
+<v Speaker 0>Well, you know, if we add another one now, you
+
+NOTE CONF {"raw":[99,99,99,99,100,99,100,100,99,99]}
+
+00:30:18.910 --> 00:30:20.650
+<v Speaker 0>know, we have this.
+
+NOTE CONF {"raw":[99,100,100,99]}
+
+00:30:21.810 --> 00:30:25.689
+<v Speaker 0>Smaller, uh, region that if you go into high dimensions
+
+NOTE CONF {"raw":[65,99,99,99,99,99,99,99,99,99]}
+
+00:30:25.689 --> 00:30:29.689
+<v Speaker 0>is always a, a, a cone essentially a polytopic cone.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,93,99,99,99]}
+
+00:30:30.130 --> 00:30:34.640
+<v Speaker 0>You have this polytope that's, uh, who's You know, Vertex
+
+NOTE CONF {"raw":[33,98,99,99,99,99,76,100,100,95]}
+
+00:30:34.739 --> 00:30:38.420
+<v Speaker 0>starts at uh at 00 and you know we just
+
+NOTE CONF {"raw":[100,99,86,99,73,99,100,100,100,100]}
+
+00:30:38.420 --> 00:30:44.479
+<v Speaker 0>keep adding these for all the preferences we have and
+
+NOTE CONF {"raw":[100,100,99,100,100,100,100,100,100,99]}
+
+00:30:44.699 --> 00:30:48.790
+<v Speaker 0>we eventually end up with this aligned reward set um.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,99,99,99]}
+
+00:30:49.670 --> 00:30:52.540
+<v Speaker 0>If we, if we have enough preferences, and what I
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,99,100,100]}
+
+00:30:52.540 --> 00:30:55.020
+<v Speaker 0>mean by enough, uh, is that.
+
+NOTE CONF {"raw":[100,100,100,99,100,100]}
+
+00:30:56.010 --> 00:30:58.079
+<v Speaker 0>The simplest version of that is if we had preferences
+
+NOTE CONF {"raw":[100,100,100,99,99,99,99,100,99,100]}
+
+00:30:58.079 --> 00:31:01.810
+<v Speaker 0>over all possible trajectories in the domain there would be
+
+NOTE CONF {"raw":[99,100,100,100,99,100,100,99,100,100]}
+
+00:31:01.810 --> 00:31:05.790
+<v Speaker 0>some small aligned reward set that remains where um.
+
+NOTE CONF {"raw":[100,100,99,99,99,99,99,99,99]}
+
+00:31:06.699 --> 00:31:10.750
+<v Speaker 0>That agrees with all the preferences I have that agrees
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,99,100]}
+
+00:31:10.750 --> 00:31:16.069
+<v Speaker 0>with my total ordering over trajectories such that any reward
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:31:16.069 --> 00:31:19.430
+<v Speaker 0>function in this space if you solve for the optimal
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,99,100,99]}
+
+00:31:19.430 --> 00:31:22.030
+<v Speaker 0>policy with respect to it is going to be one
+
+NOTE CONF {"raw":[100,100,100,100,100,98,99,100,100,100]}
+
+00:31:22.030 --> 00:31:25.459
+<v Speaker 0>of the policies that I consider optimal, right, because it,
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,99,98,99]}
+
+00:31:25.469 --> 00:31:29.229
+<v Speaker 0>it has the same total ordering over, you know, all
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,99,99,100]}
+
+00:31:29.229 --> 00:31:31.790
+<v Speaker 0>possible trajectories, um.
+
+NOTE CONF {"raw":[100,100,99]}
+
+00:31:32.589 --> 00:31:34.489
+<v Speaker 0>Uh, in the domain, right?
+
+NOTE CONF {"raw":[99,99,100,100,99]}
+
+00:31:37.239 --> 00:31:38.790
+<v Speaker 0>But the question you can ask then is.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,98,99]}
+
+00:31:39.910 --> 00:31:45.560
+<v Speaker 0>Do you really need, you know, All preferences, right, to
+
+NOTE CONF {"raw":[99,100,100,100,99,100,99,100,100,94]}
+
+00:31:45.560 --> 00:31:48.040
+<v Speaker 0>find this aligned reward set, right?
+
+NOTE CONF {"raw":[100,100,99,99,99,99]}
+
+00:31:48.160 --> 00:31:49.660
+<v Speaker 0>So like for example here.
+
+NOTE CONF {"raw":[85,100,100,100,100]}
+
+00:31:50.349 --> 00:31:53.250
+<v Speaker 0>We're not doing all, but we're doing 12.
+
+NOTE CONF {"raw":[99,100,100,100,99,99,100,49]}
+
+00:31:53.979 --> 00:31:54.949
+<v Speaker 0>3, right?
+
+NOTE CONF {"raw":[99,99]}
+
+00:31:56.530 --> 00:31:57.930
+<v Speaker 0>Do we need all three of those even?
+
+NOTE CONF {"raw":[99,100,100,100,99,100,100,99]}
+
+00:32:02.270 --> 00:32:04.229
+<v Speaker 0>So yes, no, why not?
+
+NOTE CONF {"raw":[24,92,82,99,100]}
+
+00:32:07.020 --> 00:32:08.410
+<v Speaker 0>Yeah, we didn't need the 2nd 1, right?
+
+NOTE CONF {"raw":[99,100,99,99,100,29,100,99]}
+
+00:32:08.500 --> 00:32:10.579
+<v Speaker 0>So like look at those blue lines of like the,
+
+NOTE CONF {"raw":[96,99,100,100,99,100,100,99,99,99]}
+
+00:32:10.790 --> 00:32:12.969
+<v Speaker 0>the, the things that constrain it most.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100]}
+
+00:32:13.410 --> 00:32:16.180
+<v Speaker 0>There are only 2 lines that are needed for that,
+
+NOTE CONF {"raw":[99,99,100,38,100,100,100,100,100,100]}
+
+00:32:16.260 --> 00:32:18.040
+<v Speaker 0>but we have 3 lines essentially, right?
+
+NOTE CONF {"raw":[99,99,100,97,100,100,100]}
+
+00:32:18.180 --> 00:32:20.359
+<v Speaker 0>So you know we have this one which we need.
+
+NOTE CONF {"raw":[99,98,98,99,99,100,99,99,100,100]}
+
+00:32:20.859 --> 00:32:23.380
+<v Speaker 0>We have this one, but then look what happens when
+
+NOTE CONF {"raw":[97,100,100,99,99,99,100,100,100,100]}
+
+00:32:23.380 --> 00:32:24.400
+<v Speaker 0>we have that 3rd 1.
+
+NOTE CONF {"raw":[100,100,99,26,99]}
+
+00:32:24.579 --> 00:32:27.199
+<v Speaker 0>It's not using that, that second line anymore, right?
+
+NOTE CONF {"raw":[96,100,100,99,99,92,100,99,99]}
+
+00:32:27.780 --> 00:32:31.099
+<v Speaker 0>So there is, you know, depending on the dimensionality of
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:32:31.099 --> 00:32:31.520
+<v Speaker 0>this.
+
+NOTE CONF {"raw":[100]}
+
+00:32:32.020 --> 00:32:37.180
+<v Speaker 0>There is some minimal set of hypotheses, uh, or sorry,
+
+NOTE CONF {"raw":[100,99,98,100,100,99,99,99,99,99]}
+
+00:32:37.290 --> 00:32:41.020
+<v Speaker 0>uh, of half spaces, um, that can make up this
+
+NOTE CONF {"raw":[78,98,99,99,99,99,100,100,100,100]}
+
+00:32:41.020 --> 00:32:42.099
+<v Speaker 0>aligned reward set.
+
+NOTE CONF {"raw":[100,100,99]}
+
+00:32:42.800 --> 00:32:45.390
+<v Speaker 0>And so if we find that, right?
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99]}
+
+00:32:47.489 --> 00:32:49.530
+<v Speaker 0>Then all we have to do is we have to
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:32:49.530 --> 00:32:50.150
+<v Speaker 0>ask.
+
+NOTE CONF {"raw":[100]}
+
+00:32:50.920 --> 00:32:55.150
+<v Speaker 0>The agent, those same questions of, you know, whichever uh.
+
+NOTE CONF {"raw":[99,100,99,100,100,100,99,99,99,99]}
+
+00:32:56.030 --> 00:32:58.890
+<v Speaker 0>Like for this, for example, we know this one's necessary
+
+NOTE CONF {"raw":[99,99,99,99,100,100,100,100,99,100]}
+
+00:32:59.229 --> 00:33:02.030
+<v Speaker 0>and so you know there was some preference that generated
+
+NOTE CONF {"raw":[99,100,100,99,100,99,100,100,99,100]}
+
+00:33:02.030 --> 00:33:04.989
+<v Speaker 0>this uh half space and so if we ask the
+
+NOTE CONF {"raw":[100,99,99,99,99,99,99,100,99,100]}
+
+00:33:04.989 --> 00:33:08.489
+<v Speaker 0>agent, hey, like do you prefer trajectory A or B,
+
+NOTE CONF {"raw":[100,99,99,99,100,100,99,99,100,99]}
+
+00:33:08.930 --> 00:33:13.660
+<v Speaker 0>um, they have to answer this question if they don't,
+
+NOTE CONF {"raw":[99,99,99,99,100,100,100,95,100,100]}
+
+00:33:13.910 --> 00:33:17.310
+<v Speaker 0>we know that they're, they, they don't have this reward
+
+NOTE CONF {"raw":[100,100,100,44,99,99,100,100,100,100]}
+
+00:33:17.310 --> 00:33:22.000
+<v Speaker 0>function essentially that's in the, the aligned region, right?
+
+NOTE CONF {"raw":[100,100,100,100,99,99,99,100,99]}
+
+00:33:22.390 --> 00:33:23.469
+<v Speaker 0>And if we ask that.
+
+NOTE CONF {"raw":[86,99,100,99,100]}
+
+00:33:24.060 --> 00:33:26.900
+<v Speaker 0>Again, for just the two questions here that we needed
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,97]}
+
+00:33:26.900 --> 00:33:31.260
+<v Speaker 0>to, to fit this, then we actually know provably whether
+
+NOTE CONF {"raw":[99,99,100,100,99,100,100,100,99,100]}
+
+00:33:31.260 --> 00:33:34.369
+<v Speaker 0>they, they fall into this aligned reward set or not,
+
+NOTE CONF {"raw":[99,99,99,99,100,99,100,99,100,100]}
+
+00:33:34.459 --> 00:33:35.420
+<v Speaker 0>which is really nice.
+
+NOTE CONF {"raw":[100,100,100,100]}
+
+00:33:37.420 --> 00:33:39.689
+<v Speaker 0>So yeah, that one's redundant, we remove that.
+
+NOTE CONF {"raw":[97,99,99,93,99,87,99,99]}
+
+00:33:41.260 --> 00:33:45.130
+<v Speaker 0>Um So how do we, uh, how do we find
+
+NOTE CONF {"raw":[99,99,99,99,99,95,99,99,99,99]}
+
+00:33:45.130 --> 00:33:46.130
+<v Speaker 0>this in practice?
+
+NOTE CONF {"raw":[100,99,100]}
+
+00:33:46.369 --> 00:33:49.209
+<v Speaker 0>Um, it turns out it's just a, a linear programming
+
+NOTE CONF {"raw":[95,99,100,100,99,99,99,99,99,99]}
+
+00:33:49.209 --> 00:33:49.569
+<v Speaker 0>problem.
+
+NOTE CONF {"raw":[100]}
+
+00:33:49.650 --> 00:33:52.130
+<v Speaker 0>You can, you can figure out quite quickly which of
+
+NOTE CONF {"raw":[80,99,99,99,100,99,99,100,100,100]}
+
+00:33:52.130 --> 00:33:55.410
+<v Speaker 0>these, these half spaces are, uh, are redundant.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99]}
+
+00:33:58.140 --> 00:33:59.900
+<v Speaker 0>So as I mentioned though, we wanna be able to
+
+NOTE CONF {"raw":[100,100,100,100,99,100,91,100,100,100]}
+
+00:33:59.900 --> 00:34:02.079
+<v Speaker 0>do this kind of test in um.
+
+NOTE CONF {"raw":[100,100,100,100,100,99,99]}
+
+00:34:02.699 --> 00:34:04.949
+<v Speaker 0>Sort of a bunch of different scenarios depending on how
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,99,100,100]}
+
+00:34:05.130 --> 00:34:07.349
+<v Speaker 0>black box the agent is and what it provides us,
+
+NOTE CONF {"raw":[99,99,100,99,100,100,100,100,100,100]}
+
+00:34:07.829 --> 00:34:10.070
+<v Speaker 0>um, and so what we're able to show is that
+
+NOTE CONF {"raw":[99,99,100,99,99,100,100,100,100,99]}
+
+00:34:10.070 --> 00:34:14.489
+<v Speaker 0>you know this half space idea actually works in a
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,100]}
+
+00:34:14.489 --> 00:34:17.860
+<v Speaker 0>surprising number of settings because you can translate things to
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,99]}
+
+00:34:17.860 --> 00:34:19.250
+<v Speaker 0>half spaces in different ways.
+
+NOTE CONF {"raw":[99,99,100,100,100]}
+
+00:34:19.370 --> 00:34:22.449
+<v Speaker 0>So one thing that the agent or the robot in
+
+NOTE CONF {"raw":[72,100,100,100,100,100,99,100,100,100]}
+
+00:34:22.449 --> 00:34:25.310
+<v Speaker 0>this case can do is it might just tell you
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:34:25.310 --> 00:34:25.949
+<v Speaker 0>what it's.
+
+NOTE CONF {"raw":[100,99]}
+
+00:34:26.559 --> 00:34:29.519
+<v Speaker 0>Reward function is says oh yeah actually here I use
+
+NOTE CONF {"raw":[99,99,99,98,99,99,99,99,99,99]}
+
+00:34:29.519 --> 00:34:31.839
+<v Speaker 0>this and we just wanna test and see if the
+
+NOTE CONF {"raw":[99,99,99,99,96,99,99,99,99,99]}
+
+00:34:31.839 --> 00:34:34.398
+<v Speaker 0>reward function it wrote down is aligned with my reward
+
+NOTE CONF {"raw":[99,100,99,99,99,99,99,99,99,99]}
+
+00:34:34.398 --> 00:34:37.059
+<v Speaker 0>function that I wrote down um or that I gave
+
+NOTE CONF {"raw":[100,99,99,99,99,99,99,99,99,99]}
+
+00:34:37.059 --> 00:34:41.059
+<v Speaker 0>uh via preferences for example um.
+
+NOTE CONF {"raw":[99,99,99,99,100,99]}
+
+00:34:41.839 --> 00:34:43.627
+<v Speaker 0>Why would we not, uh, let's say I can write
+
+NOTE CONF {"raw":[100,100,100,100,67,99,100,100,100,100]}
+
+00:34:43.627 --> 00:34:45.107
+<v Speaker 0>down my reward function.
+
+NOTE CONF {"raw":[100,100,100,100]}
+
+00:34:45.599 --> 00:34:48.349
+<v Speaker 0>Why would we not just check to see if the
+
+NOTE CONF {"raw":[90,100,100,100,100,100,100,100,100,100]}
+
+00:34:48.349 --> 00:34:49.829
+<v Speaker 0>weights are identical?
+
+NOTE CONF {"raw":[99,100,100]}
+
+00:34:53.158 --> 00:34:54.959
+<v Speaker 0>Why would that not be a good way of determining
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:34:54.959 --> 00:34:55.540
+<v Speaker 0>alignment?
+
+NOTE CONF {"raw":[100]}
+
+00:35:06.189 --> 00:35:08.989
+<v Speaker 1>that Or for at the end when you.
+
+NOTE CONF {"raw":[47,14,52,90,92,94,91,83]}
+
+00:35:10.919 --> 00:35:13.939
+<v Speaker 0>Yeah, exactly, um, they, they don't have to be equal,
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,99,100,100]}
+
+00:35:14.000 --> 00:35:14.179
+<v Speaker 0>right?
+
+NOTE CONF {"raw":[99]}
+
+00:35:14.320 --> 00:35:17.000
+<v Speaker 0>Like, you know, I, I can have, uh, the same
+
+NOTE CONF {"raw":[76,99,99,99,99,99,99,99,99,99]}
+
+00:35:17.000 --> 00:35:19.040
+<v Speaker 0>set of optimal policies when I have a sparse reward
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:35:19.040 --> 00:35:21.520
+<v Speaker 0>at the goal versus like a shaped reward that leads
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:35:21.520 --> 00:35:22.199
+<v Speaker 0>me there, right?
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:35:22.479 --> 00:35:26.080
+<v Speaker 0>So you know there can be different reward functions that
+
+NOTE CONF {"raw":[82,99,99,99,99,99,100,100,100,100]}
+
+00:35:26.080 --> 00:35:28.919
+<v Speaker 0>all have the same set of optimal policies associated with
+
+NOTE CONF {"raw":[99,99,99,100,99,99,100,99,99,99]}
+
+00:35:28.919 --> 00:35:32.600
+<v Speaker 0>them, um, and so you know this is really simple
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,100,99]}
+
+00:35:32.600 --> 00:35:35.840
+<v Speaker 0>if, if the, if we determine, you know, through preferences
+
+NOTE CONF {"raw":[96,99,99,99,99,100,99,99,99,99]}
+
+00:35:35.840 --> 00:35:36.600
+<v Speaker 0>or we generate.
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:35:37.370 --> 00:35:41.030
+<v Speaker 0>Our own preferences if someone writes a reward function, um,
+
+NOTE CONF {"raw":[95,99,99,99,99,99,71,99,99,92]}
+
+00:35:41.649 --> 00:35:44.750
+<v Speaker 0>then if, if the robot gives us its reward weights
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,98]}
+
+00:35:44.750 --> 00:35:46.929
+<v Speaker 0>we just say, hey, did it land in here, right?
+
+NOTE CONF {"raw":[99,99,99,98,99,99,99,99,99,94]}
+
+00:35:47.159 --> 00:35:49.689
+<v Speaker 0>Simple, we don't even have to ask it queries.
+
+NOTE CONF {"raw":[28,96,99,99,99,99,99,90,99]}
+
+00:35:50.370 --> 00:35:53.600
+<v Speaker 0>Um, we can do this with samples from the reward
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,99]}
+
+00:35:53.600 --> 00:35:55.409
+<v Speaker 0>function as well, um.
+
+NOTE CONF {"raw":[99,100,100,95]}
+
+00:35:56.689 --> 00:36:01.050
+<v Speaker 0>Week and uh where you, you do something similar, um.
+
+NOTE CONF {"raw":[98,99,97,99,99,100,100,100,100,86]}
+
+00:36:01.939 --> 00:36:06.179
+<v Speaker 0>Because we can reconstruct the weights from samples, uh, we
+
+NOTE CONF {"raw":[99,99,99,100,100,99,100,100,99,100]}
+
+00:36:06.179 --> 00:36:09.500
+<v Speaker 0>can also do trajectory preferences, uh, like I mentioned, where
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,99,99]}
+
+00:36:09.500 --> 00:36:12.419
+<v Speaker 0>you're sort of asking, you know, one question per half
+
+NOTE CONF {"raw":[99,100,100,100,99,99,99,100,99,99]}
+
+00:36:12.419 --> 00:36:14.939
+<v Speaker 0>space to figure out if the, you know, agent is
+
+NOTE CONF {"raw":[99,100,100,100,100,99,99,99,100,100]}
+
+00:36:14.939 --> 00:36:17.300
+<v Speaker 0>on the right side of it or not, and those
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,100]}
+
+00:36:17.300 --> 00:36:19.500
+<v Speaker 0>are all exact methods for alignment.
+
+NOTE CONF {"raw":[100,100,100,100,100,100]}
+
+00:36:20.439 --> 00:36:25.479
+<v Speaker 0>Now, if you have value samples, samples of, uh, you
+
+NOTE CONF {"raw":[99,99,100,99,100,99,98,99,99,99]}
+
+00:36:25.479 --> 00:36:29.919
+<v Speaker 0>know, the robots V or Q, um, at, at, you
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,95,98,99]}
+
+00:36:29.919 --> 00:36:33.399
+<v Speaker 0>know, various states, but you don't know it exhaustively, um.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:36:34.070 --> 00:36:38.350
+<v Speaker 0>It, it turns out that, uh, you can still do
+
+NOTE CONF {"raw":[99,99,100,100,100,99,100,100,100,100]}
+
+00:36:38.350 --> 00:36:39.510
+<v Speaker 0>uh exact alignment.
+
+NOTE CONF {"raw":[99,100,100]}
+
+00:36:39.709 --> 00:36:41.179
+<v Speaker 0>This is a little bit different of a kind of
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,99,100,100]}
+
+00:36:41.179 --> 00:36:43.750
+<v Speaker 0>alignment because now you're not really reasoning about the reward
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:36:43.750 --> 00:36:44.770
+<v Speaker 0>function directly.
+
+NOTE CONF {"raw":[100,100]}
+
+00:36:45.070 --> 00:36:48.850
+<v Speaker 0>Um, you're, you're more reasoning about, uh, a particular policy
+
+NOTE CONF {"raw":[56,99,99,100,100,100,99,100,100,100]}
+
+00:36:48.850 --> 00:36:49.570
+<v Speaker 0>that the robot has.
+
+NOTE CONF {"raw":[100,100,100,100]}
+
+00:36:49.669 --> 00:36:51.590
+<v Speaker 0>Is it, does it have a policy that is aligned
+
+NOTE CONF {"raw":[52,99,99,100,100,100,100,100,99,99]}
+
+00:36:51.590 --> 00:36:52.729
+<v Speaker 0>with your reward function?
+
+NOTE CONF {"raw":[100,99,100,100]}
+
+00:36:53.189 --> 00:36:54.899
+<v Speaker 0>Um, but you can do this exactly.
+
+NOTE CONF {"raw":[81,99,100,100,100,100,100]}
+
+00:36:55.229 --> 00:36:58.030
+<v Speaker 0>But if you just have action samples, you just see
+
+NOTE CONF {"raw":[76,100,100,100,99,100,100,99,99,100]}
+
+00:36:58.030 --> 00:36:59.250
+<v Speaker 0>what the robot did.
+
+NOTE CONF {"raw":[100,100,100,100]}
+
+00:36:59.629 --> 00:37:02.870
+<v Speaker 0>Um, it turns out for, for somewhat nuanced reasons you
+
+NOTE CONF {"raw":[99,100,100,100,99,99,99,100,100,99]}
+
+00:37:02.870 --> 00:37:06.149
+<v Speaker 0>can only do this, uh, alignment approximately and, and you
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,99,99,100]}
+
+00:37:06.149 --> 00:37:09.510
+<v Speaker 0>can kind of bound it with an epsilon, um, but
+
+NOTE CONF {"raw":[100,99,99,100,100,99,99,99,99,100]}
+
+00:37:09.510 --> 00:37:11.010
+<v Speaker 0>it becomes inexact.
+
+NOTE CONF {"raw":[100,100,99]}
+
+00:37:12.419 --> 00:37:15.489
+<v Speaker 0>Um, and so you know, we, we ended up having
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,100]}
+
+00:37:15.949 --> 00:37:20.469
+<v Speaker 0>this idea of epsilon policy, uh, alignment where you know
+
+NOTE CONF {"raw":[100,100,100,99,100,99,100,100,100,100]}
+
+00:37:20.469 --> 00:37:22.620
+<v Speaker 0>if we have some reward function we say that a
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,99,99,88]}
+
+00:37:22.620 --> 00:37:25.260
+<v Speaker 0>policies is, uh, sort of epsilon you'll.
+
+NOTE CONF {"raw":[10,93,99,99,100,99,73]}
+
+00:37:27.010 --> 00:37:31.530
+<v Speaker 0>The difference between the sort of optimal value function and
+
+NOTE CONF {"raw":[88,99,99,99,60,66,99,99,99,99]}
+
+00:37:31.530 --> 00:37:34.090
+<v Speaker 0>the value function that goes along with the policy is
+
+NOTE CONF {"raw":[61,99,99,99,99,99,99,99,99,99]}
+
+00:37:34.090 --> 00:37:37.689
+<v Speaker 0>less than epsilon at every state, so it's a stronger
+
+NOTE CONF {"raw":[99,99,99,99,99,99,98,94,99,99]}
+
+00:37:37.689 --> 00:37:40.770
+<v Speaker 0>condition than saying like on average, um, because it actually
+
+NOTE CONF {"raw":[99,99,99,89,99,100,55,99,99,99]}
+
+00:37:40.770 --> 00:37:44.149
+<v Speaker 0>can't exceed that epsilon pointwise anywhere.
+
+NOTE CONF {"raw":[99,99,99,99,63,99]}
+
+00:37:45.919 --> 00:37:50.090
+<v Speaker 0>Um, and it turns out that unfortunately, um, Uh, with,
+
+NOTE CONF {"raw":[86,87,99,100,100,99,100,80,99,99]}
+
+00:37:50.149 --> 00:37:53.590
+<v Speaker 0>uh, action samples we only have heuristic methods to, to
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:37:53.590 --> 00:37:54.350
+<v Speaker 0>do this actually.
+
+NOTE CONF {"raw":[100,99,99]}
+
+00:37:54.469 --> 00:37:57.030
+<v Speaker 0>There's, uh, we, we are unable to prove that there's
+
+NOTE CONF {"raw":[77,99,99,99,99,95,99,100,99,99]}
+
+00:37:57.030 --> 00:37:59.189
+<v Speaker 0>no principled way of doing this, but we were not
+
+NOTE CONF {"raw":[100,99,100,99,100,99,99,99,99,99]}
+
+00:37:59.189 --> 00:38:02.189
+<v Speaker 0>able to find it, um, and so this is only
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:38:02.189 --> 00:38:04.850
+<v Speaker 0>having access to the actions is a bit too restrictive.
+
+NOTE CONF {"raw":[99,100,99,99,99,99,99,99,99,99]}
+
+00:38:06.129 --> 00:38:08.850
+<v Speaker 0>OK, so, so that's the idea of what an exact
+
+NOTE CONF {"raw":[99,92,99,99,99,100,99,99,99,99]}
+
+00:38:08.850 --> 00:38:13.409
+<v Speaker 0>test looks like, um, but you know there are some
+
+NOTE CONF {"raw":[99,99,99,94,99,99,99,99,99,99]}
+
+00:38:13.409 --> 00:38:17.050
+<v Speaker 0>pretty strong assumptions, you know, that we, we made, um.
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,97]}
+
+00:38:17.879 --> 00:38:19.669
+<v Speaker 0>So, you know, one of the things we assumed, right,
+
+NOTE CONF {"raw":[100,99,99,100,100,100,100,100,99,99]}
+
+00:38:19.679 --> 00:38:21.229
+<v Speaker 0>is that like the human and the robot had the
+
+NOTE CONF {"raw":[99,99,99,100,100,99,99,100,99,100]}
+
+00:38:21.229 --> 00:38:22.040
+<v Speaker 0>same features, right?
+
+NOTE CONF {"raw":[100,100,99]}
+
+00:38:22.120 --> 00:38:23.280
+<v Speaker 0>So the features are known.
+
+NOTE CONF {"raw":[92,100,99,100,100]}
+
+00:38:23.600 --> 00:38:25.159
+<v Speaker 0>It would be really nice to be able to loosen
+
+NOTE CONF {"raw":[78,99,100,100,100,100,100,100,100,99]}
+
+00:38:25.159 --> 00:38:27.439
+<v Speaker 0>this and move to when features are not known ahead
+
+NOTE CONF {"raw":[100,100,100,100,99,99,99,100,100,100]}
+
+00:38:27.439 --> 00:38:27.860
+<v Speaker 0>of time.
+
+NOTE CONF {"raw":[100,100]}
+
+00:38:28.510 --> 00:38:33.699
+<v Speaker 0>Um Second, we assumed, uh, when we were, you know,
+
+NOTE CONF {"raw":[99,99,100,100,99,100,100,100,99,99]}
+
+00:38:33.860 --> 00:38:36.379
+<v Speaker 0>figuring out like, hey, is the, the agent on the
+
+NOTE CONF {"raw":[100,100,99,99,99,99,99,100,100,100]}
+
+00:38:36.379 --> 00:38:39.060
+<v Speaker 0>correct side of this, you know, half space or not
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,99,100,100]}
+
+00:38:39.060 --> 00:38:42.139
+<v Speaker 0>by asking a question, we're assuming that the preferences of
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,100]}
+
+00:38:42.139 --> 00:38:45.620
+<v Speaker 0>both the human that generated, you know, these questions originally,
+
+NOTE CONF {"raw":[100,100,100,99,100,99,99,99,100,100]}
+
+00:38:45.860 --> 00:38:48.219
+<v Speaker 0>uh, and the agent are noiseless, right?
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100]}
+
+00:38:48.300 --> 00:38:50.820
+<v Speaker 0>And if even a single one is off, the, the,
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,99,99]}
+
+00:38:50.899 --> 00:38:52.320
+<v Speaker 0>the whole thing goes wrong, right?
+
+NOTE CONF {"raw":[99,99,100,100,100,100]}
+
+00:38:52.580 --> 00:38:55.939
+<v Speaker 0>Um, and, and so, uh, it would be really nice
+
+NOTE CONF {"raw":[98,99,99,100,99,100,100,100,100,100]}
+
+00:38:55.939 --> 00:38:57.199
+<v Speaker 0>to be able to loosen that too.
+
+NOTE CONF {"raw":[100,100,100,100,99,100,99]}
+
+00:38:57.659 --> 00:39:00.310
+<v Speaker 0>And so you know I think there's still some cases
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,100,100]}
+
+00:39:00.310 --> 00:39:02.750
+<v Speaker 0>in which you know this formal alignment makes sense to
+
+NOTE CONF {"raw":[100,100,100,100,100,99,99,100,100,100]}
+
+00:39:02.750 --> 00:39:06.229
+<v Speaker 0>do but you know I, I, I sort of lean
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,99,100,100]}
+
+00:39:06.229 --> 00:39:09.909
+<v Speaker 0>toward this this probabilistic method because it really does allow
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,100,100]}
+
+00:39:09.909 --> 00:39:13.889
+<v Speaker 0>us to pretty strongly um loosen our assumptions and while
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,99]}
+
+00:39:13.889 --> 00:39:17.550
+<v Speaker 0>also giving us you know a uh reasonably calibrated uh
+
+NOTE CONF {"raw":[100,100,100,100,100,99,99,99,100,99]}
+
+00:39:17.550 --> 00:39:18.330
+<v Speaker 0>uncertainty.
+
+NOTE CONF {"raw":[100]}
+
+00:39:22.560 --> 00:39:27.500
+<v Speaker 0>OK, so, What's it going to mean then to give
+
+NOTE CONF {"raw":[99,66,99,99,99,99,100,99,100,99]}
+
+00:39:27.500 --> 00:39:30.419
+<v Speaker 0>an alignment guarantee in the probabilistic sense?
+
+NOTE CONF {"raw":[99,100,100,99,100,99,99]}
+
+00:39:30.429 --> 00:39:33.620
+<v Speaker 0>It's going to look a lot like the alignment guarantees
+
+NOTE CONF {"raw":[76,99,99,100,100,100,100,100,100,99]}
+
+00:39:33.620 --> 00:39:38.540
+<v Speaker 0>that we had in the IRL setting, um, where we're
+
+NOTE CONF {"raw":[100,100,99,100,100,99,99,99,99,39]}
+
+00:39:38.540 --> 00:39:42.100
+<v Speaker 0>trying to again bound a policy loss of the agent
+
+NOTE CONF {"raw":[99,99,99,97,72,99,99,99,100,100]}
+
+00:39:42.100 --> 00:39:45.060
+<v Speaker 0>versus the optimal policy with high confidence even though we
+
+NOTE CONF {"raw":[99,99,89,100,100,100,100,99,99,100]}
+
+00:39:45.060 --> 00:39:47.879
+<v Speaker 0>don't know the ground truth reward function except this time
+
+NOTE CONF {"raw":[99,99,100,99,99,99,100,99,100,100]}
+
+00:39:48.100 --> 00:39:51.379
+<v Speaker 0>the information we have is not demonstrations, uh, to reason
+
+NOTE CONF {"raw":[100,100,100,100,99,100,99,99,99,100]}
+
+00:39:51.379 --> 00:39:53.379
+<v Speaker 0>about we have preferences, right, but we're gonna try to
+
+NOTE CONF {"raw":[100,99,100,100,99,87,99,99,99,99]}
+
+00:39:53.379 --> 00:39:53.620
+<v Speaker 0>give.
+
+NOTE CONF {"raw":[99]}
+
+00:39:55.189 --> 00:39:58.929
+<v Speaker 0>Guarantee, you know, with probability 1 minus delta, the policy
+
+NOTE CONF {"raw":[96,99,99,99,99,92,98,78,99,99]}
+
+00:39:58.929 --> 00:40:01.239
+<v Speaker 0>loss is less than sum epsilon.
+
+NOTE CONF {"raw":[99,99,99,99,39,97]}
+
+00:40:04.459 --> 00:40:04.939
+<v Speaker 0>OK.
+
+NOTE CONF {"raw":[99]}
+
+00:40:05.889 --> 00:40:08.699
+<v Speaker 0>To do that we're going to use Bayesian Rex which
+
+NOTE CONF {"raw":[99,98,99,99,99,99,99,99,99,99]}
+
+00:40:08.699 --> 00:40:11.000
+<v Speaker 0>you know hopefully you sort of gathered from the paper,
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:40:11.199 --> 00:40:14.929
+<v Speaker 0>um, is a, uh, a lot like you know a
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:40:14.929 --> 00:40:17.209
+<v Speaker 0>it's just a Bayesian version of Trex much like Bayesian
+
+NOTE CONF {"raw":[99,99,99,98,99,99,53,99,99,99]}
+
+00:40:17.209 --> 00:40:19.659
+<v Speaker 0>IRL was the you know the Bayesian version of the
+
+NOTE CONF {"raw":[99,98,99,99,99,99,99,99,99,99]}
+
+00:40:19.659 --> 00:40:21.520
+<v Speaker 0>standard IRL paradigm.
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:40:22.100 --> 00:40:25.260
+<v Speaker 0>So you know I mentioned one of the, uh, Things
+
+NOTE CONF {"raw":[48,99,99,99,99,99,99,99,99,98]}
+
+00:40:25.260 --> 00:40:26.939
+<v Speaker 0>we were really hoping for this is we can relax
+
+NOTE CONF {"raw":[99,93,99,99,99,99,95,99,99,99]}
+
+00:40:26.939 --> 00:40:29.340
+<v Speaker 0>this assumption about the features being known ahead of time
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:40:29.340 --> 00:40:32.100
+<v Speaker 0>and being the same, um, so the question is, you
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:40:32.100 --> 00:40:36.659
+<v Speaker 0>know, uh, while we need to retain linearity, uh, assumption,
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:40:36.929 --> 00:40:41.120
+<v Speaker 0>um, can we pre-train in some way to discover features,
+
+NOTE CONF {"raw":[99,99,99,40,99,99,99,99,100,99]}
+
+00:40:41.500 --> 00:40:43.979
+<v Speaker 0>uh, that are going to be able to express the
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,100,99]}
+
+00:40:43.979 --> 00:40:48.580
+<v Speaker 0>things specifically reward functions, um, in the way that we
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,100,99,99]}
+
+00:40:48.580 --> 00:40:50.899
+<v Speaker 0>need to be able to linearly, right?
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99]}
+
+00:40:52.050 --> 00:40:54.209
+<v Speaker 0>And so the idea here was that what we would
+
+NOTE CONF {"raw":[99,99,99,100,100,99,99,99,99,99]}
+
+00:40:54.209 --> 00:40:58.169
+<v Speaker 0>do is we'd start with our, you know, uh, trajectories
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:40:58.169 --> 00:41:00.929
+<v Speaker 0>that we have preferences over and the the ideal case,
+
+NOTE CONF {"raw":[99,99,99,99,99,90,94,99,99,100]}
+
+00:41:00.969 --> 00:41:03.449
+<v Speaker 0>you know, we have the quadratic number of, you know,
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,99,99,99]}
+
+00:41:03.610 --> 00:41:06.250
+<v Speaker 0>preferences that gives us a full ranking over trajectories for
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,99,99,99]}
+
+00:41:06.250 --> 00:41:06.750
+<v Speaker 0>example.
+
+NOTE CONF {"raw":[100]}
+
+00:41:08.010 --> 00:41:10.580
+<v Speaker 0>Um, and what we're gonna do is just, you know,
+
+NOTE CONF {"raw":[99,99,100,99,99,100,99,100,100,99]}
+
+00:41:10.739 --> 00:41:12.899
+<v Speaker 0>we're, we're working in like the Atari domain, so we're
+
+NOTE CONF {"raw":[92,99,99,99,99,68,47,99,99,99]}
+
+00:41:12.899 --> 00:41:16.520
+<v Speaker 0>just gonna, you know, shove each of these trajectories through,
+
+NOTE CONF {"raw":[99,99,99,99,99,100,100,99,100,100]}
+
+00:41:16.780 --> 00:41:20.739
+<v Speaker 0>you know, uh, uh, convolutional neural network, and we're going
+
+NOTE CONF {"raw":[100,100,97,79,99,99,99,99,99,99]}
+
+00:41:20.739 --> 00:41:25.530
+<v Speaker 0>to use that, uh, as a, a feature extractor, um,
+
+NOTE CONF {"raw":[99,100,100,99,99,99,99,99,99,99]}
+
+00:41:25.820 --> 00:41:27.500
+<v Speaker 0>that is going to give us a set of features
+
+NOTE CONF {"raw":[99,100,99,99,100,100,100,100,100,100]}
+
+00:41:27.500 --> 00:41:29.780
+<v Speaker 0>that we're hoping we're going to be able to use
+
+NOTE CONF {"raw":[100,99,100,99,99,99,100,100,100,99]}
+
+00:41:29.780 --> 00:41:31.739
+<v Speaker 0>to predict reward linearly.
+
+NOTE CONF {"raw":[99,99,100,99]}
+
+00:41:32.439 --> 00:41:34.760
+<v Speaker 0>And the way that we're going to train the CNN
+
+NOTE CONF {"raw":[99,99,100,99,99,99,99,100,51,99]}
+
+00:41:34.760 --> 00:41:37.939
+<v Speaker 0>is we're going to use first of all our standard
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,100,99,99]}
+
+00:41:37.939 --> 00:41:37.949
+<v Speaker 0>T.
+
+NOTE CONF {"raw":[99]}
+
+00:41:37.979 --> 00:41:41.959
+<v Speaker 0>rex loss that's that's what rank means there, um, and
+
+NOTE CONF {"raw":[50,98,98,99,99,94,99,99,99,99]}
+
+00:41:41.959 --> 00:41:44.030
+<v Speaker 0>so you know we wanna find features that you know
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:41:44.399 --> 00:41:48.879
+<v Speaker 0>can help us differentiate the preferences, um, and so at
+
+NOTE CONF {"raw":[99,100,100,99,99,99,99,99,99,99]}
+
+00:41:48.879 --> 00:41:51.080
+<v Speaker 0>the very least you know you would expect that that's
+
+NOTE CONF {"raw":[99,100,100,99,99,99,99,100,99,99]}
+
+00:41:51.080 --> 00:41:52.760
+<v Speaker 0>going to lead to features that.
+
+NOTE CONF {"raw":[99,99,99,99,99,99]}
+
+00:41:55.540 --> 00:41:59.409
+<v Speaker 0>Are good at linearly separating things that are preferred versus
+
+NOTE CONF {"raw":[94,99,97,99,99,100,100,99,99,99]}
+
+00:41:59.409 --> 00:42:00.550
+<v Speaker 0>versus dispreferred.
+
+NOTE CONF {"raw":[99,95]}
+
+00:42:00.949 --> 00:42:03.719
+<v Speaker 0>Now that doesn't necessarily account for noise in the preferences.
+
+NOTE CONF {"raw":[57,99,99,99,98,99,99,99,99,99]}
+
+00:42:03.870 --> 00:42:06.850
+<v Speaker 0>It doesn't necessarily mean that you're going to accurately, uh.
+
+NOTE CONF {"raw":[54,99,100,100,99,99,99,99,99,99]}
+
+00:42:08.080 --> 00:42:11.790
+<v Speaker 0>Be able to linearly represent the whole space of reward
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,99,100]}
+
+00:42:11.790 --> 00:42:15.719
+<v Speaker 0>functions, uh, you know, it's really just kind of focusing
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,99,99,100]}
+
+00:42:15.719 --> 00:42:18.760
+<v Speaker 0>on like the one that sort of explains the preferences
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,99]}
+
+00:42:18.760 --> 00:42:20.219
+<v Speaker 0>best, but it's a good start.
+
+NOTE CONF {"raw":[100,100,100,100,100,100]}
+
+00:42:20.760 --> 00:42:22.239
+<v Speaker 0>But to make sure that we can really fill that
+
+NOTE CONF {"raw":[64,100,100,100,100,100,100,100,99,100]}
+
+00:42:22.239 --> 00:42:25.919
+<v Speaker 0>out, um, we added a bunch of other self-supervised losses
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,98,100]}
+
+00:42:25.919 --> 00:42:27.280
+<v Speaker 0>as well, um.
+
+NOTE CONF {"raw":[100,100,99]}
+
+00:42:28.139 --> 00:42:30.659
+<v Speaker 0>So things like, uh, you know, trying to be able
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,100,100]}
+
+00:42:30.659 --> 00:42:35.570
+<v Speaker 0>to predict, uh, forward dynamics linearly with respect to these
+
+NOTE CONF {"raw":[100,100,99,99,100,99,100,100,100,100]}
+
+00:42:35.570 --> 00:42:39.399
+<v Speaker 0>features, uh, inverse dynamics, pairs, etc.
+
+NOTE CONF {"raw":[100,99,100,100,20,99]}
+
+00:42:40.280 --> 00:42:42.379
+<v Speaker 0>we don't know if this is going to, you know,
+
+NOTE CONF {"raw":[78,100,100,100,100,100,100,100,100,100]}
+
+00:42:42.540 --> 00:42:45.540
+<v Speaker 0>lead to us being able to predict reward linearly, but
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:42:45.540 --> 00:42:49.100
+<v Speaker 0>the idea was that, you know, if you, uh, predict
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,100]}
+
+00:42:49.110 --> 00:42:51.879
+<v Speaker 0>enough types of things in the domain linearly.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100]}
+
+00:42:52.870 --> 00:42:57.040
+<v Speaker 0>Hopefully you're finding good features that are very linearly expressive
+
+NOTE CONF {"raw":[98,99,99,100,99,99,99,99,99,99]}
+
+00:42:57.040 --> 00:42:59.750
+<v Speaker 0>about concepts in the domain so that you know fingers
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:42:59.750 --> 00:43:02.149
+<v Speaker 0>crossed we're going to be able to uh.
+
+NOTE CONF {"raw":[99,98,99,99,99,99,99,99]}
+
+00:43:03.129 --> 00:43:05.850
+<v Speaker 0>Also represent reward reasonably well linearly.
+
+NOTE CONF {"raw":[99,99,99,99,99,99]}
+
+00:43:06.169 --> 00:43:08.570
+<v Speaker 0>Um, this is a bit of a leap, you know,
+
+NOTE CONF {"raw":[50,99,99,99,100,100,99,99,99,99]}
+
+00:43:08.639 --> 00:43:10.370
+<v Speaker 0>it worked decent in practice.
+
+NOTE CONF {"raw":[98,99,100,99,100]}
+
+00:43:10.729 --> 00:43:14.370
+<v Speaker 0>Uh, we're going to talk later in the course about
+
+NOTE CONF {"raw":[47,99,99,99,100,100,100,100,100,100]}
+
+00:43:14.370 --> 00:43:19.010
+<v Speaker 0>this family of methods, uh, called forward backward algorithms, um,
+
+NOTE CONF {"raw":[100,100,100,100,99,99,99,98,99,99]}
+
+00:43:19.409 --> 00:43:21.580
+<v Speaker 0>not the one from hidden Markov models if you're familiar
+
+NOTE CONF {"raw":[100,100,100,99,90,95,99,99,99,99]}
+
+00:43:21.580 --> 00:43:24.969
+<v Speaker 0>with that, something else for, for RL, um, that has
+
+NOTE CONF {"raw":[99,99,99,100,99,99,99,99,99,100]}
+
+00:43:24.969 --> 00:43:27.689
+<v Speaker 0>a much more principled, uh, approach to how to do
+
+NOTE CONF {"raw":[99,100,100,99,99,100,100,100,99,100]}
+
+00:43:27.689 --> 00:43:29.850
+<v Speaker 0>this that just came out, uh, a few years ago.
+
+NOTE CONF {"raw":[99,99,100,100,99,85,99,100,100,100]}
+
+00:43:30.879 --> 00:43:33.040
+<v Speaker 0>But in any case, this gave us some some nice
+
+NOTE CONF {"raw":[99,100,100,100,100,99,100,99,90,99]}
+
+00:43:33.040 --> 00:43:35.959
+<v Speaker 0>features that we think are going to work linearly and
+
+NOTE CONF {"raw":[99,100,100,100,99,99,100,100,98,99]}
+
+00:43:35.959 --> 00:43:38.570
+<v Speaker 0>then once we've learned this, right, we just go through,
+
+NOTE CONF {"raw":[99,100,99,100,100,99,99,100,100,100]}
+
+00:43:38.840 --> 00:43:41.399
+<v Speaker 0>we extract all those features from the ranked trajectories, you
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,82,99,99]}
+
+00:43:41.399 --> 00:43:45.000
+<v Speaker 0>know, just by applying this network to every state and
+
+NOTE CONF {"raw":[99,99,99,100,99,99,100,100,100,99]}
+
+00:43:45.000 --> 00:43:46.879
+<v Speaker 0>you know, summing up all the features that we're getting
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,99,99,99]}
+
+00:43:46.879 --> 00:43:49.840
+<v Speaker 0>the feature counts for each of those trajectories and remember
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,99,99,99]}
+
+00:43:49.840 --> 00:43:51.199
+<v Speaker 0>we still have this ranking over them.
+
+NOTE CONF {"raw":[100,100,99,99,100,100,99]}
+
+00:43:51.989 --> 00:43:55.989
+<v Speaker 0>And then, uh, again, like Bayesian and IRL we're going
+
+NOTE CONF {"raw":[99,100,99,100,100,49,90,99,99,99]}
+
+00:43:55.989 --> 00:44:00.389
+<v Speaker 0>to be doing MCMC, um, and the way we're going
+
+NOTE CONF {"raw":[99,100,100,99,99,99,100,100,99,99]}
+
+00:44:00.389 --> 00:44:02.389
+<v Speaker 0>to do that, right, is we're going to be sampling
+
+NOTE CONF {"raw":[99,100,100,99,99,99,99,99,99,99]}
+
+00:44:02.389 --> 00:44:04.429
+<v Speaker 0>weight vectors W, right?
+
+NOTE CONF {"raw":[99,99,99,99]}
+
+00:44:04.629 --> 00:44:10.020
+<v Speaker 0>And In, uh, in Bayesian IRL we're basically saying, well,
+
+NOTE CONF {"raw":[57,99,99,99,52,99,89,100,100,99]}
+
+00:44:10.209 --> 00:44:10.989
+<v Speaker 0>you know, uh.
+
+NOTE CONF {"raw":[100,100,99]}
+
+00:44:11.699 --> 00:44:16.100
+<v Speaker 0>Uh, a good reward function is, you know, one that
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,100]}
+
+00:44:16.100 --> 00:44:19.159
+<v Speaker 0>makes, you know, the actions that are, you know, taken
+
+NOTE CONF {"raw":[100,99,99,100,100,100,100,99,99,99]}
+
+00:44:19.340 --> 00:44:20.639
+<v Speaker 0>look, look good.
+
+NOTE CONF {"raw":[100,100,100]}
+
+00:44:21.060 --> 00:44:23.899
+<v Speaker 0>Um, here we'll be saying the same thing that really
+
+NOTE CONF {"raw":[99,99,99,100,100,100,100,100,99,100]}
+
+00:44:23.899 --> 00:44:27.679
+<v Speaker 0>we, a, a good reward function is one that agrees,
+
+NOTE CONF {"raw":[99,99,99,100,100,100,100,100,100,99]}
+
+00:44:28.260 --> 00:44:32.709
+<v Speaker 0>uh, with the, uh, the human given preferences but leaves
+
+NOTE CONF {"raw":[99,100,99,99,99,100,99,100,99,62]}
+
+00:44:32.709 --> 00:44:36.219
+<v Speaker 0>some room for noise by being Boltzmann rational, right, um,
+
+NOTE CONF {"raw":[99,100,100,99,100,100,98,99,99,97]}
+
+00:44:36.500 --> 00:44:38.139
+<v Speaker 0>and so what do we mean by agreeing with the
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:44:38.139 --> 00:44:38.659
+<v Speaker 0>preferences?
+
+NOTE CONF {"raw":[100]}
+
+00:44:38.780 --> 00:44:44.139
+<v Speaker 0>Well, you know, when we take W 0.1 of those
+
+NOTE CONF {"raw":[94,100,100,100,100,100,99,81,100,100]}
+
+00:44:44.139 --> 00:44:45.419
+<v Speaker 0>feature vectors, right?
+
+NOTE CONF {"raw":[100,99,99]}
+
+00:44:45.739 --> 00:44:46.260
+<v Speaker 0>Uh.
+
+NOTE CONF {"raw":[99]}
+
+00:44:47.310 --> 00:44:49.830
+<v Speaker 0>The number should be higher, you know, for things that
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:44:49.830 --> 00:44:52.500
+<v Speaker 0>are ranked higher and lower for things that are ranked
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:44:52.500 --> 00:44:52.989
+<v Speaker 0>lower, right?
+
+NOTE CONF {"raw":[100,99]}
+
+00:44:53.110 --> 00:44:55.060
+<v Speaker 0>So anytime you have the human shows a preference for
+
+NOTE CONF {"raw":[99,97,99,67,99,100,99,100,100,100]}
+
+00:44:55.060 --> 00:44:58.330
+<v Speaker 0>one thing or another, uh, you know, you should agree
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,100]}
+
+00:44:58.330 --> 00:45:01.629
+<v Speaker 0>with that preference, and the Boltzmann rational thing is telling
+
+NOTE CONF {"raw":[99,100,100,99,100,99,99,100,100,100]}
+
+00:45:01.629 --> 00:45:04.629
+<v Speaker 0>you, uh, again, just like an IRL, you know, the
+
+NOTE CONF {"raw":[100,99,100,100,100,99,99,100,100,100]}
+
+00:45:04.629 --> 00:45:06.729
+<v Speaker 0>bigger of a difference there is between like.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100]}
+
+00:45:07.350 --> 00:45:11.209
+<v Speaker 0>You know, the Q value of, uh, the, the expert
+
+NOTE CONF {"raw":[100,100,99,99,99,100,99,99,99,99]}
+
+00:45:11.209 --> 00:45:14.949
+<v Speaker 0>action and all the other actions, uh, sort of the
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,100,100]}
+
+00:45:14.949 --> 00:45:17.350
+<v Speaker 0>more pressure there is on you to get it right,
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:45:17.750 --> 00:45:19.239
+<v Speaker 0>um, the same thing happens here, right?
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100]}
+
+00:45:19.310 --> 00:45:22.949
+<v Speaker 0>We're saying that generatively the, uh, the human is much
+
+NOTE CONF {"raw":[99,100,99,100,99,99,100,100,100,100]}
+
+00:45:22.949 --> 00:45:27.090
+<v Speaker 0>more likely to, uh, you know, make a mistake when
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,100,100]}
+
+00:45:27.189 --> 00:45:29.949
+<v Speaker 0>two options, you know, two trajectories are very close together
+
+NOTE CONF {"raw":[99,100,100,100,99,99,100,100,100,100]}
+
+00:45:29.949 --> 00:45:32.750
+<v Speaker 0>in value versus far apart, same, same assumption that T.
+
+NOTE CONF {"raw":[100,100,100,100,100,67,99,99,94,99]}
+
+00:45:32.760 --> 00:45:33.610
+<v Speaker 0>rex made, right?
+
+NOTE CONF {"raw":[90,99,99]}
+
+00:45:35.090 --> 00:45:37.610
+<v Speaker 0>Um, and yeah, we just do a bunch of MCMC
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,99]}
+
+00:45:37.610 --> 00:45:38.050
+<v Speaker 0>steps, right?
+
+NOTE CONF {"raw":[99,100]}
+
+00:45:38.189 --> 00:45:40.889
+<v Speaker 0>Each of those weight vectors is a reward function that
+
+NOTE CONF {"raw":[99,100,99,99,36,100,100,100,100,99]}
+
+00:45:40.889 --> 00:45:44.050
+<v Speaker 0>gives us a distribution over reward functions.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100]}
+
+00:45:44.770 --> 00:45:47.010
+<v Speaker 0>And at that point, once we have that right, the
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,99]}
+
+00:45:47.010 --> 00:45:49.810
+<v Speaker 0>rest of the pipeline is gonna look basically like how
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,100,100]}
+
+00:45:49.810 --> 00:45:51.939
+<v Speaker 0>it looked when we were giving um.
+
+NOTE CONF {"raw":[100,99,100,100,100,99,99]}
+
+00:45:52.770 --> 00:45:55.209
+<v Speaker 0>Probabilistic guarantees for IRL, right?
+
+NOTE CONF {"raw":[98,99,100,99,99]}
+
+00:45:55.489 --> 00:45:57.320
+<v Speaker 0>We're gonna be using the same tools, you know, alpha
+
+NOTE CONF {"raw":[77,87,99,99,100,100,100,99,99,99]}
+
+00:45:57.320 --> 00:45:57.899
+<v Speaker 0>value at risk.
+
+NOTE CONF {"raw":[99,76,99]}
+
+00:45:58.010 --> 00:46:00.810
+<v Speaker 0>So if you remember the, the alpha value at risk
+
+NOTE CONF {"raw":[96,99,100,99,99,99,99,99,82,100]}
+
+00:46:00.810 --> 00:46:04.270
+<v Speaker 0>for something like, you know, alpha equals, you know, 0.95,
+
+NOTE CONF {"raw":[99,100,100,99,99,99,99,99,99,99]}
+
+00:46:04.689 --> 00:46:04.810
+<v Speaker 0>right?
+
+NOTE CONF {"raw":[99]}
+
+00:46:04.860 --> 00:46:08.010
+<v Speaker 0>It's the dividing line between the worst 5% of outcomes
+
+NOTE CONF {"raw":[85,100,100,100,100,100,100,99,100,100]}
+
+00:46:08.010 --> 00:46:12.689
+<v Speaker 0>and the best 95% of outcomes, um, and something called
+
+NOTE CONF {"raw":[99,100,100,99,100,100,99,99,99,99]}
+
+00:46:12.689 --> 00:46:15.409
+<v Speaker 0>conditional value at risk is just the expectation of that
+
+NOTE CONF {"raw":[99,100,98,100,99,100,100,99,99,100]}
+
+00:46:15.409 --> 00:46:17.729
+<v Speaker 0>red tail instead of the cutoff point.
+
+NOTE CONF {"raw":[100,99,100,100,100,95,100]}
+
+00:46:19.899 --> 00:46:22.189
+<v Speaker 0>And again, because we need to think about how much
+
+NOTE CONF {"raw":[99,100,99,100,100,100,100,100,100,100]}
+
+00:46:22.189 --> 00:46:24.229
+<v Speaker 0>data we actually have, we also need to append a
+
+NOTE CONF {"raw":[100,100,99,100,99,100,100,99,99,99]}
+
+00:46:24.229 --> 00:46:26.110
+<v Speaker 0>single-sided confidence bound on this.
+
+NOTE CONF {"raw":[75,99,99,100,99]}
+
+00:46:27.540 --> 00:46:29.409
+<v Speaker 0>And so, you know, when we put those together then
+
+NOTE CONF {"raw":[100,100,100,99,99,99,100,100,100,99]}
+
+00:46:29.409 --> 00:46:31.050
+<v Speaker 0>you get to make statements like, you know, with high
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,99,99,100]}
+
+00:46:31.050 --> 00:46:34.760
+<v Speaker 0>confidence you won't lose more than, you know, $500 95%
+
+NOTE CONF {"raw":[100,100,99,100,100,100,99,99,100,99]}
+
+00:46:34.760 --> 00:46:37.159
+<v Speaker 0>of the time when using this investing strategy for example.
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,100,100]}
+
+00:46:38.919 --> 00:46:41.879
+<v Speaker 0>So how does that translate then to giving guarantees about
+
+NOTE CONF {"raw":[100,100,100,100,100,99,99,99,100,100]}
+
+00:46:41.879 --> 00:46:42.360
+<v Speaker 0>alignment?
+
+NOTE CONF {"raw":[100]}
+
+00:46:42.439 --> 00:46:44.840
+<v Speaker 0>Well, you know, we run Bayesian Rex, we get this
+
+NOTE CONF {"raw":[99,100,100,100,100,91,99,97,99,100]}
+
+00:46:44.840 --> 00:46:46.699
+<v Speaker 0>distribution over reward functions, right?
+
+NOTE CONF {"raw":[100,99,99,100,100]}
+
+00:46:47.520 --> 00:46:51.010
+<v Speaker 0>Um, and then we're going to pick a policy to
+
+NOTE CONF {"raw":[99,99,100,99,99,100,100,100,100,100]}
+
+00:46:51.010 --> 00:46:53.689
+<v Speaker 0>evaluate that we'll call P eval, um.
+
+NOTE CONF {"raw":[100,99,98,99,96,43,99]}
+
+00:46:54.429 --> 00:46:56.949
+<v Speaker 0>You know if we're trying to figure out if uh
+
+NOTE CONF {"raw":[100,100,99,100,100,100,100,100,100,97]}
+
+00:46:56.949 --> 00:46:59.070
+<v Speaker 0>an agent is, you know, aligned with us, this is
+
+NOTE CONF {"raw":[99,100,100,99,100,100,100,100,99,99]}
+
+00:46:59.070 --> 00:47:01.389
+<v Speaker 0>just like whatever the agent's policy is so this could
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,99,100,100]}
+
+00:47:01.389 --> 00:47:03.810
+<v Speaker 0>be a policy that, you know, was.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100]}
+
+00:47:04.750 --> 00:47:08.889
+<v Speaker 0>Learn from running RL on some surrogate reward function.
+
+NOTE CONF {"raw":[99,100,100,99,99,100,99,100,100]}
+
+00:47:09.149 --> 00:47:12.540
+<v Speaker 0>It could be something a person just, you know, sort
+
+NOTE CONF {"raw":[51,100,100,100,100,100,100,100,99,99]}
+
+00:47:12.540 --> 00:47:14.510
+<v Speaker 0>of typed in and hard coded with code.
+
+NOTE CONF {"raw":[99,100,100,100,100,99,100,100]}
+
+00:47:14.550 --> 00:47:17.030
+<v Speaker 0>It could be, um, it, it can come from anywhere.
+
+NOTE CONF {"raw":[88,100,99,99,99,99,64,100,100,100]}
+
+00:47:17.070 --> 00:47:18.729
+<v Speaker 0>It doesn't have to be any particular policy.
+
+NOTE CONF {"raw":[89,99,100,100,100,100,100,100]}
+
+00:47:19.830 --> 00:47:21.469
+<v Speaker 0>You could imagine one way of getting it would just
+
+NOTE CONF {"raw":[65,99,100,100,100,100,100,100,99,100]}
+
+00:47:21.469 --> 00:47:25.189
+<v Speaker 0>be taking the, the most likely reward function.
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,100]}
+
+00:47:25.820 --> 00:47:28.790
+<v Speaker 0>Um, doing RL on that and saying that's the policy
+
+NOTE CONF {"raw":[99,100,99,99,100,100,100,100,100,100]}
+
+00:47:28.790 --> 00:47:31.229
+<v Speaker 0>I'm gonna go with, but I wanna know sort of
+
+NOTE CONF {"raw":[100,99,100,100,100,100,99,100,100,100]}
+
+00:47:31.229 --> 00:47:33.510
+<v Speaker 0>how bad the tails are whenever I do that, like
+
+NOTE CONF {"raw":[100,100,100,81,100,100,100,100,100,88]}
+
+00:47:33.510 --> 00:47:36.510
+<v Speaker 0>is it aligned enough with me in that case.
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100]}
+
+00:47:37.320 --> 00:47:39.280
+<v Speaker 0>And again, the way we're going to do this is
+
+NOTE CONF {"raw":[99,100,100,100,99,99,100,100,100,100]}
+
+00:47:39.280 --> 00:47:40.760
+<v Speaker 0>exactly the same as before, right?
+
+NOTE CONF {"raw":[100,100,100,100,100,99]}
+
+00:47:40.840 --> 00:47:42.840
+<v Speaker 0>We're gonna, we have all these different samples of different
+
+NOTE CONF {"raw":[99,97,99,99,100,99,100,100,99,100]}
+
+00:47:42.840 --> 00:47:43.879
+<v Speaker 0>reward functions.
+
+NOTE CONF {"raw":[100,100]}
+
+00:47:45.770 --> 00:47:48.919
+<v Speaker 0>And we're, we're going to see, uh.
+
+NOTE CONF {"raw":[99,37,47,99,100,100,88]}
+
+00:47:49.929 --> 00:47:55.929
+<v Speaker 0>How, um How bad this, you know, any given uh.
+
+NOTE CONF {"raw":[99,99,99,100,99,99,99,100,100,77]}
+
+00:47:57.169 --> 00:48:01.000
+<v Speaker 0>Uh, policy can look against this shouldn't, sorry, this shouldn't
+
+NOTE CONF {"raw":[99,99,100,100,99,70,98,99,83,97]}
+
+00:48:01.000 --> 00:48:01.060
+<v Speaker 0>fail.
+
+NOTE CONF {"raw":[38]}
+
+00:48:03.199 --> 00:48:05.060
+<v Speaker 0>That you can do under.
+
+NOTE CONF {"raw":[51,99,99,99,99]}
+
+00:48:07.919 --> 00:48:11.899
+<v Speaker 0>Um, And then, yeah, we, we do the, the rebounds
+
+NOTE CONF {"raw":[81,99,99,99,99,99,99,99,99,0]}
+
+00:48:12.479 --> 00:48:13.540
+<v Speaker 0>and that gives us exactly.
+
+NOTE CONF {"raw":[99,96,98,99,99]}
+
+00:48:15.600 --> 00:48:18.020
+<v Speaker 0>That we, we want that with probability 1 minus delta
+
+NOTE CONF {"raw":[99,99,99,99,99,99,70,99,99,97]}
+
+00:48:18.370 --> 00:48:20.570
+<v Speaker 0>we can guarantee that the value of risk is.
+
+NOTE CONF {"raw":[99,100,100,100,100,100,66,100,99]}
+
+00:48:35.239 --> 00:48:35.560
+<v Speaker 0>OK.
+
+NOTE CONF {"raw":[98]}
+
+00:48:37.159 --> 00:48:40.750
+<v Speaker 0>Um, this doesn't have to just be used for evaluation.
+
+NOTE CONF {"raw":[99,99,99,98,99,99,99,99,99,79]}
+
+00:48:41.129 --> 00:48:46.729
+<v Speaker 0>Um, you can actually, uh, take this distribution of reward
+
+NOTE CONF {"raw":[80,99,100,100,99,99,99,100,99,99]}
+
+00:48:46.729 --> 00:48:52.550
+<v Speaker 0>functions and you can actually do policy optimization with RL
+
+NOTE CONF {"raw":[99,99,100,100,100,99,99,99,99,99]}
+
+00:48:52.840 --> 00:48:56.729
+<v Speaker 0>with respect to the whole distribution of reward functions instead
+
+NOTE CONF {"raw":[99,100,100,100,100,100,99,99,100,100]}
+
+00:48:56.729 --> 00:49:00.070
+<v Speaker 0>of just picking a single one, so that you minimize
+
+NOTE CONF {"raw":[100,99,100,100,100,100,99,99,99,99]}
+
+00:49:00.070 --> 00:49:03.969
+<v Speaker 0>the risk so you can actually, you know, take policy
+
+NOTE CONF {"raw":[100,100,99,99,99,100,99,99,100,99]}
+
+00:49:03.969 --> 00:49:05.169
+<v Speaker 0>gradients essentially.
+
+NOTE CONF {"raw":[99,100]}
+
+00:49:05.750 --> 00:49:07.649
+<v Speaker 0>That allow you to um.
+
+NOTE CONF {"raw":[99,100,100,100,99]}
+
+00:49:08.959 --> 00:49:12.399
+<v Speaker 0>Like minimize the, uh, not the value at risk actually
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,89,100,99]}
+
+00:49:12.399 --> 00:49:14.870
+<v Speaker 0>but the conditional value at risk, the expectation of that
+
+NOTE CONF {"raw":[99,99,99,100,99,99,99,100,100,99]}
+
+00:49:14.870 --> 00:49:16.419
+<v Speaker 0>red tail, so.
+
+NOTE CONF {"raw":[100,99,99]}
+
+00:49:17.100 --> 00:49:19.379
+<v Speaker 0>It might not give you quite as good of a
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:49:19.379 --> 00:49:23.060
+<v Speaker 0>policy um as if you had just like taken the
+
+NOTE CONF {"raw":[100,99,99,100,100,99,100,99,99,100]}
+
+00:49:23.060 --> 00:49:25.780
+<v Speaker 0>most likely reward function and run with it, but it
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,100]}
+
+00:49:25.780 --> 00:49:27.570
+<v Speaker 0>also might give you a much better one and it
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,99]}
+
+00:49:27.580 --> 00:49:32.219
+<v Speaker 0>it it uh it, it reduces your risk, uh, the
+
+NOTE CONF {"raw":[99,99,99,99,99,100,100,100,99,100]}
+
+00:49:32.219 --> 00:49:35.219
+<v Speaker 0>chance that things are going to go really bad essentially
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:49:35.219 --> 00:49:37.979
+<v Speaker 0>so again for for safety critical domains this is, this
+
+NOTE CONF {"raw":[77,100,99,99,100,99,100,100,100,100]}
+
+00:49:37.979 --> 00:49:38.919
+<v Speaker 0>is really crucial.
+
+NOTE CONF {"raw":[100,100,100]}
+
+00:49:40.409 --> 00:49:41.949
+<v Speaker 0>So yeah, just ask a couple questions.
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100]}
+
+00:49:42.030 --> 00:49:45.189
+<v Speaker 0>First of all, can you know, Bayesian Rex accurately predict
+
+NOTE CONF {"raw":[99,100,100,99,100,100,92,98,99,100]}
+
+00:49:45.189 --> 00:49:48.850
+<v Speaker 0>return distributions like looking at Atari breakout, we have this.
+
+NOTE CONF {"raw":[100,99,99,100,99,99,99,99,100,100]}
+
+00:49:49.709 --> 00:49:51.070
+<v Speaker 0>If you, if we take a look at 4 different
+
+NOTE CONF {"raw":[57,99,99,100,99,100,100,100,99,100]}
+
+00:49:51.070 --> 00:49:54.669
+<v Speaker 0>policies here and just run them ground truth, here's some
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,99,96,100]}
+
+00:49:54.669 --> 00:49:57.989
+<v Speaker 0>histograms of the returns that these different policies get so
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,99]}
+
+00:49:57.989 --> 00:49:59.510
+<v Speaker 0>you can see like this is kind of the ordering
+
+NOTE CONF {"raw":[99,100,100,99,100,99,99,99,100,100]}
+
+00:49:59.510 --> 00:50:02.030
+<v Speaker 0>of how good they are, and we see the returns
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,69,100]}
+
+00:50:02.030 --> 00:50:04.250
+<v Speaker 0>here and you'll see that Bay and Rex, um.
+
+NOTE CONF {"raw":[100,99,100,100,99,99,97,99,99]}
+
+00:50:05.149 --> 00:50:08.550
+<v Speaker 0>You know, it, it's, it's not exactly the right shape
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,100,100,100]}
+
+00:50:08.550 --> 00:50:12.350
+<v Speaker 0>here, but like it's pretty darn close to, uh, you
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,100,99,100]}
+
+00:50:12.350 --> 00:50:14.709
+<v Speaker 0>know, it, it certainly gets the ordering right and it
+
+NOTE CONF {"raw":[100,99,99,99,100,100,100,100,100,100]}
+
+00:50:14.709 --> 00:50:17.320
+<v Speaker 0>gets like the rough shapes correct as well.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100]}
+
+00:50:20.300 --> 00:50:22.550
+<v Speaker 0>The more interesting result though, uh, that I hope you
+
+NOTE CONF {"raw":[100,100,100,100,99,99,99,99,100,100]}
+
+00:50:22.550 --> 00:50:25.550
+<v Speaker 0>noticed in the paper was this result from this game
+
+NOTE CONF {"raw":[99,100,100,100,99,100,100,100,100,100]}
+
+00:50:25.550 --> 00:50:28.909
+<v Speaker 0>Beam Rider, um, the, uh, that's an Atari game that
+
+NOTE CONF {"raw":[99,99,99,84,73,97,99,99,100,100]}
+
+00:50:28.909 --> 00:50:30.270
+<v Speaker 0>has a very interesting property.
+
+NOTE CONF {"raw":[100,99,100,100,99]}
+
+00:50:30.379 --> 00:50:33.699
+<v Speaker 0>So Beam Rider has this thing where, um, before the
+
+NOTE CONF {"raw":[95,99,99,100,100,100,100,99,100,100]}
+
+00:50:33.699 --> 00:50:35.709
+<v Speaker 0>game starts and you, you like you're just on like
+
+NOTE CONF {"raw":[100,100,99,99,99,99,99,99,99,99]}
+
+00:50:35.709 --> 00:50:38.469
+<v Speaker 0>the loading screen, um, you know, you have to hit
+
+NOTE CONF {"raw":[99,100,100,99,99,99,99,99,99,100]}
+
+00:50:38.469 --> 00:50:40.310
+<v Speaker 0>start to actually make the game start and if you
+
+NOTE CONF {"raw":[99,99,99,99,100,100,100,62,97,100]}
+
+00:50:40.310 --> 00:50:41.250
+<v Speaker 0>don't press start.
+
+NOTE CONF {"raw":[100,100,99]}
+
+00:50:41.689 --> 00:50:43.570
+<v Speaker 0>It kind of looks like the game is going, like
+
+NOTE CONF {"raw":[100,74,87,100,100,100,100,100,100,99]}
+
+00:50:43.570 --> 00:50:45.850
+<v Speaker 0>they're like these like enemies that move around the screen
+
+NOTE CONF {"raw":[77,100,99,99,100,99,100,100,100,100]}
+
+00:50:45.850 --> 00:50:47.850
+<v Speaker 0>and like it looks like you're moving forward, but like
+
+NOTE CONF {"raw":[100,99,100,100,100,100,100,100,99,99]}
+
+00:50:47.850 --> 00:50:49.929
+<v Speaker 0>you're not actually playing the game, like nothing has actually
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,92,100]}
+
+00:50:49.929 --> 00:50:54.669
+<v Speaker 0>started, um, and in fact if you just uh never
+
+NOTE CONF {"raw":[100,88,99,100,100,100,100,100,99,100]}
+
+00:50:54.669 --> 00:50:56.649
+<v Speaker 0>press a button, the game will just kind of go
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,93,95,100]}
+
+00:50:56.649 --> 00:50:59.929
+<v Speaker 0>on forever until eventually the uh the emulator times out
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,99,100]}
+
+00:50:59.929 --> 00:51:02.790
+<v Speaker 0>after some like very long amount of time, it's like,
+
+NOTE CONF {"raw":[100,100,99,100,100,100,100,100,92,100]}
+
+00:51:03.090 --> 00:51:05.889
+<v Speaker 0>uh, just under 100,000 time steps.
+
+NOTE CONF {"raw":[99,100,100,100,99,99]}
+
+00:51:06.580 --> 00:51:11.729
+<v Speaker 0>Um, And this is an important, uh, this is an
+
+NOTE CONF {"raw":[99,99,99,99,99,100,99,99,99,99]}
+
+00:51:11.729 --> 00:51:13.010
+<v Speaker 0>important property for what we did.
+
+NOTE CONF {"raw":[100,100,100,99,99,99]}
+
+00:51:13.530 --> 00:51:17.090
+<v Speaker 0>So what we did was we, we created 5 different
+
+NOTE CONF {"raw":[91,100,100,100,99,99,99,100,98,100]}
+
+00:51:17.090 --> 00:51:20.129
+<v Speaker 0>policies that we wanted to evaluate, um.
+
+NOTE CONF {"raw":[100,100,100,99,99,94,99]}
+
+00:51:23.590 --> 00:51:26.699
+<v Speaker 0>Wort, um, and, uh.
+
+NOTE CONF {"raw":[23,99,99,63]}
+
+00:51:27.600 --> 00:51:31.000
+<v Speaker 0>B is uh uh sorry, D.
+
+NOTE CONF {"raw":[99,99,97,92,99,99]}
+
+00:51:31.870 --> 00:51:32.070
+<v Speaker 0>Wait.
+
+NOTE CONF {"raw":[98]}
+
+00:51:34.629 --> 00:51:37.689
+<v Speaker 0>Yeah, sorry, A is the worst, A is the best,
+
+NOTE CONF {"raw":[99,99,99,99,100,99,69,99,99,100]}
+
+00:51:38.149 --> 00:51:40.629
+<v Speaker 0>um, and then a noop policy that never presses a
+
+NOTE CONF {"raw":[99,99,99,99,35,99,99,100,100,99]}
+
+00:51:40.629 --> 00:51:42.489
+<v Speaker 0>button at all, so that you're just kind of stuck
+
+NOTE CONF {"raw":[100,99,100,99,99,99,99,99,99,100]}
+
+00:51:42.489 --> 00:51:46.050
+<v Speaker 0>on the start screen forever and that's actually like truly
+
+NOTE CONF {"raw":[100,99,99,99,99,99,99,100,99,99]}
+
+00:51:46.050 --> 00:51:46.669
+<v Speaker 0>the worst policy.
+
+NOTE CONF {"raw":[100,99,99]}
+
+00:51:46.709 --> 00:51:48.389
+<v Speaker 0>It's ground truth score is 0, right?
+
+NOTE CONF {"raw":[45,99,99,99,99,92,99]}
+
+00:51:49.270 --> 00:51:53.969
+<v Speaker 0>And so what we want to do is, uh, evaluate
+
+NOTE CONF {"raw":[100,100,100,100,67,50,100,100,99,100]}
+
+00:51:54.149 --> 00:51:56.209
+<v Speaker 0>in two different ways.
+
+NOTE CONF {"raw":[100,99,100,100]}
+
+00:51:56.750 --> 00:51:57.649
+<v Speaker 0>One would be.
+
+NOTE CONF {"raw":[99,100,100]}
+
+00:51:58.590 --> 00:52:00.699
+<v Speaker 0>This column here, which you can think about in two
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,99,99]}
+
+00:52:00.699 --> 00:52:02.149
+<v Speaker 0>different ways, um.
+
+NOTE CONF {"raw":[100,100,98]}
+
+00:52:02.929 --> 00:52:05.739
+<v Speaker 0>You can do this and you get virtually identical results
+
+NOTE CONF {"raw":[100,100,100,100,99,99,100,100,100,100]}
+
+00:52:05.739 --> 00:52:06.699
+<v Speaker 0>when you do it these two ways.
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100]}
+
+00:52:06.739 --> 00:52:07.689
+<v Speaker 0>You can either just run T.
+
+NOTE CONF {"raw":[99,100,100,100,100,99]}
+
+00:52:07.699 --> 00:52:11.659
+<v Speaker 0>rex and use that single point estimate of the reward
+
+NOTE CONF {"raw":[2,100,100,100,100,100,100,100,100,100]}
+
+00:52:11.659 --> 00:52:15.659
+<v Speaker 0>function, um, to evaluate, or you could run Bayesian Rex,
+
+NOTE CONF {"raw":[100,99,100,100,100,100,99,100,98,90]}
+
+00:52:15.739 --> 00:52:17.530
+<v Speaker 0>uh, which is what we did here, and just use
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,100,100,100]}
+
+00:52:17.530 --> 00:52:21.939
+<v Speaker 0>the mean, uh, reward function, um, and you know that
+
+NOTE CONF {"raw":[100,100,97,100,100,99,100,99,100,100]}
+
+00:52:21.939 --> 00:52:25.360
+<v Speaker 0>gives you an, an estimate of, of what's going on.
+
+NOTE CONF {"raw":[100,100,99,99,100,99,99,100,100,100]}
+
+00:52:25.929 --> 00:52:29.489
+<v Speaker 0>So, but again like that's that's not going to measure
+
+NOTE CONF {"raw":[99,99,100,99,99,99,99,99,99,100]}
+
+00:52:29.489 --> 00:52:30.370
+<v Speaker 0>risk at all, right?
+
+NOTE CONF {"raw":[100,99,100,99]}
+
+00:52:30.449 --> 00:52:32.489
+<v Speaker 0>It's just going to kind of give you an expectation
+
+NOTE CONF {"raw":[82,99,99,99,98,99,99,99,99,100]}
+
+00:52:32.489 --> 00:52:35.449
+<v Speaker 0>from a point estimate or an average of reward functions,
+
+NOTE CONF {"raw":[99,99,100,99,99,99,100,99,99,99]}
+
+00:52:35.489 --> 00:52:35.899
+<v Speaker 0>right?
+
+NOTE CONF {"raw":[99]}
+
+00:52:36.600 --> 00:52:38.719
+<v Speaker 0>And what you'll notice is, um.
+
+NOTE CONF {"raw":[99,100,100,100,100,97]}
+
+00:52:39.300 --> 00:52:42.179
+<v Speaker 0>It gets the ordering right of A through D, right?
+
+NOTE CONF {"raw":[100,100,100,100,99,100,99,99,99,99]}
+
+00:52:42.300 --> 00:52:44.760
+<v Speaker 0>It notices that, you know, A is worse than B,
+
+NOTE CONF {"raw":[99,100,100,99,99,99,100,99,100,99]}
+
+00:52:44.780 --> 00:52:47.340
+<v Speaker 0>is worse than C, is worse than D, but then
+
+NOTE CONF {"raw":[99,99,100,99,99,99,100,99,99,100]}
+
+00:52:47.340 --> 00:52:50.889
+<v Speaker 0>it really, really likes this no op policy that never
+
+NOTE CONF {"raw":[100,100,100,100,100,74,99,100,100,100]}
+
+00:52:50.889 --> 00:52:51.580
+<v Speaker 0>does anything.
+
+NOTE CONF {"raw":[100,100]}
+
+00:52:52.909 --> 00:52:53.959
+<v Speaker 0>What do you think's going on there?
+
+NOTE CONF {"raw":[99,99,99,97,99,99,99]}
+
+00:52:55.659 --> 00:52:56.439
+<v Speaker 0>I guess is.
+
+NOTE CONF {"raw":[87,99,53]}
+
+00:53:01.310 --> 00:53:06.370
+<v Speaker 0>Yeah, It, it never sees what?
+
+NOTE CONF {"raw":[99,94,98,99,99,99]}
+
+00:53:11.120 --> 00:53:11.840
+<v Speaker 0>Yeah, that is true.
+
+NOTE CONF {"raw":[99,99,99,100]}
+
+00:53:11.919 --> 00:53:14.780
+<v Speaker 0>It, it does not see sort of bad states for
+
+NOTE CONF {"raw":[89,99,99,100,100,100,100,100,99,100]}
+
+00:53:14.780 --> 00:53:16.300
+<v Speaker 0>NOO, um.
+
+NOTE CONF {"raw":[60,99]}
+
+00:53:17.100 --> 00:53:19.580
+<v Speaker 0>There's one more thing going on that has to do
+
+NOTE CONF {"raw":[99,99,100,100,100,99,99,99,99,99]}
+
+00:53:19.580 --> 00:53:22.379
+<v Speaker 0>with this column here of the average length of a
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,99,99,98]}
+
+00:53:22.379 --> 00:53:24.360
+<v Speaker 0>trajectory under each policy.
+
+NOTE CONF {"raw":[100,99,99,99]}
+
+00:53:28.250 --> 00:53:31.010
+<v Speaker 0>Yeah, there's not much variability, but like if, if nothing
+
+NOTE CONF {"raw":[99,99,99,99,100,99,99,99,99,99]}
+
+00:53:31.010 --> 00:53:34.649
+<v Speaker 0>good's happening, it doesn't really matter if there's variability or
+
+NOTE CONF {"raw":[99,99,99,100,100,100,99,99,99,99]}
+
+00:53:34.649 --> 00:53:37.010
+<v Speaker 0>not if like nothing, it never, you know, scores a
+
+NOTE CONF {"raw":[99,91,99,99,95,94,99,99,95,99]}
+
+00:53:37.010 --> 00:53:38.360
+<v Speaker 0>point or you know she.
+
+NOTE CONF {"raw":[99,99,79,56,57]}
+
+00:53:40.169 --> 00:53:40.560
+<v Speaker 0>Yeah.
+
+NOTE CONF {"raw":[99]}
+
+00:53:44.090 --> 00:53:47.570
+<v Speaker 0>Yep, yeah, this is just reward hacking that if you
+
+NOTE CONF {"raw":[93,99,99,100,100,100,100,100,100,100]}
+
+00:53:47.570 --> 00:53:51.800
+<v Speaker 0>just run TRX, right, um, instead of learning things about
+
+NOTE CONF {"raw":[100,100,96,100,97,100,100,100,100,100]}
+
+00:53:51.810 --> 00:53:53.169
+<v Speaker 0>how the game actually works.
+
+NOTE CONF {"raw":[100,100,100,100,100]}
+
+00:53:53.840 --> 00:53:56.879
+<v Speaker 0>If you look at this, right, uh, A through D,
+
+NOTE CONF {"raw":[100,100,100,100,100,99,99,97,99,99]}
+
+00:53:57.320 --> 00:54:01.159
+<v Speaker 0>you're, as the policy gets better, right, you're, uh, the
+
+NOTE CONF {"raw":[86,99,91,99,99,99,99,50,99,99]}
+
+00:54:01.159 --> 00:54:03.239
+<v Speaker 0>game's getting longer and longer, right?
+
+NOTE CONF {"raw":[99,100,100,100,100,99]}
+
+00:54:03.639 --> 00:54:07.110
+<v Speaker 0>And so what would account for the preferences over these?
+
+NOTE CONF {"raw":[96,99,100,100,99,100,100,100,100,99]}
+
+00:54:07.469 --> 00:54:09.959
+<v Speaker 0>Well, instead of paying attention to the things that actually
+
+NOTE CONF {"raw":[97,100,100,100,100,100,100,100,100,100]}
+
+00:54:09.959 --> 00:54:12.800
+<v Speaker 0>generate ground truth score, you could just discover a reward
+
+NOTE CONF {"raw":[100,99,99,100,100,99,100,100,100,100]}
+
+00:54:12.800 --> 00:54:14.989
+<v Speaker 0>function that's +1 at every time step, right?
+
+NOTE CONF {"raw":[100,100,82,99,100,99,97,99]}
+
+00:54:15.399 --> 00:54:18.719
+<v Speaker 0>And that will, uh, because, you know, to living long
+
+NOTE CONF {"raw":[99,100,99,92,99,100,100,87,99,99]}
+
+00:54:18.719 --> 00:54:21.580
+<v Speaker 0>is correlated but not puzzle of good performance.
+
+NOTE CONF {"raw":[100,99,99,92,80,99,100,100]}
+
+00:54:21.959 --> 00:54:24.750
+<v Speaker 0>And so the NOAA policy, well, that lasts a really
+
+NOTE CONF {"raw":[100,100,100,18,99,99,100,100,100,100]}
+
+00:54:24.750 --> 00:54:27.590
+<v Speaker 0>long time, right, uh, that, that lives, you know, as
+
+NOTE CONF {"raw":[100,100,100,91,99,99,100,100,100,100]}
+
+00:54:27.590 --> 00:54:30.830
+<v Speaker 0>long as you possibly can in this emulator, um, and
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,99]}
+
+00:54:30.830 --> 00:54:32.669
+<v Speaker 0>so it thinks that that one's the best just because
+
+NOTE CONF {"raw":[100,100,100,98,99,99,100,100,100,100]}
+
+00:54:32.669 --> 00:54:36.270
+<v Speaker 0>it lives long and, uh, you know, it, it overfit
+
+NOTE CONF {"raw":[100,100,100,100,99,100,100,100,100,99]}
+
+00:54:36.270 --> 00:54:40.080
+<v Speaker 0>its reward function to this false correlate of, of, uh,
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,100,99]}
+
+00:54:40.110 --> 00:54:42.350
+<v Speaker 0>behavior, uh, of, of good behavior.
+
+NOTE CONF {"raw":[100,99,98,99,100,100]}
+
+00:54:42.790 --> 00:54:45.520
+<v Speaker 0>Um, but if instead you take this risk metric and
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,99,100]}
+
+00:54:45.520 --> 00:54:47.760
+<v Speaker 0>you look at the value of at risk, right, you'll
+
+NOTE CONF {"raw":[100,100,100,100,100,99,74,100,99,99]}
+
+00:54:47.760 --> 00:54:50.520
+<v Speaker 0>notice it thinks that it's very bad and kind of
+
+NOTE CONF {"raw":[99,100,100,100,100,100,100,99,99,99]}
+
+00:54:50.709 --> 00:54:52.590
+<v Speaker 0>shouldn't say the worst case, but you know, in that
+
+NOTE CONF {"raw":[98,99,100,99,100,99,100,100,100,100]}
+
+00:54:52.590 --> 00:54:55.199
+<v Speaker 0>tail that you know there's, you know, 5 in the,
+
+NOTE CONF {"raw":[73,99,100,100,99,100,99,99,99,99]}
+
+00:54:55.239 --> 00:54:59.879
+<v Speaker 0>the worst 5% of cases, uh, look quite bad, um,
+
+NOTE CONF {"raw":[99,99,99,100,100,99,100,100,100,99]}
+
+00:55:00.159 --> 00:55:02.800
+<v Speaker 0>and that 5% of cases, right, are like.
+
+NOTE CONF {"raw":[96,100,100,100,100,99,99,99]}
+
+00:55:02.909 --> 00:55:06.110
+<v Speaker 0>The reward functions that say oh it's actually important to
+
+NOTE CONF {"raw":[43,51,99,99,99,99,99,100,100,100]}
+
+00:55:06.110 --> 00:55:08.270
+<v Speaker 0>do something in the game like you really do need
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,100,100]}
+
+00:55:08.270 --> 00:55:10.830
+<v Speaker 0>to be, you know, shooting enemies and doing these things
+
+NOTE CONF {"raw":[100,99,99,99,100,100,100,100,99,100]}
+
+00:55:10.830 --> 00:55:14.189
+<v Speaker 0>like yes there are these other hypotheses like just plus
+
+NOTE CONF {"raw":[99,99,100,100,99,100,99,99,99,99]}
+
+00:55:14.189 --> 00:55:17.389
+<v Speaker 0>one at every step that explain the data, but there
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,99,100]}
+
+00:55:17.389 --> 00:55:21.350
+<v Speaker 0>are other hypotheses that explain the data well that make
+
+NOTE CONF {"raw":[100,100,99,100,100,100,100,100,100,100]}
+
+00:55:21.350 --> 00:55:22.989
+<v Speaker 0>the NOAAP policy look really bad.
+
+NOTE CONF {"raw":[100,21,99,100,100,99]}
+
+00:55:23.469 --> 00:55:25.669
+<v Speaker 0>And so by reasoning about risk, you know, we, we
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:55:25.669 --> 00:55:29.830
+<v Speaker 0>really do avoid, um, doing something silly here and, and
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,99,99]}
+
+00:55:29.830 --> 00:55:33.179
+<v Speaker 0>I think one cool thing about this is like it's,
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:55:33.409 --> 00:55:35.870
+<v Speaker 0>you know, it's not just that maybe we wanna do
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,99,100]}
+
+00:55:35.870 --> 00:55:39.310
+<v Speaker 0>this only safety critical domains where we really, really care
+
+NOTE CONF {"raw":[100,100,99,99,99,100,100,100,100,100]}
+
+00:55:39.310 --> 00:55:42.449
+<v Speaker 0>about like not screwing something up, it's also just a
+
+NOTE CONF {"raw":[100,99,100,100,100,100,98,100,100,100]}
+
+00:55:42.449 --> 00:55:45.169
+<v Speaker 0>practical thing that like it's a good way of not.
+
+NOTE CONF {"raw":[100,100,99,99,100,100,100,100,100,100]}
+
+00:55:45.479 --> 00:55:48.639
+<v Speaker 0>Um, you know, overfitting the preference data and coming up
+
+NOTE CONF {"raw":[99,100,100,99,94,100,100,99,100,100]}
+
+00:55:48.639 --> 00:55:53.000
+<v Speaker 0>with like degenerate solutions, uh, that, you know, grab onto
+
+NOTE CONF {"raw":[100,100,100,100,99,99,100,100,100,99]}
+
+00:55:53.000 --> 00:55:56.199
+<v Speaker 0>some feature that doesn't actually causally matter and then reward
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,100,100]}
+
+00:55:56.199 --> 00:55:59.719
+<v Speaker 0>hacking it, um, so you know it's actually a, a
+
+NOTE CONF {"raw":[100,95,99,100,100,100,100,100,99,99]}
+
+00:55:59.719 --> 00:56:03.100
+<v Speaker 0>partial solution at least to, to reward hacking as well.
+
+NOTE CONF {"raw":[100,100,100,100,100,99,100,100,100,100]}
+
+00:56:06.510 --> 00:56:08.439
+<v Speaker 0>Um, and like I said, this is not just restricted
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,100]}
+
+00:56:08.439 --> 00:56:11.239
+<v Speaker 0>to evaluation, you can do the same thing with, with
+
+NOTE CONF {"raw":[99,100,70,100,100,100,100,100,99,99]}
+
+00:56:11.239 --> 00:56:12.120
+<v Speaker 0>policy learning.
+
+NOTE CONF {"raw":[99,100]}
+
+00:56:15.449 --> 00:56:17.300
+<v Speaker 0>Um, and then we just showed that, you know, for,
+
+NOTE CONF {"raw":[99,99,100,100,100,99,100,100,100,99]}
+
+00:56:17.449 --> 00:56:20.479
+<v Speaker 0>for generating point estimates if you really want to do
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,100,100,100]}
+
+00:56:20.479 --> 00:56:22.679
+<v Speaker 0>that for some reason, you know, taking the mean of
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,100,100]}
+
+00:56:22.679 --> 00:56:27.080
+<v Speaker 0>the, the Bayesian Rex, uh, posterior performs as well as
+
+NOTE CONF {"raw":[99,99,53,56,99,100,100,100,100,100]}
+
+00:56:27.080 --> 00:56:28.550
+<v Speaker 0>if you would just run like T.
+
+NOTE CONF {"raw":[100,99,83,100,99,100,99]}
+
+00:56:28.560 --> 00:56:30.040
+<v Speaker 0>rex and gotten a point estimate.
+
+NOTE CONF {"raw":[68,100,99,99,100,99]}
+
+00:56:32.439 --> 00:56:36.439
+<v Speaker 0>OK, so yeah, I think we already covered this, so
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,94]}
+
+00:56:36.820 --> 00:56:38.840
+<v Speaker 0>you know where are we now?
+
+NOTE CONF {"raw":[99,99,99,99,99,99]}
+
+00:56:38.879 --> 00:56:40.320
+<v Speaker 0>you know all this work was a couple of years
+
+NOTE CONF {"raw":[78,99,96,99,99,99,99,99,90,99]}
+
+00:56:40.320 --> 00:56:42.629
+<v Speaker 0>ago, um, you know.
+
+NOTE CONF {"raw":[99,99,99,99]}
+
+00:56:43.270 --> 00:56:46.649
+<v Speaker 0>In the LLM world, you know, we're looking at like
+
+NOTE CONF {"raw":[100,100,99,100,99,99,67,100,100,99]}
+
+00:56:47.270 --> 00:56:50.310
+<v Speaker 0>significantly bigger problems than, you know, playing an Atari game
+
+NOTE CONF {"raw":[100,100,100,100,99,99,100,99,99,100]}
+
+00:56:50.310 --> 00:56:53.229
+<v Speaker 0>or something, and so, you know, scaling these kinds of
+
+NOTE CONF {"raw":[100,100,99,100,100,100,100,99,100,100]}
+
+00:56:53.229 --> 00:56:56.709
+<v Speaker 0>things not just to huge models but to huge models
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,99,100,100]}
+
+00:56:56.709 --> 00:57:01.870
+<v Speaker 0>that operate on truly enormous input and output spaces, um,
+
+NOTE CONF {"raw":[100,100,100,100,100,99,99,99,100,99]}
+
+00:57:02.110 --> 00:57:04.149
+<v Speaker 0>is, is a real challenge, uh.
+
+NOTE CONF {"raw":[99,99,100,100,100,99]}
+
+00:57:04.850 --> 00:57:06.629
+<v Speaker 0>You know I'm still working on this.
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100]}
+
+00:57:06.810 --> 00:57:10.250
+<v Speaker 0>I, I think it's possible luckily like there are some
+
+NOTE CONF {"raw":[99,100,100,100,100,96,99,100,100,100]}
+
+00:57:10.250 --> 00:57:14.320
+<v Speaker 0>other um groups uh that are also like industry adjacent
+
+NOTE CONF {"raw":[100,99,100,99,99,99,100,100,100,99]}
+
+00:57:14.610 --> 00:57:17.250
+<v Speaker 0>that are really making like a serious uh attempt at
+
+NOTE CONF {"raw":[99,99,100,100,100,100,100,99,100,99]}
+
+00:57:17.250 --> 00:57:20.770
+<v Speaker 0>this, um, and so there are a number of, um.
+
+NOTE CONF {"raw":[100,99,99,100,100,99,100,100,100,99]}
+
+00:57:21.510 --> 00:57:27.149
+<v Speaker 0>Like industry adjacent, uh, like nonprofits, for example, um, that,
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,100,99,99]}
+
+00:57:27.239 --> 00:57:31.870
+<v Speaker 0>uh, that are working on like forecasting for LLMs, uh,
+
+NOTE CONF {"raw":[99,99,99,100,100,99,100,100,99,99]}
+
+00:57:32.030 --> 00:57:34.770
+<v Speaker 0>so like there's, there are these researchers Wu and, uh,
+
+NOTE CONF {"raw":[99,99,90,88,70,99,99,99,99,99]}
+
+00:57:34.780 --> 00:57:38.469
+<v Speaker 0>Hint, uh, Hilton at, um, oh, where are they at?
+
+NOTE CONF {"raw":[81,99,99,99,99,99,99,99,99,99]}
+
+00:57:38.590 --> 00:57:40.350
+<v Speaker 0>I think, uh, they're not a good fire.
+
+NOTE CONF {"raw":[82,73,78,99,99,99,99,99]}
+
+00:57:41.989 --> 00:57:43.989
+<v Speaker 0>They're one of the AIA, I forget which one it
+
+NOTE CONF {"raw":[99,100,100,100,73,99,99,100,100,99]}
+
+00:57:43.989 --> 00:57:46.709
+<v Speaker 0>is, but you know they're working on problems of forecasting,
+
+NOTE CONF {"raw":[99,99,99,99,100,100,100,100,99,100]}
+
+00:57:46.790 --> 00:57:49.699
+<v Speaker 0>uh, you know, for a given language model and a
+
+NOTE CONF {"raw":[99,99,99,100,99,100,100,100,99,99]}
+
+00:57:49.699 --> 00:57:52.949
+<v Speaker 0>given distribution of prompts, uh, what's the tail risk of
+
+NOTE CONF {"raw":[100,100,100,100,93,99,100,100,100,100]}
+
+00:57:52.949 --> 00:57:56.229
+<v Speaker 0>certain events happening and being able to forecast that even
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,100,100]}
+
+00:57:56.229 --> 00:57:59.149
+<v Speaker 0>if the event is so rare that you'll never observe
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:57:59.149 --> 00:58:00.570
+<v Speaker 0>it just from like sampling.
+
+NOTE CONF {"raw":[100,100,100,99,100]}
+
+00:58:01.189 --> 00:58:04.629
+<v Speaker 0>So you know, uh, maybe there's, you know, some rare
+
+NOTE CONF {"raw":[100,100,100,99,100,100,99,99,100,100]}
+
+00:58:04.629 --> 00:58:07.229
+<v Speaker 0>prompt and under that prompt, you know, there's only a,
+
+NOTE CONF {"raw":[100,98,99,100,100,100,100,100,100,87]}
+
+00:58:07.270 --> 00:58:09.870
+<v Speaker 0>a one in a million chance that, you know, it's
+
+NOTE CONF {"raw":[99,80,100,100,100,100,100,100,100,100]}
+
+00:58:09.870 --> 00:58:12.669
+<v Speaker 0>going to exhibit the bad behavior, uh, that would be
+
+NOTE CONF {"raw":[99,100,100,99,100,100,99,100,100,100]}
+
+00:58:12.669 --> 00:58:15.750
+<v Speaker 0>like catastrophic, um, can you forecast that?
+
+NOTE CONF {"raw":[99,100,74,99,100,100,100]}
+
+00:58:15.790 --> 00:58:17.750
+<v Speaker 0>And again you might be like, well why do we
+
+NOTE CONF {"raw":[99,100,100,100,98,100,99,100,100,100]}
+
+00:58:17.750 --> 00:58:20.350
+<v Speaker 0>care about that if it happens so infrequently?
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100]}
+
+00:58:20.429 --> 00:58:22.310
+<v Speaker 0>Well, again, like we're kind of back to this like
+
+NOTE CONF {"raw":[99,100,99,100,99,99,100,100,100,99]}
+
+00:58:22.310 --> 00:58:25.129
+<v Speaker 0>existential risk thing like if, if it could do something.
+
+NOTE CONF {"raw":[100,100,100,99,99,100,99,99,100,100]}
+
+00:58:25.939 --> 00:58:28.620
+<v Speaker 0>Truly terrible and irreversible like we need to be able
+
+NOTE CONF {"raw":[99,99,99,99,89,99,99,99,99,99]}
+
+00:58:28.620 --> 00:58:31.179
+<v Speaker 0>to forecast that ahead of time and understand what kinds
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,100,99,99]}
+
+00:58:31.179 --> 00:58:33.810
+<v Speaker 0>of risks that we're facing, um, so there, there at
+
+NOTE CONF {"raw":[99,99,99,98,99,93,99,99,99,99]}
+
+00:58:33.810 --> 00:58:35.939
+<v Speaker 0>least are some groups of researchers that are taking this
+
+NOTE CONF {"raw":[99,99,99,99,99,99,99,99,99,99]}
+
+00:58:35.939 --> 00:58:38.159
+<v Speaker 0>relatively seriously, um.
+
+NOTE CONF {"raw":[99,99,99]}
+
+00:58:38.929 --> 00:58:42.600
+<v Speaker 0>You know, we made pretty strong, uh, assumptions about the
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,100,100]}
+
+00:58:42.600 --> 00:58:45.020
+<v Speaker 0>preferences that we're looking at that like, you know, they're,
+
+NOTE CONF {"raw":[100,100,78,100,100,96,99,100,100,99]}
+
+00:58:45.169 --> 00:58:49.449
+<v Speaker 0>they're rational, uh, and that, you know, they're coming from
+
+NOTE CONF {"raw":[99,100,99,99,99,100,100,100,100,100]}
+
+00:58:49.449 --> 00:58:52.010
+<v Speaker 0>like a single person with a coherent reward function and
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,100,100,100]}
+
+00:58:52.010 --> 00:58:54.530
+<v Speaker 0>not, you know, multiple people, you know, there, there has
+
+NOTE CONF {"raw":[100,99,99,100,100,99,100,99,99,99]}
+
+00:58:54.530 --> 00:58:56.489
+<v Speaker 0>been a good deal of work on, um.
+
+NOTE CONF {"raw":[100,100,100,100,100,100,100,99]}
+
+00:58:57.790 --> 00:59:00.659
+<v Speaker 0>Various sorts of like distributional alignment techniques and like fair
+
+NOTE CONF {"raw":[49,99,97,99,99,99,99,99,99,99]}
+
+00:59:00.659 --> 00:59:04.300
+<v Speaker 0>alignment that can, you know, uh, align to multiple people
+
+NOTE CONF {"raw":[100,99,99,99,99,99,99,99,100,99]}
+
+00:59:04.300 --> 00:59:07.100
+<v Speaker 0>or groups of people, um, and like not leave people
+
+NOTE CONF {"raw":[99,100,100,100,99,99,99,99,99,100]}
+
+00:59:07.100 --> 00:59:10.020
+<v Speaker 0>behind and a lot of that ends up looking very
+
+NOTE CONF {"raw":[100,99,100,100,99,100,99,100,100,100]}
+
+00:59:10.020 --> 00:59:12.689
+<v Speaker 0>much like a risk analysis where you kind of have,
+
+NOTE CONF {"raw":[100,100,99,100,100,99,99,99,99,99]}
+
+00:59:12.850 --> 00:59:15.560
+<v Speaker 0>uh, instead of a distribution over reward functions that comes
+
+NOTE CONF {"raw":[99,91,99,99,99,99,100,99,100,99]}
+
+00:59:15.560 --> 00:59:18.580
+<v Speaker 0>from uncertainty, you have a distribution over reward functions that
+
+NOTE CONF {"raw":[100,100,99,99,99,100,98,99,99,99]}
+
+00:59:18.580 --> 00:59:19.780
+<v Speaker 0>comes from a population.
+
+NOTE CONF {"raw":[99,99,99,100]}
+
+00:59:20.090 --> 00:59:22.429
+<v Speaker 0>And you wanna make sure you don't leave anyone behind
+
+NOTE CONF {"raw":[99,99,80,99,99,99,99,99,99,100]}
+
+00:59:22.429 --> 00:59:25.250
+<v Speaker 0>or that like you don't leave more than sort of
+
+NOTE CONF {"raw":[99,99,99,99,100,99,100,99,99,99]}
+
+00:59:25.250 --> 00:59:28.770
+<v Speaker 0>5% of people in like a really bad situation and
+
+NOTE CONF {"raw":[99,99,100,99,99,99,100,100,100,99]}
+
+00:59:28.770 --> 00:59:31.889
+<v Speaker 0>that you're sort of uh aligning in a way that's
+
+NOTE CONF {"raw":[99,99,99,99,99,99,100,99,100,99]}
+
+00:59:31.889 --> 00:59:35.590
+<v Speaker 0>robust across most of that distribution of people.
+
+NOTE CONF {"raw":[100,100,100,100,99,100,99,100]}
+
+00:59:36.629 --> 00:59:39.239
+<v Speaker 0>Um, yeah, we're still thinking about how to do this
+
+NOTE CONF {"raw":[99,99,99,99,99,100,100,99,99,99]}
+
+00:59:39.239 --> 00:59:41.679
+<v Speaker 0>driver's test thing but like scaled up for, you know,
+
+NOTE CONF {"raw":[99,100,99,99,99,99,99,99,99,99]}
+
+00:59:41.790 --> 00:59:44.000
+<v Speaker 0>something like an LLM and how do you do this
+
+NOTE CONF {"raw":[99,99,99,99,99,100,99,99,99,100]}
+
+00:59:44.000 --> 00:59:47.360
+<v Speaker 0>with like, you know, fewer assumptions and validity out of
+
+NOTE CONF {"raw":[99,99,99,99,99,100,99,100,99,99]}
+
+00:59:47.360 --> 00:59:48.820
+<v Speaker 0>distribution, etc.
+
+NOTE CONF {"raw":[100,99]}
+
+00:59:49.360 --> 00:59:52.830
+<v Speaker 0>um, and you know we've already talked in this course,
+
+NOTE CONF {"raw":[97,99,100,99,99,100,100,100,100,100]}
+
+00:59:52.879 --> 00:59:55.320
+<v Speaker 0>you know, about different modalities as well that like, you
+
+NOTE CONF {"raw":[99,99,99,100,99,99,100,98,99,99]}
+
+00:59:55.320 --> 00:59:59.270
+<v Speaker 0>know, feedback is certainly not restricted just to like preferences
+
+NOTE CONF {"raw":[99,100,99,100,100,100,99,99,99,99]}
+
+00:59:59.270 --> 01:00:02.899
+<v Speaker 0>over, you know, outputs, um, and so, you know, thinking
+
+NOTE CONF {"raw":[100,99,99,99,99,99,100,99,99,100]}
+
+01:00:02.899 --> 01:00:04.719
+<v Speaker 0>back to some of the stuff we've looked at of
+
+NOTE CONF {"raw":[100,99,100,100,99,100,99,99,99,99]}
+
+01:00:04.719 --> 01:00:05.100
+<v Speaker 0>like.
+
+NOTE CONF {"raw":[99]}
+
+01:00:05.620 --> 01:00:09.739
+<v Speaker 0>Uh, you know, taking sig uh, gleaning signals about reward
+
+NOTE CONF {"raw":[99,99,99,99,41,99,99,99,99,99]}
+
+01:00:09.739 --> 01:00:13.489
+<v Speaker 0>from, you know, human gaze from facial reaction, we'll be
+
+NOTE CONF {"raw":[99,99,99,100,99,99,100,99,89,99]}
+
+01:00:13.489 --> 01:00:15.639
+<v Speaker 0>talking about natural language feedback.
+
+NOTE CONF {"raw":[100,100,99,100,100]}
+
+01:00:16.050 --> 01:00:18.739
+<v Speaker 0>Um, is there a way, and I think this is
+
+NOTE CONF {"raw":[75,99,100,99,99,99,99,100,99,99]}
+
+01:00:18.739 --> 01:00:22.459
+<v Speaker 0>like a really interesting question of taking these signals that
+
+NOTE CONF {"raw":[99,99,100,100,100,99,99,99,100,100]}
+
+01:00:22.459 --> 01:00:26.179
+<v Speaker 0>are much harder to reason about a generative model of
+
+NOTE CONF {"raw":[99,100,100,99,100,100,99,99,100,99]}
+
+01:00:26.179 --> 01:00:28.040
+<v Speaker 0>than like a preference for example.
+
+NOTE CONF {"raw":[99,99,99,99,99,100]}
+
+01:00:29.969 --> 01:00:32.919
+<v Speaker 0>Is there a way to take these and still get
+
+NOTE CONF {"raw":[66,100,100,100,100,100,99,100,100,100]}
+
+01:00:33.330 --> 01:00:37.250
+<v Speaker 0>some type of probabilistic guarantee about your inferences that you
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,100,100]}
+
+01:00:37.250 --> 01:00:40.370
+<v Speaker 0>make based on these, um, you know, I think that
+
+NOTE CONF {"raw":[100,100,100,99,97,100,100,100,100,100]}
+
+01:00:40.370 --> 01:00:42.199
+<v Speaker 0>we're probably not gonna be able to write down really
+
+NOTE CONF {"raw":[100,99,100,99,100,100,100,100,100,100]}
+
+01:00:42.199 --> 01:00:45.449
+<v Speaker 0>good models of these, uh, really good generative models, but
+
+NOTE CONF {"raw":[100,100,100,99,99,100,100,99,100,99]}
+
+01:00:45.449 --> 01:00:48.270
+<v Speaker 0>we very well may be able to learn them, uh,
+
+NOTE CONF {"raw":[100,100,100,99,99,100,100,100,100,99]}
+
+01:00:48.530 --> 01:00:51.929
+<v Speaker 0>from, from data, and it's, it's probably expensive data that
+
+NOTE CONF {"raw":[100,100,100,99,100,100,100,100,100,100]}
+
+01:00:51.929 --> 01:00:54.850
+<v Speaker 0>requires us to have some ground truth underlying notion of
+
+NOTE CONF {"raw":[100,100,100,100,100,100,99,100,100,100]}
+
+01:00:54.850 --> 01:00:57.149
+<v Speaker 0>like what the person's trying to accomplish when they're doing
+
+NOTE CONF {"raw":[99,100,100,99,100,100,100,100,100,100]}
+
+01:00:57.149 --> 01:00:57.909
+<v Speaker 0>something, but.
+
+NOTE CONF {"raw":[100,65]}
+
+01:00:58.360 --> 01:01:01.399
+<v Speaker 0>Like, I think this is not totally out of reach.
+
+NOTE CONF {"raw":[99,100,100,99,99,100,100,100,100,100]}
+
+01:01:03.310 --> 01:01:06.030
+<v Speaker 0>Um, OK, yeah, that's actually it.
+
+NOTE CONF {"raw":[99,99,91,99,99,99]}
+
+01:01:06.070 --> 01:01:07.110
+<v Speaker 0>We're done a bit early today.
+
+NOTE CONF {"raw":[79,99,99,99,99,99]}
+
+01:01:07.669 --> 01:01:10.070
+<v Speaker 0>So I will, uh, yeah, I'll see you on Thursday.
+
+NOTE CONF {"raw":[67,99,99,99,99,56,99,99,99,99]}

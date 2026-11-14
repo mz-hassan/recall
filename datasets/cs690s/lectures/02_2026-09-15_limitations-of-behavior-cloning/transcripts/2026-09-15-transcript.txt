@@ -1,0 +1,505 @@
+Okay, yeah, so welcome back, everyone.
+So last time, we talked about behavior cloning, and the closely related technique of behavior cloning from observation, where we didn't have action labels. And so today, you know, we're gonna talk about the limitations of behavior cloning, despite the fact that, like we discussed last time.
+It's being increasingly used in, lots of places, that are doing frontier research. So, you know, we looked at, like, the physical intelligence, Pi Zero series of models, for example, and how they are essentially, sort of pure behavior cloning models with, you know, some… a couple fancier things sprinkled on top.
+But the behavior cloning in the age of very, very large,
+data and neural networks can actually take you pretty far. But we will see there's very significant limitations on that.
+I should also note that, you know, today's paper that we'll be talking about, Dagger, I, you know, as I mentioned last time, this is a really challenging paper.
+And it's not something that I expect you to understand, every detail of and all the proofs. In fact, I'm not sure I've ever gone through every detail of every proof in the paper. I really just want to communicate the core.
+Tejas Kiran Mankeshwar
+Tejas Kiran Mankeshwar
+00:01:29
+The.
+Scott Niekum
+Scott Niekum
+00:01:29
+core concepts there.
+Oh, it sounds like somebody is unmuted.
+Tejas Kiran Mankeshwar
+Tejas Kiran Mankeshwar
+00:01:37
+Anyways.
+Blair Huang
+Blair Huang
+00:01:40
+Thank you.
+Scott Niekum
+Scott Niekum
+00:01:41
+Alright.
+So, just some setup and notation we'll be using throughout the lecture.
+Just like with, you know, what we looked at last time, right? We're going to be learning a policy pie.
+We're going to be learning from an expert that we're going to call pi star, star sort of denoting optimality. We're going to assume for the purposes of this lecture that the demonstrator is optimal. There were some questions in the reading responses about that assumption.
+We're not going to talk about that too much today.
+But a lot of what we talk about in the next couple weeks with inverse reinforcement learning, will address this, this problem directly.
+And look at some of the downsides of assuming optimality.
+So, I…
+we're going to assume that we can query the expert, and by query, what we mean is that we can ask the expert, hey, like, here's the state, give us an action.
+But we are not able to…
+query the value of their cost function. So cost function is just the negative of a reward function. People who come more from a control theory background often talk about costs. People who come from an RL background, typically talk about rewards, right? So we don't…
+get to observe what the cost function is in their head that they're optimizing with respect to, we just get, examples of the actions. So, again, we're just in a behavior cloning setting.
+And, we have a finite horizon of time capital T. That means that,
+even for tasks that could, you know, ostensibly go on forever, we are cutting the task off at time step t, and the reason we're going to be doing that is so that we can,
+reason without, as we'll see in, like, the ARL lectures, without using geometric discounting or anything like that. We can just reason about, for a T time step task, how bad can things get in terms of this cost, C, that we can't directly measure.
+And so the notation we'll be using is, you know, pi star is the expert policy, just like we mentioned.
+Throughout the course, we're often going to be seeing this notation of D that describes some type of distribution over states.
+And so, unsurprisingly, you know, the subscript… er, sorry, the superscript T means this is the state distribution that we're… that's expected at time t, and the pi means, you know, under policy pi, obviously.
+the distribution of states that you're going to see changes as the policy changes. And if we drop that T, and we're just looking at D pi, this is just going to denote the average state distribution averaged over all time steps.
+L of S pi here is what we call a surrogate loss.
+Normally, you know, if we knew…
+the cost function C, for example, we would just, you know, want to optimize with respect to that, and the loss of any particular policy, in a particular state would just be, you know, how much worse
+you know, in the long run is, you know, the action that pi took versus the, you know, the optimal action it could have taken, right? But we don't know that. And so the surrogate loss, you know, that we're going to use instead is what's called a 0-1 loss, which just means that we're going to say, well.
+If we match the action that the expert would have taken.
+There's no loss, and if we don't match, then we penalize with a loss of 1.
+And so again, C is this cost, and this is going to be bounded between 0 and 1.
+And that's a per-step cost, right? It's based on state and the action you take in that state.
+And then JPI is the expected…
+cost over T steps, of, the policy pie. And so, this is sort of a double expectation, right? So.
+You know, you're going to be summing over time, you're going to take an expectation over the states that you're going to see under the distribution.
+the state distribution under pi at the teeth time step, and then you have to take an expectation over actions that are drawn from the policy at state S.
+Because, of course, you know, this can be a stochastic policy, right? If for a deterministic policy that just maps states to actions, this inner expectation would disappear, right? And it's just going to be an expectation over costs.
+So…
+That's the notation. Any questions about that before we move on? Because if this isn't clear, the rest is going to be somewhat confusing.
+Sagnik Chatterjee
+Sagnik Chatterjee
+00:06:48
+One confusion in most, is the expected cost, like, the, it's not the empirical cost that we are going… like, we are seeing, right? It's, like, the… we assume that this will be the cost that will be there, right? Because it's unexpected.
+Scott Niekum
+Scott Niekum
+00:07:04
+Yeah, it's expected, so, you know, this is like, you know, essentially, if you ran… if you took the policy and you ran it, you know, an infinite number of times and computed this, that's… that's the cost that we're talking about.
+Sagnik Chatterjee
+Sagnik Chatterjee
+00:07:18
+Okay.
+Scott Niekum
+Scott Niekum
+00:07:20
+Anything else?
+Okay.
+So…
+this is not, surprising, right? This is just reviewing now in our notation that we have, sort of, the behavior cloning setting, right? So in BC, we collect these expert demonstrations. We're training a supervised classifier or regressor to predict pi star of S
+From, you know, the state, whatever state we're currently in, so that we get an action out.
+And…
+I guess to check in on, you know, machine learning concepts people are familiar with, can anyone just say briefly, when would it be appropriate to use a classifier versus a regressor for, representing the policy? That's something we didn't really talk about last time.
+Sagnik Chatterjee
+Sagnik Chatterjee
+00:08:19
+Like, discrete versus non-discrete states.
+Scott Niekum
+Scott Niekum
+00:08:25
+Yeah, so it depends whether it's a discrete or a continuous problem. And so, if we are operating… it's actually not about states so much as, it's about whether the actions are discrete or not. So if you have discrete actions, like, you know, up, down, left, right.
+You can just use a classifier that takes the state and, you know, maps it to a distribution, you know, over those four.
+categories. Whereas if you need to map to continuous actions, you would need to use a regression algorithm in that case.
+Okay, so…
+Again, we've already done this, but in our notation now, so the way we do BC is we're just gonna roll out the expert policy for end trajectories. Rollout's usually a term that we use whenever we
+you know, have a policy sitting in our hand. We're really saying, you know, get n demonstrations from the expert here. And that's going to give us a dataset D of states and actions. And so notice that we're saying that the action is coming from
+pi star of ST. Okay.
+That could be samples from it, that could… or that could just assume that the expert is, is deterministic, and it's just providing an action.
+And then we're just going to train our policy pi hat, right, by finding the policy pi in our
+Representable class of policies, capital pi.
+that minimizes this loss, right? And remember, again, like, the loss is just saying we want to make sure we're matching the actions that, the expert took, and that's just a 0-1 loss.
+And I think, you know, something to note here is that, you know, where the expectation is over the states in the dataset.
+That means that, you know, we can't reason about things outside the dataset. And we're also assuming here that we're actually, like, able to take the argument. In practice, you know, we're doing something like gradient descent, or whatever, you know, we're not… we're not necessarily finding the argument. This is the idealized version of the problem.
+Okay, so, you know, this is great because, you know, as we talked about last time, this is super simple to implement, it's just, you know, plain old supervised learning.
+And it works well when the problem's sort of, quote, easy. Either it's a short horizon problem where not much can go wrong, or we have, you know, really high, expert coverage of the state space, because, like, the state and action space are small, but…
+The downside, as, you know, you hopefully got from today's paper, is that, you know, the claim that the Dagger paper makes is that performance can degrade quadratically in the horizon T,
+Due to this IID violation. And if you don't remember, IID stands for, Independent and Identically Distributed. So…
+two questions. First.
+Why is… can someone just explain in a sentence, you know, at a conceptual level, why is behavior cloning,
+violating this, this IID assumption.
+Deepali Singh
+Deepali Singh
+00:11:51
+Come on.
+Scott Niekum
+Scott Niekum
+00:11:54
+Oh, yeah, you're echoing, but please do.
+Deepali Singh
+Deepali Singh
+00:11:56
+Hello?
+Scott Niekum
+Scott Niekum
+00:11:57
+Yes, that's better. Thanks.
+Deepali Singh
+Deepali Singh
+00:12:00
+It's because, we… the rewards is not quite independent, because
+Someone is making, that assumption, right?
+Scott Niekum
+Scott Niekum
+00:12:13
+So it's actually not about reward, it's more about the, the distribution of states we're seeing, actually. So, the real issue here is that,
+we trained on one distribution, right? This D here, which is, you know, the dataset distribution. But…
+the distribution that the agent sees is a different one. So, why is… maybe let me ask it this way, then. Why is the agent seeing
+a… Different distribution of data than the expert.
+Because it's learning from the expert.
+So why would the agents see a different state distribution?
+Sethupathy Raghunathan Venkatraman
+Sethupathy Raghunathan Venkatraman
+00:13:06
+Maybe I could, answer. So, it's possible that the agent makes some kind of error that a human wouldn't make, and then this maybe leads to a completely different scenario that the human wouldn't have encountered in the first place, and then, maybe that just, this kind of piles up, and this would just, you know, give, like, a completely different distribution of data altogether.
+Scott Niekum
+Scott Niekum
+00:13:30
+Yeah, so this actually answers both the questions that I was gonna ask. So, with respect to the IID part,
+The identically distributed piece of that is the one that's being violated, and it's because…
+the, you know, if the agent actually learns the perfect expert policy, of course the distributions will be the same, you know, and we're all good. But if it doesn't.
+If it ever makes a mistake,
+you know, that mistake, can take it off distribution to a state that, you know, for example, the agent, sorry, the expert may never visit, right? That is just off distribution. And so, you know, now.
+you are not identically distributed, between, sort of, train and test, and, you know, guarantees that are nice-looking can go out the window. Then the question is, why quadratically? And, you know, the second part of what you said answers that, which is that the agent can make a mistake.
+It puts it in a scenario that the… they've never… that the agent's never gotten data on from the human, because it's not…
+a mistake that the agent, or sorry, that the expert makes. And so you, you know, the agent has no idea what to do in that new state, and it just keeps making mistakes that are gonna pile up, and we'll look at that a little bit more, rigorously.
+Okay, so this is just a sort of summary with slightly more notation on what we're talking about, right? So, you know, in standard supervised learning, all the guarantees that we inherit from supervised learning assume train and test data are drawn from the same distribution.
+Because otherwise, you know, I think it's pretty obvious if you think about extreme versions of this.
+you obviously can't get any guarantees otherwise. You know, if I train on, you know, some data
+You know, in, in one environment, you know, only…
+train a robot in one room, right? And then, you know, I put it in a completely different environment, a room it's never seen before, objects it's never seen before. Like, there's no reason to expect that, you know, what it learned in one environment can transfer to another.
+And so, you know, the problem here is that, you know, in behavior cloning, this is, you know, this is exactly what's happening.
+The distribution of states that the learner visits depends on its policy.
+And if its policy isn't identical to the experts, then, you know, there's no guarantee it's going to visit the same distribution of states. It might.
+you know, again, you can imagine extreme cases where maybe actions, you're in a very strange environment where actions do nothing, right? No matter what actions you take, you're always in the same states. Okay. You always stay in the same single state.
+So in that case, you could be sort of arbitrarily suboptimal, but you're not going to be off distribution. But in general, you know, and certainly in the worst case, this is a major problem. And so, you know, notation-wise, what this means is that the expert's training data is sampling states from D pi star, the expert's policy.
+Whereas the learner's test data, you know, we learn this policy pi hat, and so, you know, we're visiting states distributed according to D pi hat.
+So, to kind of illustrate this compounding error idea, right?
+This is something that actually showed up sort of very early in the history of AI. So, there was this system called, Alvin, that was developed at Carnegie Mellon, by Dean Palmerlau and, I believe, Chuck Thorpe.
+That was one of the first, or I think probably the first, sort of self-driving car prototype. This was, like, in the…
+80s?
+I want to say, although I'm very bad with dates, and they ran into this exact problem, where
+They would collect expert driving data.
+And, they had, like, a very sort of low-fidelity camera image that they were using to
+To steer the vehicle, and basically just running, like, a classifier on top of that to…
+to two steering angles, and what they found is, you know, they would get demonstrations from the humans that, you know, kind of looked like these, you know, green lines, right? This green line of, like, you know, you're driving on the road, you're heading straight, great.
+And, you know, the policy that they would learn, sort of did that, but every once in a while I would make a mistake, like this blue line, and start, you know, driving a little bit, you know, crooked.
+And it would do that, you know, and get into these states that, you know, weren't quite something that humans ever did, like maybe being kind of close to the edge of the road and pointing away from the road. There's just no data coverage there, so it didn't know what to do.
+And sometimes that sort of makes it go off the road, and then once it's off the road, it has, you know, absolutely no data, no idea what to do, and those mistakes can just compound, and it can kind of just, like, you know, careen off into the distance, or drive around randomly, or whatever. And it has no way to know how to recover, because there's just no data out there.
+And so, you know, they had a solution where they actually created a lot of, sort of fake data, out of the real data they had by doing certain image transforms on it and making it kind of look like
+The driver was off the road and, you know, steering back toward it, and they had some nice ways of dealing with this without actually
+You know, forcing a human to,
+you know, provide, like, get themselves into bad situations and, like, provide demonstrations to get back to the road. But, you know, it wasn't really sufficient, you know, to… and self-driving is still a somewhat open problem, but it's certainly come a long way since the 80s.
+Okay, so that's kind of the intuition of what's happening with compounding error. So, in terms of what a sort of mathematical bound on this looks like…
+We're going to assume that, let's say we've, you know, done behavior cloning, we've learned a policy.
+And it has a per-step error rate of epsilon on the expert state distribution. So, if we just took
+The… not the, the, if we just took,
+states that we sample from the expert state distribution, and we ask the BC policy
+what action would you take here? We're saying that, you know.
+1 minus epsilon, of the time. So, you know, if epsilon's .05, you know.
+0.95, or 95% of the time, we're going to get that right, and 5% of the time, we're going to say the wrong action. So, on any given step, if we're drawing from, randomly from the expert state distribution.
+We have, you know, an epsilon percent chance of making a mistake.
+Okay. So, if that's true, then the main theorem in the dagger paper, and like, you know, if you take one thing away from the paper, it's this.
+that… the total… you know, T-step expected cost.
+of pi hat.
+is going to be less than or equal to, and remember, less than in cost world is bad, right? You're incurring more cost.
+Is going to be less than the cost of
+PI Star, the… the actual,
+You know, optimal cost that's achievable.
+if you're acting optimally, plus T squared epsilon, right? And so this is a quadratic bound. It's saying that, you know, if your policy pi hat has this per-step error rate of epsilon.
+The extra cost beyond the optimal cost that you're incurring.
+is linear in epsilon, and then quadratic in the horizon. And so this is something that, pops up in lots of places. Here, in reinforcement learning, and whatever, the cursive horizon, that…
+typically, you know, super linearly, sometimes quadratically, sometimes exponentially, whatever. Things just get very quickly worse with horizon of sequential decision problems.
+And so, one interesting thing about this bound is, you know, it's proven that it's tight, right? So, you know, what I mean by that is, I could easily have a loose bound, you know, that says something like,
+you know, j of pi hat is less than j of pi star plus, t to the 1000 epsilon to the 1000, right? And, like.
+That's probably very easy to prove, right? But it's… there's… there's no problem that exists that's actually going to exhibit that behavior that's that bad, right? And so, it turns out that this bound is tight. There actually exist problems where you can show that they incur quadratic regret, okay?
+And so again, the intuition here is just this snowball effect that, you know, and I think this… this intuition describes why it's quadratic, right? There's T time steps. At each step.
+there's probability epsilon of making a mistake, right? So if we think about, like, what's the number of mistakes we expect to see, it would be, you know, T times epsilon, right?
+And if you remember, cost is bounded between 0 and 1, per time step cost. That was in, like, the first notation slide. And so, we don't know what the cost function is, so in the worst case, we can assume cost of 1, right?
+And if we also assume that, you know, after you've made the first mistake.
+You're just gonna keep making mistakes.
+sort of forever, right? This means that we're gonna… this is gonna result in a cost of 1 at every remaining time step, right? And so, this is basically, you know, total cost of, you know, big O , you know, linear in T once a mistake is made, and so…
+We have, you know, T times epsilon, you know, sort of, you know, probability of error that we see, times this T cost,
+once a mistake is made, and so you end up with, you know, T squared epsilon. That's a, you know, sort of hand-wavy version of it, but that's the basic idea. And,
+You know, if we kind of draw this out, you know, what you can… Imagine is that,
+imagine each of the rows… don't think about this as a matrix, but just each of these rows is sort of a, it has T entries in it.
+And, the red, mark here is the time of the first mistake in that trajectory is made, right?
+So, if you're on distribution, right?
+Like I said, the total number of expected mistakes that you're going to make, is, epsilon T, right?
+Because there's T time steps, and you have, you know, an independent chance of making a mistake with, sort of, epsilon probability at every step.
+And so the time of the first mistake doesn't really matter, right? Because at every time step, because you're on distribution, you still just have an epsilon probability.
+to make a mistake. And so, you know, whether you make a mistake after that or not is independent of whether you made a mistake earlier. So, you know, this is looking pretty good.
+But if we're off distribution, remember that, you know, in the worst case.
+we don't know what to do, and we just… once we make the first mistake, we make a mistake at every single time step after that. And so, you know, we have… we still have this epsilon t probability of making a mistake at every… any given…
+Step, but then… We're going to make big O .
+Mistakes after that, as well, in the worst case.
+And so, you know, what that looks like is, depending on when that first mistake is made, you know, you fill in all the rest of this with mistakes, and you can see that, you know, this is gonna be, in this case, like, you know, T squared over 2, for example, which is, you know, big O of T squared.
+And so you get this big O of epsilon t squared, expected number of mistakes, and again, because the mistake costs up to 1, that's also the expected, you know, cost that's incurred by this.
+Okay, so this is the core idea, you know, sort of presented in a couple different ways. Are there questions about this? Because, you know, this is the thing I sort of want to make sure you take away from this.
+Okay.
+So, then the question is, how do you fix this?
+So, again, like, in a sentence or two, can anyone just sort of…
+Say, you know, what the way of fixing this is, and conceptually, why it fixes the problem.
+Anyone?
+Alright, let's start with a smaller question, then. So,
+We said the root of the problem is that… We're off distribution.
+The agent's distribution is not the same as…
+The distribution that we got data from.
+And so, what does Dagger do so that we can fix the off-distribution problem? In other words, make sure that we have data that's on distribution.
+You can either just speak, or you can raise your hand, either way.
+Sethupathy Raghunathan Venkatraman
+Sethupathy Raghunathan Venkatraman
+00:28:26
+In Dagger, I think they just add, the data from the agent as well, also part of the distribution, so that they try to make it, like, you know, fit to the IIID assumption.
+Scott Niekum
+Scott Niekum
+00:28:38
+Yeah, so it's not quite just adding in the data from the agent, because you also need to know what the expert action would be. But yeah, you're exactly right, that it's this iterative algorithm where, as the agent runs, you take the states it visits, and you query the expert, hey, what would have you done? You know, what would you have done in this state?
+And now, I have a data point that is on distribution, with, you know, the agent. So that you always make sure you have data in the states that the agent is actually visiting.
+So it's a quite straightforward, idea. It has a couple little kinks in it we'll have to look at, though.
+So we're just gonna repeat. We're gonna run the current policy.
+So we get to see the states it visits. We're gonna ask the expert for actions in those states.
+And optionally…
+Where if we can preempt us taking the action, we can actually even sometimes follow the expert instead of our policy.
+And then we're going to aggregate all the data that we have so far, both from the expert originally, and from these sort of newly queried states, and we're going to retrain. We're just going to keep looping with this.
+And this will make the training distribution gradually shift to cover the states that the learning is actually going to encounter, to make sure that, sort of, at equilibrium, we eventually have, you know, data sort of in all states that the learner would reasonably visit.
+So, to get into a little bit more detail, the way this is going to iterate, right, is that
+On the first iteration, we're going to ignore this mixing step. So, you know, we're gonna…
+sample trajectory under pi i, which is, i is sort of the current iteration that we're on, so we have some current policy pi i.
+And then again, you know, we're going to query, so every time we visit a state, we're going to ask the expert, hey, what would you have done at this state?
+That provides us, you know, a new data training point. After we've done that for, you know, a whole trajectory, we just aggregate, meaning we add all that data to our data set, and we train the next policy, pi hat i plus 1.
+And then we're going to sort of go back in, and there's… there are various ways of computing how we're going to create PyI. We can either just run this new policy that we got.
+Just sort of straight up. Or, if you remember, I talked about in the last slide that, you know, optionally, we can sometimes follow the expert. So, again, depending on how we're collecting these demonstration, or these actions from the expert, and if, like, we have that data sort of in real time…
+You know, some beta proportion of the time.
+We can listen to the expert instead of ourselves.
+And then some, you know, the remaining 1 minus beta fraction of the time, we listen to our own policy.
+And the reason that we would want to do this, that we would want to use a beta greater than zero, meaning that we sometimes listen to the expert, right?
+is that it lets the expert sort of impart its wisdom to kind of keep the trajectory on track in early iterations, right? Because when you start out, and maybe you don't have a ton of data, and it's easy to get off distribution.
+the agent's gonna get way off track, right? And, you know, in that, like, driving analogy, right? It's gonna end up, you know, collecting a lot of data from, like, you know, way off the road.
+Why is that not particularly useful? Can you… can you think about reasons why you would want to kind of keep it on track? Because you don't want to keep it totally on track, right? If you always listen to the expert, then you're just back in the same problem you were before
+we introduced Dagger. You're only seeing expert states, and, you know, the minute you pull the expert away, you're… you're gonna be in trouble again and get way off track. So, why is a middle ground
+At least, especially early in training, kind of useful.
+Any thoughts?
+Fraser Mince
+Fraser Mince
+00:33:01
+I assume, just because at the beginning, your behavior clone model is kind of weak, so you kind of want to bootstrap it with the expert.
+Scott Niekum
+Scott Niekum
+00:33:10
+Yeah, and, you know, and like I said, like, you don't want to do that too hard, because you'll just be back in the same problem you're in, but really, the point is, is that, you know, if you… if you're so weak that you just end up, like, driving off the road and, like, deep into a field somewhere.
+you're now collecting data in a space that is totally irrelevant for any half-decent policy, right? And so, what you want to make sure of is that to make sure you're being reasonably data-efficient.
+You want to make sure that you're always collecting data that's going to be reasonably useful, to, like, have recovery behaviors.
+of a pretty good policy later. And so, if you're just messing up little bits and getting corrected by the expert, because you're listening to the expert fairly frequently, it'll let you, you know, collect a nice sort of bubble of data around the expert policy. You know, maybe where you're… you…
+or steering a little bit bad, or, you know, maybe you go off the road a little bit, and you're learning how to recover from that. But once you have a decent policy, you're never just going to be sort of, you know, driving way off into a field or something, and so that data would just become useless. And so this is just a way to
+It's not theoretically required to make things work.
+it's only there to sort of make sure that you're being reasonably data efficient.
+So the problem with this is that now you need a sort of learning schedule, because to have the,
+the guarantees the Dagger comes with.
+beta does have to decrease over time and eventually become zero, right? Because eventually, you do need to make sure you have, you know, sort of…
+full data coverage.
+that's truly on distribution, right? And as long as you're mixing the expert in there, you're not fully on distribution, right? And figuring out how fast to drop beta can be kind of annoying. So one simplification that tends to work pretty well in practice is,
+you know, the first, the first iteration, you're just pure expert, so you're basically just getting demonstrations, and then after that, you just, you know, turn beta off. So you're not really getting any of the beta,
+benefit, but that is sort of a special case simplification. Similarly, you could just come up with, you know, some linear schedule if you want to, you know, get some benefit and not think too hard about it, like, you know, you do 1.8,
+you know, 0.6, 0.4, 0.2, 0. And that's probably better than nothing. And so, you know, you don't have to think too hard about it. Like, you can certainly find different ways of tweaking this, and for certain classes of problems, you can probably get a lot of gains out of that.
+But to get the guarantees, you don't have to do anything special. This is really just for efficiency.
+Okay.
+But then there's the problem of actually collecting this data, right? So let's say we want to do this version of having this, like, beta expert mixing in there. And let's say we're in a domain, like they're… they are in the paper, where they're playing this tux cart, sort of, like, Mario Kart clone, right?
+And so, what we said is that in order to do this mixing, sort of in real time, where you sometimes listen to the agent, sometimes listen to the expert.
+You know, you're basically asking the agent at every step, hey, I'm in this state, what action would you take? And some percentage of the time, you listen to it, some percentage of the time, you listen to yourself. Either way, you store the expert data to learn from.
+So, in a domain like this, what can you imagine is… are maybe some issues with collecting data in that manner?
+Kaushik Parthasarathy
+Kaushik Parthasarathy
+00:37:20
+One issue that I would, think about is that
+We are only collecting it on the errors that the model has made. So, it still is not pretty much equivalent to the entire data distribution of what all possible states are there.
+Scott Niekum
+Scott Niekum
+00:37:38
+So…
+I'm just talking, though, about what the difficulties of, like, the actual data collection process are, of, like, why it might be difficult to collect good quality data in this way from, like, a real person, for example.
+Kaushik Parthasarathy
+Kaushik Parthasarathy
+00:37:56
+Oh, in that case, it's like, querying the expert is not feasible all the time, because
+I mean, it depends on how many number of iterations we're running this for, and if I'm doing, like, for 100 plus iterations or something, querying the expert at every single point of time is pretty tedious and time-consuming, and if it's a real person, that aspect has to be taken care of.
+Scott Niekum
+Scott Niekum
+00:38:17
+Yeah, so I think, yeah, one of the biggest issues is just, you know, how much data do you need, and are you going to be asking, you know, for an unreasonable amount of data from somebody? What else? What about focusing more on this, like.
+Necessity for, sort of, you know, real-time data so that we can do this beta mixing.
+So, if you're having trouble, maybe imagine yourself in this scenario where,
+You're the expert, and you're, being asked
+in one of two ways, I guess, really, to give this data. I guess there's… one way would be that at every time step, the agent pauses and waits and asks you, what button would you be pressing at exactly this moment?
+That's one way to collect the data. The other would be that,
+It doesn't pause, and that you're always just, you know, inputting controls into the game, and sometimes it listens to you, and sometimes it doesn't, based on beta.
+So, for either of these, you know, methods of collection, what would you see as some… some potential difficulties.
+Yeah, Deepali?
+Deepali Singh
+Deepali Singh
+00:39:41
+I'm thinking, in the direction that… oh.
+Oh, yeah.
+So Dagger requires the expert to label correct action on, states the agent drifts into, like, the states that are far… that could be states far off the expert's own demonstration manifold, in a way. So, exactly where a human expert's label
+are least reliable themselves. How robust will be these methods when these off-distribution labels are themselves noisy and inconsistent?
+Scott Niekum
+Scott Niekum
+00:40:18
+Yeah, that is true. That's actually not what I sort of had in mind, but that's a good point that, you know, I… the human might be sort of good at the game in sort of nominal conditions of, like.
+you know, states they would get themselves into. But there's, like, almost an off-distribution problem for them that mirrors the behavior cloning one that, you know, if the BC policy takes it into some, like, really bad, weird areas of state space, the human's just not sure anymore.
+Deepali Singh
+Deepali Singh
+00:40:45
+Or how to be profitable.
+Scott Niekum
+Scott Niekum
+00:40:48
+So, yeah, I think that's a reasonable point.
+Anyone else?
+Fraser Mince
+Fraser Mince
+00:40:56
+I mean, it's just costly to have a human in the loop. As soon as you have a human at every time step, that's a lot of a person or some other expert system's time.
+And, yeah, as soon as there's some kind of expert involved that you have to query.
+That expert just has to be available.
+Scott Niekum
+Scott Niekum
+00:41:18
+Yep, yep, there's definitely, you know, human limitations on this. The two main things, though, that come to mind that I think are the biggest bottlenecks is just the awkwardness of it. And so,
+if you collect data in the first way I mentioned, that, like, at every state, the game pauses and says, like, hey, what button would you be pressing here?
+that's not really how, like, people play a game, right? Like, people… it's this continuous, flowing kind of thing, and I think it's very hard at, like, a pause state to be like, oh, I would push it… be pushing the stick to the right, and like…
+in this much, like, you know, 40% of the way over of, like, how far the joystick can go, right? Like, people don't play games like that, you're constantly getting feedback, and it's this, like, dynamic thing, and so it's just, like, an awkward way to collect data, and it probably won't be very accurate.
+The second thing, the second way of doing it, though, which seems more natural, is just, like, let the game flow, and let the person just play it. Except for the fact that the player's only being listened to
+beta percent of the time, right? And so, you know, imagine how weird it is to try to, you know, input controls into the game of, like, what you would be doing, but, you know.
+half the time or more, maybe, it's just not listening to you, but you still have to somehow figure out how to, like, input accurate controls in real time that would sort of make the best of the situation you're in, even if it's not listening to you. So, you know, it's…
+a paradigm that makes it supremely hard for a lot of domains to actually get reasonable data from humans. And so, you know, this is something that we'll come back to a lot in the course, is that there are a lot of algorithms that
+are mathematically really elegant, make a lot of sense, look great on paper, and for some domains they're great, and some domains they're not, and a lot of that has to do
+With sort of, like, soft factors that can't, you know, aren't really captured in, like, the math and the theory, but that happen when these algorithms have contact with the real world, and especially contact with people, and the limitations that people have, or our limited ability to model people.
+So, this is just something to keep in mind.
+Okay, so there's one other, concept that I wanna hit on from the paper.
+And it's this idea of a no-regret algorithm.
+And they make a big deal of this in the paper, because it's a nice guarantee to have, but it's a little bit of a confusing one, because the…
+The term no-regret is, it's standard in the literature, but it's, in some sense, a very unfortunate choice of terminology. So, the reason the dagger is a so-called no-regret algorithm is because it's a follow-the-leader algorithm.
+And you'll see in a minute why follow the leader is sort of a fitting phrase for this kind of algorithm. So, you know, follow the leader algorithms are very common in the setting of online learning, and it's…
+it works exactly the way it sounds like. You're sort of using whatever the best thing you've discovered is so far to get your guarantee. And so, you know, at the ith round, you know, we pick, you know, we have some policy that we run, pi hat I,
+Our loss function, or the loss that we experience is revealed to us, and we're gonna keep looping, right? And our goal is to minimize regret versus the best fixed policy in hindsight.
+And so, you know, we're going to look back and say, oh, now that I've seen all this data, you know, over time, what's, in hindsight, what's the best policy I could have been running this whole time to sort of minimize the loss I get across all the data? And my so-called regret, right, is going to be the difference
+between, you know, the losses I incurred along the way for all the different policies I was running, and the best policy that I could have run in hindsight. Regret is not just the same as cost, because, you know, the minimum cost may be, you know, non-zero, right? You can't do better than optimal.
+And so, the follow the leader rule is just that each round, you're going to sort of pick the policy that minimizes the total loss on the data seen so far. And this is going to result in a linear regret guarantee with respect to T.
+Okay, so this is where the weird thing comes in, is that this is… Follow the Leader, in this case, results in this no-regret guarantee, but no regret does not mean that you have zero regret. Because obviously, the only way you could ever have zero regret is right at the beginning, after you've only seen a little bit of data.
+You know, immediately, you jump straight to the optimal policy, right? And then you have zero regret. Great.
+Obviously that's not realistic.
+And so, what no regret actually means is that, the average regret, if you average over all time steps so far, that as you go to the limit.
+That, that, that regret is dropping, fast enough?
+That it approaches zero in the limit.
+Not that they regretted each step.
+Approaches zero in the limit, but the more strict condition that the average
+has to approach zero in the limit. Okay. And so that's called… that's called no regret.
+Okay, and so… probably then the most important guarantee in the paper, then.
+that builds on the concepts we've looked at so far, with, like, the T squared epsilon guarantee.
+or that I should call that a bound, this is now a guarantee with respect to regret, is that if we look at this quantity that we'll call epsilon n, which basically says we have
+N iterations of data.
+And this quantity is going to be… the expected loss… Of a particular policy.
+Where, over all the data we've seen so far from iterations 1 to N,
+And it's the loss with respect to a policy that's chosen to be the very best policy in our representable policy class.
+in hindsight, over all the data we've seen so far, okay? And so, this epsilon n is basically saying, you know.
+in hindsight.
+based on all the data we've seen so far, what's the best performing… what's the error rate of the best performing policy we've seen, right? And so this… this corresponds to this notion of, because loss is, for… per time step is, like, a 0-1 loss, right?
+This corresponds to our notion of epsilon being essentially, like, a per-step error rate. This is just a per-step error rate, in hindsight, that is the best one out of any policy we can represent. And what I mean by what we can represent is, like, you know, let's say you have a, you know, neural network with, you know, a million parameters or something. There's a limited set of functions that it can represent, so it's the best one in that set. Or maybe you have…
+A classifier that has, you know, a small number of parameters, that is linear, and has, you know, 50 parameters over basis functions, or whatever.
+It's just whatever's best in that set.
+Okay. So, the guarantee, then, is that…
+if, I'll skip this part for a second, because we haven't explained what it means yet, but if N is this squiggly big O of what we're going to call UT, then there exists a return policy that has this property.
+And it's… it's basically…
+very similar to the sort of bound we saw before, that the cost of our policy is going to be less than or equal to the cost of the optimal policy, plus this factor, and ignore the big O of 1 here, that's just a constant. So.
+let's look at this term, UT epsilon N, okay? So, let's just imagine for a second, if we substitute in another T for U here, we just end up with T squared epsilon, right? Which is…
+The bound we had before.
+Okay, so we can at least connect to that. So what is you?
+So what U is going to be is it's going to be the worst-case cost of a single wrong action that we take.
+And so… You can imagine that
+Maybe, again, if we're in, like, a domain where, no mistake costs you anything, your actions don't actually affect the world at all, maybe that's, you know, maybe that's negligible, right?
+Or, if we're in a world where making a mistake triggers this cascade where we're gonna also make a mistake at every single time step afterwards.
+and we make the mistake of time step 1, right? That's gonna cost us 1 for T time steps, that would be T in the worst case, right? And so we'd be back at that worst case bound of T squared epsilon, right?
+And so, this is going to be sort of this dial that goes between
+you know, this whole thing turns to zero, essentially, because mistakes don't matter, versus going all the way up to T squared epsilon, right?
+And it just depends on how bad
+Not just at one step, but how bad are the long-term consequences of making a single mistake, okay?
+And
+On the next slide, we'll look a little bit more at the intuition behind what U means. I just want to give a quick caveat first, that this is only true
+for convex policy classes.
+And convex loss functions. Otherwise, you can't actually guarantee that as you go more iterations, which is N in this case, that you're actually going to have the loss decrease. So, again, there were some questions in the reading responses about this. Neural nets are not convex in general.
+And so,
+you simply don't have this guarantee in neural nets, or really most function approximators that people actually use in real deployments. But this algorithm works pretty well in practice. You know, a lot of times.
+theory is there, well, to make reviewers happy, but also as a sanity check. You know, if…
+Even under very favorable ideal conditions.
+an algorithm doesn't really have any guarantees, that's usually a bad sign, and it often means, though not always, that it's not going to perform great in realistic scenarios either, let alone ideal ones. If something does have
+nice guarantees in ideal cases. That doesn't mean it's going to perform well in realistic cases where those aren't met.
+But often we find they do, and often we can even, you know, show…
+some theory, or maybe even just empirical results, that, you know, these guarantees seem to sort of degrade gracefully, as the assumption is sort of further and further from being met. And so, I do think there's value in doing this sort of theory, and if nothing else,
+A lot of times this theory gives us a lot of nice intuition about what's going on, about the relationship between, you know, horizon and error, or how this degree of badness of the worst case sort of affects things. It's very good
+Fuel for… for intuition.
+So, one other assumption that this guarantee makes is that we have infinite samples per iteration. Obviously, we don't.
+And so, the paper does also contain a finite sample guarantee that because there's finite samples, has to be probabilistic rather than sort of absolute like this. It's complicated, and we don't need to get into it. It's just worth knowing that it exists.
+Oh, and one other thing in case you're interested, if you're not familiar with this big O tilde notation, all that means is it's the same as big O, it just drops, minor, like, log factors, for example, because they're not really the dominating factor. It just simplifies how you're looking at things.
+Okay. So, last point then. Let's think a little bit more about what U really means. So, I said that U means, can be interpreted as
+The long-term cost that's kind of forced on you in the worst case by making a mistake in this… in this domain that you're in.
+And so, like I said, you know, this ranges over, sort of, two extremes, right?
+In one sense, it could just be some constant. That constant can be 0, or it could be a small number, and maybe the mistake truly just affects you at this time step.
+And it doesn't… it doesn't propagate, it doesn't cause you to keep making errors, whatever. And then, of course, the worst case is what we already talked about, that it makes you make a mistake at every… all T time steps in front of you, or all O of T time steps in front of you, depending on, sort of, you know, how far you are in the trajectory.
+And you're just incurring, like, a cost of 1 at all of those time steps, right?
+So one way you can think about this
+Is… you can think about it as how hard is it in this domain to, and based on the policy you have, to recover, right?
+And so,
+maybe, you know, you're in a domain where an expert, you know, if you're acting optimally, can sort of get back on track in a constant number of steps, right? And so, you know, you're in a domain where, like, driving, where maybe you make a mistake.
+But then, if you act optimally after that, and that's what matters, it actually, I said it matters about your policy, but it doesn't. It really just matters about optimal behavior.
+a domain… because recoverability is a property of a domain, or an MDP that you're in. It's recoverable if, you know, you can fix that error
+You know, in some constant number of steps, right?
+Whereas, you know, if you're in, like, a domain like robotics… robotic manipulation, and you drop something that's made of glass and you shatter it, right? Like, there's no recovering from that, like, you can't come back and, you know, put the glass back together, undo the mistake you made, and so that's not a recoverable domain.
+But if you're in the recoverable regime, right, the bound is going to just be big O of TE, right? Because… sorry, T epsilon. Because this U is just going to be, you know, some constant, right?
+It's not… how bad it is is not related to the horizon.
+But…
+if U is big O of T and actually related to the horizon somehow, because it can derail the whole trajectory, so, you know, missing the only bridge across a river, shattering a glass, whatever.
+The bound degrades to T squared epsilon in the worst case, which means…
+We're back in BC world, right? We might as well not have done Dagger at all.
+And so in, like, highly non-recoverable domains, it's just not even really worth
+doing Dagger, because the expert can't get… you know, you're asking the expert what to do, but once you got off track, the expert can't get you back on track.
+So, one way to write this all out in math, then, and apologies since we haven't done the RL lecture yet, if you're not familiar, with this notation, but, a Q function is essentially saying, if I'm in state S,
+And I take action A,
+what's the total amount of reward that I'm going to get in expectation in the future if I keep following this policy pi star here?
+For the rest of time into the future. And so…
+the difference between this left side of the equation and the right side, or sorry, not left and right side of the equation, left and right side of this expression is just the fact that instead of
+Always following pi star, We're going to take…
+some other action A here, and then follow pi star forever. So we're gonna make potentially one mistake.
+At this first step, and then would be optimal for after. And we want to see what's the long-term difference? How much reward, or in this case, cost, are we going to incur in this case, where we took action A, instead of the optimal action, versus if we would have taken the optimal action and then still behaved optimally forever?
+And remember, we're looking at worst case, and so this is going to be a max, where we are looking at the worst action A we can take, and again, like, the worst time step at which it could occur, and the worst state in which it could occur.
+So yeah, that's the notion of recoverability.
+So I think, I think that's really all I have today for main points. You know, the things that I want you to take home and that you should be thinking about for the exam are, like, really understanding
+What's this underlying notion of distribution shift? That where we have, you know, an expert distribution versus the distribution that the learner faces in BC,
+fixing that by trying to get on-distribution data iteratively in Dagger, and allowing that, and understanding why, to circumvent and understand why it circumvents this quadratic bound.
+And finally, you know, how the quadratic bound you know, leads to…
+A guarantee where the knob on this guarantee that it can provide really depends on how recoverable the environment is.
+So, we have a little bit of extra time, I'm happy to wrap up early, but if there are any
+questions, I'm happy to take them now.
+Sagnik Chatterjee
+Sagnik Chatterjee
+01:00:35
+And this is sort of a meta question, but, like, I don't understand, like, how are, imitation learning and ZVA cloning, like, related to alignment, like, I'm sort of failing to understand the big picture in this.
+Scott Niekum
+Scott Niekum
+01:00:50
+Yeah, that's a great question. Okay, so…
+alignment is, you know, said simply, is getting agents to do what we want them to do, right? And, you know, one way, one very simple way of getting them to do what we want them to do is giving a demonstration and then having them copy it.
+This shows, you know, one big hole in that, which is that, you know, if you just do things that way, once the agent gets off distribution.
+It's not going to necessarily behave in a way that's aligned with you, and that matches up with what you want. And so, you know, we see this in, like, you know, language models, for example. So, like, language model pre-training is done
+fully with behavior cloning, right? We're just doing next token prediction. You know, we have the expert action, which is just whatever token came next in the real text, and we're just, you know, spitting that back out. So before any fine-tuning, alignment, anything has happened, right?
+it's just a sort of text regurgitator, in some sense, you know, from the brain of the internet, right? And that is obviously not going to be very well aligned with us, because A we're not super happy with a lot of the stuff that's in there, and we wouldn't really consider that an expert demonstration that's aligned.
+But even if it was, let's say we went through that data set, and we filtered it really well, and we only used examples that we consider to be, like, good, virtuous behavior, right?
+What this shows is that if we trained in that way, and expected to get an aligned model out, because we only put aligned data in.
+It's not gonna be enough. The second that we sort of get off…
+Distribution, maybe either because it gets queried with a prompt, aka a state that it's never seen before, or maybe because it is a type of prompt that is in distribution, but as it's spitting out tokens, it kind of spits one out that takes it off distribution, and then it keeps making mistakes after that.
+It can behave in this unaligned way.
+Now, one of the good things from an alignment perspective about imitation learning, is that, you know, as we're gonna cover more later in
+the course, one of the places where alignment can really break a lot of times is that we write down a reward function, and we try to do something like reinforcement learning to get around some of these problems we're seeing with imitation.
+But we wrote down the wrong reward function, or maybe we inferred it from data, and then, reward hacking happens, where, you know, RL just tries to optimize the hell out of this reward function that isn't quite the right thing, and it ends up doing something very weird that we don't want it to do.
+Invitation learning sidesteps that by avoiding, you know, we just give demonstrations. We don't have to write down a reward function at all. There's not even a reward function inferred. We're just sort of trying to match actions. So that is one way to try to create aligned behavior, but it has
+Failure conditions that are very different from the failure conditions of some of the other methods that we're looking at.
+So does that… does that help kind of connect it to… to alignment.
+Sagnik Chatterjee
+Sagnik Chatterjee
+01:03:53
+Eho.
+Scott Niekum
+Scott Niekum
+01:03:57
+Anything else?
+Alright, well, thanks for all joining online again. I am very much hoping to be healthy by Thursday, and as long as I am, I will see you all then.
