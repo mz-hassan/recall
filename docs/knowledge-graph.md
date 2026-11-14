@@ -14,7 +14,7 @@ Search and filters keep the same canvas and node positions. Nonmatching elements
 
 ## Local setup (no Docker)
 
-Use Node.js 22.13+ (Node 24 recommended), then:
+Use Node.js 22.18+ (Node 24 recommended), then:
 
 ```sh
 npm ci
@@ -40,6 +40,8 @@ npm run dev
 ```
 
 Open the URL Vite prints, choose **AI Alignment → Knowledge graph**. The API listens on `127.0.0.1:3001`; Vite proxies `/api`. These are local development services. They are not configured as a public authenticated deployment.
+
+The shared API starts live lecture independently of MongoDB. If graph database initialization fails, graph requests return an unavailable message while live lecture stays usable. Start MongoDB and restart the API to restore graph indexing. Both features use the DeepSeek settings from `.env`.
 
 ## See the graph update before live lecture integration
 

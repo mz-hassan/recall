@@ -1,0 +1,610 @@
+--- PDF page 1 ---
+Reinforcement Learning
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+CS 690S: AI Alignment
+Prof. Scott Niekum
+
+Reinforcement Learning
+
+1 / 21
+
+--- PDF page 2 ---
+What is Reinforcement Learning?
+Definition: Learning through interaction with an environment to
+maximize cumulative reward
+action at
+
+Agent
+
+Environment
+state st , reward rt
+
+Key difference from supervised learning:
+Behavioral Cloning: (s, a∗ ) - learn from optimal demonstrations
+Reinforcement Learning: (s, a, s ′ , r ) - learn from trial and error
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+2 / 21
+
+--- PDF page 3 ---
+Markov Decision Process (MDP)
+An MDP is defined by the tuple (S, A, T , r , d0 , γ):
+State space S: Set of all possible states
+Action space A: Set of all possible actions
+Transition T (s, a, s ′ ) = P(s ′ |s, a): Probability of next state
+Reward r (s, a): Immediate reward for action in state
+Initial distribution d0 : Distribution over starting states
+Discount γ ∈ [0, 1): Weight for future rewards
+Markov Property: Future is independent of past given present
+P(st+1 |st , at , st−1 , . . .) = P(st+1 |st , at )
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+3 / 21
+
+--- PDF page 4 ---
+Policy and Return
+Policy π: Mapping from states to actions
+Deterministic: π : S → A
+Stochastic: π(a|s) = P(a|s)
+Return Rt : Cumulative discounted reward from time t:
+Rt =
+
+∞
+X
+
+γ k rt+k = rt + γrt+1 + γ 2 rt+2 + . . .
+
+k=0
+
+Why discount factor γ?
+Mathematical convenience: finite returns even with infinite horizon
+Variance: training often unstable without discounting
+Practicality: Agents don’t actually run forever!
+Goal: Find optimal policy π ∗ that maximizes expected return:
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+J(π) = Eπ,s0 ∼d0 [R0 ]
+Reinforcement Learning
+
+4 / 21
+
+--- PDF page 5 ---
+Key Challenges in RL
+
+(1) Credit Assignment Problem
+▶
+▶
+
+Which actions led to a particular reward?
+Delayed effects make this difficult
+
+(2) Exploration vs. Exploitation
+▶
+▶
+
+Explore: Try new actions for potentially better outcomes
+Exploit: Use current knowledge to maximize return
+
+(3) Curse of Dimensionality
+▶
+▶
+
+Large/continuous state and action spaces
+Long horizons increase complexity exponentially
+
+(4) Sample Efficiency
+▶
+▶
+
+Agent generates its own data
+Real-world interactions can be expensive
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+5 / 21
+
+--- PDF page 6 ---
+More Challenges
+
+(5) Non-stationarity & Distribution Shift
+▶
+▶
+
+Policy changes ⇒ state distribution changes
+World may be non-stationary
+
+(6) Reward Design
+▶
+▶
+
+Difficult to specify what we want
+Reward hacking: unintended solutions
+
+(7) Partial Observability
+▶
+▶
+
+Agent may not observe full state
+Need memory or belief state
+
+(8) Reproducibility & Sensitivity
+▶
+▶
+
+High variance across runs
+Sensitive to hyperparameters and even hardware!
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+6 / 21
+
+--- PDF page 7 ---
+Value Functions
+State Value Function V π (s): Expected return from state s under π
+"∞
+#
+X
+π
+k
+V (s) = Eπ
+γ rt+k | st = s
+k=0
+π
+Bellman Equation for V (discrete case):
+
+V π (s) =
+
+X
+
+π(a|s)
+
+X
+
+
+
+T (s, a, s ′ ) r (s, a) + γV π (s ′ )
+
+s′
+
+a
+
+Action Value Function Q π (s, a): Expected return from (s, a) under π
+"∞
+#
+X
+Q π (s, a) = Eπ
+γ k rt+k | st = s, at = a
+k=0
+π
+Bellman Equation for Q : (discrete case)
+
+Q π (s, a) =
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+X
+
+
+
+T (s, a, s ′ ) r (s, a) + γV π (s ′ )
+
+s′
+Reinforcement Learning
+
+7 / 21
+
+--- PDF page 8 ---
+Optimal Value Functions
+Optimal State Value:
+V ∗ (s) = max V π (s) = max Q ∗ (s, a)
+π
+
+a
+
+Optimal State-Action Value:
+Q ∗ (s, a) = max Q π (s, a)
+π
+
+Bellman Optimality Equations:
+X
+
+
+V ∗ (s) = max
+T (s, a, s ′ ) r (s, a) + γV ∗ (s ′ )
+a
+
+Q (s, a) =
+
+X
+
+=
+
+X
+
+∗
+
+s′
+
+
+
+∗ ′ ′
+T (s, a, s ) r (s, a) + γ max
+Q (s , a )
+′
+′
+
+a
+
+s′
+
+
+
+T (s, a, s ′ ) r (s, a) + γV ∗ (s ′ )
+
+s′
+
+Optimal Policy:
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+π ∗ (s) = arg max Q ∗ (s, a)
+a
+
+Reinforcement Learning
+
+8 / 21
+
+--- PDF page 9 ---
+RL Algorithm Landscape
+Value function-based
+“critic-only”: how good is a state(-action)?
+sample efficient
+often deals poorly w/partial observability, bad features
+usually discrete action
+Policy Search
+“actor-only”
+high variance, low efficiency
+often robust to partial observability, bad features
+naturally works with continuous action
+Actor-critic
+often best of both worlds
+efficient, robust
+continuous action
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+9 / 21
+
+--- PDF page 10 ---
+RL Algorithm Landscape: Examples
+
+Policy Search
+
+Value-Based
+
+Model-Based
+Dynamic
+Programming
+
+Model-Free
+Monte Carlo
+(MC)
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Policy Gradient Black-Box
+
+Q-Learning
+SARSA
+
+REINFORCE
+Vanilla PG
+
+Evolution
+Strategies
+
+Actor-Critic
+A2C, SAC, PPO
+
+Reinforcement Learning
+
+10 / 21
+
+--- PDF page 11 ---
+Model-Based vs Model-Free
+Model-Based Methods:
+Use known/learned dynamics T (s, a, s ′ ) and reward function r (s, a)
+Often uses dynamic programming (Value/Policy Iteration)
+Pros: Simple, exact when value function / policy is tabular
+Cons: Struggles with model errors
+Model-Free Methods:
+Learn value function or policy from experience directly
+Don’t explicitly model transition dynamics
+Pros: Works with complex/unknown dynamics
+Cons: Sample inefficient, high variance
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+11 / 21
+
+--- PDF page 12 ---
+Monte Carlo Methods
+
+Idea: Estimate value by averaging complete episode returns
+For each visit to state-action pair (s, a):
+1
+
+On i th visit to (s, a) at time t,record return:
+i = r + γr
+2
+Rs,a
+t
+t+1 + γ rt+2 + . . .
+
+i − Q(s, a)]
+Update: Q(s, a) ← Q(s, a) + α[Rs,a
+P
+i
+Or simply average: Q̂(s, a) = N1 N
+i=1 Rs,a
+2
+
+Properties:
+Pros: Unbiased, simple
+Cons: High variance, needs full episodes
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+12 / 21
+
+--- PDF page 13 ---
+Bootstrapping methods
+Key Idea: Bootstrap – update using estimate of next state’s value
+Q-Learning (off-policy):
+
+
+′ ′
+Q(s , a ) − Q(s, a)
+Q(s, a) ← Q(s, a) + α r + γ max
+′
+a
+
+SARSA (on-policy):
+
+
+Q(s, a) ← Q(s, a) + α r + γQ(s ′ , π(s ′ )) − Q(s, a)
+Properties:
+Pros: Low variance, online, no full episodes needed
+Cons: Biased (unless next-state value estimate is perfect)
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+13 / 21
+
+--- PDF page 14 ---
+Off-Policy vs On-Policy
+On-Policy (SARSA):
+Learns value of the policy currently being followed
+π must become greedy over time, or will not converge to optimal
+value function / policy (example: Cliff World)
+Better convergence guarantees with linear function approximation
+Update: Q(s, a) ← Q(s, a) + α[r + γQ(s ′ , π(s ′ )) − Q(s, a)]
+Off-Policy (Q-Learning):
+Learns optimal Q ∗ regardless of actions taken – can explore in any
+manner or use data from any policy
+More sample efficient – can reuse old data
+Update: Q(s, a) ← Q(s, a) + α[r + γ maxa′ Q(s ′ , a′ ) − Q(s, a)]
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+14 / 21
+
+--- PDF page 15 ---
+Policy Gradient
+Parameterized policy fθ (s) → a
+
+fθ (s, a) → R
+
+or
+
+Example with linear function approx. w/ features ϕ:
+fθ (s) = θ1 ϕ1 (s) + θ2 ϕ2 (s) + . . . + θn ϕn (s)
+Policy gradient: approximate ∂R
+∂θ and use to update parameters
+"∞
+#
+X
+J(θ) = Eπθ
+γ t rt
+t=0
+
+∇θ J(θ) =
+
+X
+s
+
+dπ (s)
+
+X
+
+Q π (s, a)∇θ πθ (s, a)
+
+a
+
+θ ← θ + α∇θ J(θ)
+Q π must be approximated. Example: REINFORCE uses a Monte Carlo
+approximation of Q π
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+15 / 21
+
+--- PDF page 16 ---
+Actor-Critic: Best of Both Worlds
+Idea: Combine the advantages of policy search and value functions
+Actor: Directly parameterized policy, as in policy search
+Critic: Value function, as in VF-based methods
+Properties:
+Actor supports continuous actions
+Critic increases sample efficiency and reduces variance of updates
+Comes at the cost of additional complexity, but still popular in
+practice
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+16 / 21
+
+--- PDF page 17 ---
+Example: Advantage Actor-Critic (A2C)
+Advantage Function:
+Aπ (s, a) = Q π (s, a) − V π (s)
+Measures how much better action a is vs. average under π
+Algorithm iteration sketch:
+1 Update Critic V
+ϕ
+2
+
+Estimate advantage: Â(s, a) = r + γVϕ (s ′ ) − Vϕ (s)
+
+3
+
+Update Actor: θ ← θ + α∇θ log πθ (a|s) · Â(s, a)
+
+Key idea: Use critic as a baseline to reduce variance of updates
+Q is better to use than a sample of return, since it is an expectation
+of return
+A is better to use than Q, because it is approximately mean-zero and
+is multiplying the gradient
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+17 / 21
+
+--- PDF page 18 ---
+Modern RL: Proximal Policy Optimization (PPO)
+Motivation: Policy gradients can take too large of steps ⇒ unstable
+Key Idea: Constrain how much the policy can change per update
+Clipped Surrogate Objective:
+h
+
+i
+LCLIP (θ) = Et min rt (θ)Ât , clip(rt (θ), 1 − ϵ, 1 + ϵ)Ât
+where rt (θ) = ππθ θ (a(at |st |st )t ) is the probability ratio
+old
+
+What clipping does:
+If advantage positive: clip at 1 + ϵ (don’t increase prob too much)
+If advantage negative: clip at 1 − ϵ (don’t decrease prob too much)
+Prevents destructive policy updates
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+18 / 21
+
+--- PDF page 19 ---
+Modern RL: Proximal Policy Optimization (PPO)
+
+PPO Algorithm:
+1
+
+Collect trajectories using πθold
+
+2
+
+Compute advantages Ât
+
+3
+
+Optimize clipped objective for K epochs
+
+4
+
+Repeat
+
+Properties:
+Pros: Simple, stable, strong performance, works with
+continuous/discrete actions
+Cons: Sample inefficient (on-policy), hyperparameter sensitive
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+19 / 21
+
+--- PDF page 20 ---
+Modern RL: Soft Actor-Critic (SAC)
+
+Motivation: Combine sample efficiency, off-policy, and robustness
+Key Idea: Maximum entropy RL – maximize reward AND policy entropy
+Modified Objective:
+J(π) =
+
+X
+
+E [r (st , at ) + αH(π(·|st ))]
+
+t
+
+where H(π) = −E[log π(a|s)] is entropy
+Why entropy? Encourages exploration, prevents premature convergence,
+more robust
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+20 / 21
+
+--- PDF page 21 ---
+Modern RL: Soft Actor-Critic (SAC)
+SAC Updates:
+1
+
+Critic: Minimize soft Bellman error
+
+
+Qϕ (s, a) ← r + γE Qϕ′ (s ′ , a′ ) − α log πθ (a′ |s ′ )
+
+2
+
+Actor: Maximize entropy-regularized return
+θ ← arg max E [Qϕ (s, a) − α log πθ (a|s)]
+θ
+
+Properties:
+Pros: Sample efficient (off-policy), stable, strong on continuous
+control
+Cons: More complex, continuous actions only, more hyperparameters
+
+CS 690S: AI Alignment (Prof. Scott Niekum)
+
+Reinforcement Learning
+
+21 / 21

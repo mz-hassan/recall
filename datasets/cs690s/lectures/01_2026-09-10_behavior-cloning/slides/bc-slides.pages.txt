@@ -1,0 +1,397 @@
+--- PDF page 1 ---
+CS 690S: AI Alignment
+Prof. Scott Niekum
+Behavioral Cloning
+
+--- PDF page 2 ---
+Reinforcement Learning
+⇡
+VR = E [
+<latexit sha1_base64="UgV6/S/nWCz4Kp62Ryw60IvvpGk=">AAACOHicbVBPT9swHHU6NqD7QxlHLhYVErtUSXcYF6SKadJu/BEtSEmIHNdJLWwnsn9BqrJ8lH2MXfYxdgHEhQMIcUXafU7LAdo9ydLTe7+f7ffiXHADrnvlNF4tvH6zuLTcfPvu/YeV1urHgckKTVmfZiLTJzExTHDF+sBBsJNcMyJjwY7js6+1f3zOtOGZOoJxzkJJUsUTTglYKWrtDU7LIOdVdIh3cCAJjOK4/FbhQLAEfByYQkYl7LiVHeMqgbG1UiIlOQV8uGUi+IR/YHsBDjRPRxBGrbbbcSfA88R7Iu3e5t/Li5/NdD9q/QmGGS0kU0AFMcb33BzCkmjgVLCqGRSG5YSekZT5lioimQnLSfAKb1pliJNM26MAT9TnGyWRxoxlbCfraGbWq8X/eX4ByXZYcpUXwBSdPpQUAkOG6xbxkGtGQYwtIVRz+1dMR0QTCrbrpi3Bm408Twbdjve50z3w2r1dNMUSWkcbaAt56Avqoe9oH/URRb/QNbpFd85v58a5dx6mow3naWcNvYDz+A+EubCY</latexit>
+
+P1
+
+t=0
+
+⇡
+<latexit sha1_base64="STIy+XDx1NQcfRq0ZtvijraNLP8=">AAAB7HicbZDLSgMxFIbPeK3jrerSTbAI4qLM1IVuxKIblxWcttCOJZOmbWgmE5KMUIY+gxsXirgSfBX3bsS3Mb0stPWHwMf/n0POOZHkTBvP+3YWFpeWV1Zza+76xubWdn5nt6qTVBEakIQnqh5hTTkTNDDMcFqXiuI44rQW9a9Gee2eKs0ScWsGkoYx7grWYQQbawVNye6OW/mCV/TGQvPgT6Fw8eGey7cvt9LKfzbbCUljKgzhWOuG70kTZlgZRjgdus1UU4lJH3dpw6LAMdVhNh52iA6t00adRNknDBq7vzsyHGs9iCNbGWPT07PZyPwva6SmcxZmTMjUUEEmH3VSjkyCRpujNlOUGD6wgIlidlZEelhhYux9XHsEf3bleaiWiv5JsXTjF8qXMFEO9uEAjsCHUyjDNVQgAAIMHuAJnh3hPDovzuukdMGZ9uzBHznvP8urkas=</latexit>
+
+⇤
+
+t
+
+Imitation Learning
+
+R(st )|⇡]
+
+⇤
+⇡R̂
+<latexit sha1_base64="aL7r2UbccxbhJ8Q44bVjDe0St6E=">AAAB+HicbVBNS8NAEJ3Ur1o/GvXoJVgE8VCSKuix6MVjFfsBTQyb7aZdutmE3Y1QQ36JFw+KePWnePPfuG1z0NYHA4/3ZpiZFySMSmXb30ZpZXVtfaO8Wdna3tmtmnv7HRmnApM2jlksegGShFFO2ooqRnqJICgKGOkG4+up330kQtKY36tJQrwIDTkNKUZKS75ZdRP6cOpn7gip7C7PfbNm1+0ZrGXiFKQGBVq++eUOYpxGhCvMkJR9x06UlyGhKGYkr7ipJAnCYzQkfU05ioj0stnhuXWslYEVxkIXV9ZM/T2RoUjKSRTozgipkVz0puJ/Xj9V4aWXUZ6kinA8XxSmzFKxNU3BGlBBsGITTRAWVN9q4RESCCudVUWH4Cy+vEw6jbpzVm/cnteaV0UcZTiEIzgBBy6gCTfQgjZgSOEZXuHNeDJejHfjY95aMoqZA/gD4/MH4UeTPA==</latexit>
+
+⇡ : S ⇥ A ! [0, 1]
+<latexit sha1_base64="lIjEkedkp/9ibNhFyJiVDFfAO54=">AAACCnicbVC7SgNBFJ2Nrxhfq5Y2Y4IgKGE3FopV1MYyonnA7hJmJ5NkyOyDmbvKElLbWPobNhaK2PoFdvkbJ49CEw9cOJxzL/fe48eCK7CsoZFZWFxaXsmu5tbWNza3zO2dmooSSVmVRiKSDZ8oJnjIqsBBsEYsGQl8wep+72rk1++ZVDwK7yCNmReQTsjbnBLQUtPcd2N+jm+xCzxgCl9gV/JOF4iU0QN2rGPba5oFq2iNgeeJPSWFct49eh6W00rT/HZbEU0CFgIVRCnHtmLw+kQCp4INcm6iWExoj3SYo2lI9GKvP35lgA+00sLtSOoKAY/V3xN9EiiVBr7uDAh01aw3Ev/znATaZ16fh3ECLKSTRe1EYIjwKBfc4pJREKkmhEqub8W0SyShoNPL6RDs2ZfnSa1UtE+KpRu7UL5EE2TRHsqjQ2SjU1RG16iCqoiiR/SC3tC78WS8Gh/G56Q1Y0xndtEfGF8/1uGcEA==</latexit>
+
+RL
+
+⇡BC
+
+R̂
+
+<latexit sha1_base64="qmtyWUbt71i9q9MMEKOAOaKLqIc=">AAACAHicbVDLSgMxFM3UV62vqgsXboJFcFVmqqDL0m5cVrAP6Awlk6ZtaJIZkjtiGWbjr7hxoYhbP8Odf2P6WGjrgcs9nHMvyT1hLLgB1/12cmvrG5tb+e3Czu7e/kHx8KhlokRT1qSRiHQnJIYJrlgTOAjWiTUjMhSsHY7rU7/9wLThkbqHScwCSYaKDzglYKVe8cSPeS/1gT2ClrZzNcG1epb1iiW37M6AV4m3ICW0QKNX/PL7EU0kU0AFMabruTEEKdHAqWBZwU8MiwkdkyHrWqqIZCZIZwdk+NwqfTyItC0FeKb+3kiJNGYiQzspCYzMsjcV//O6CQxugpSrOAGm6PyhQSIwRHiaBu5zzSiIiSWEam7/iumIaELBZlawIXjLJ6+SVqXsXZYrd1elam0RRx6dojN0gTx0jaroFjVQE1GUoWf0it6cJ+fFeXc+5qM5Z7FzjP7A+fwBU/CW3g==</latexit>
+
+<latexit sha1_base64="kRJ8QdvVH1Krq0qCNM+gI/o2n6U=">AAAB7nicbVBNS8NAEJ3Ur1q/qh69LBbBU0mqoMeiF49V7Ae0oWy2m3bpZhN2J0IJ/RFePCji1d/jzX/jts1BWx8MPN6bYWZekEhh0HW/ncLa+sbmVnG7tLO7t39QPjxqmTjVjDdZLGPdCajhUijeRIGSdxLNaRRI3g7GtzO//cS1EbF6xEnC/YgOlQgFo2ildm9EMXuY9ssVt+rOQVaJl5MK5Gj0y1+9QczSiCtkkhrT9dwE/YxqFEzyaamXGp5QNqZD3rVU0YgbP5ufOyVnVhmQMNa2FJK5+nsio5ExkyiwnRHFkVn2ZuJ/XjfF8NrPhEpS5IotFoWpJBiT2e9kIDRnKCeWUKaFvZWwEdWUoU2oZEPwll9eJa1a1buo1u4vK/WbPI4inMApnIMHV1CHO2hAExiM4Rle4c1JnBfn3flYtBacfOYY/sD5/AF3zI+n</latexit>
+
+Behavioral
+cloning
+
+RL
+
+Inverse RL
+
+Given: Demonstrations ⌧i
+<latexit sha1_base64="TCnKn3KKP1hvB5av4i6j5hjSxCI=">AAAB7XicbVBNS8NAEJ3Ur1q/qh69LBbBU0mqoMeiF48V7Ae0oWy2m3btZhN2J0IJ/Q9ePCji1f/jzX/jts1BWx8MPN6bYWZekEhh0HW/ncLa+sbmVnG7tLO7t39QPjxqmTjVjDdZLGPdCajhUijeRIGSdxLNaRRI3g7GtzO//cS1EbF6wEnC/YgOlQgFo2ilVg9p2hf9csWtunOQVeLlpAI5Gv3yV28QszTiCpmkxnQ9N0E/oxoFk3xa6qWGJ5SN6ZB3LVU04sbP5tdOyZlVBiSMtS2FZK7+nshoZMwkCmxnRHFklr2Z+J/XTTG89jOhkhS5YotFYSoJxmT2OhkIzRnKiSWUaWFvJWxENWVoAyrZELzll1dJq1b1Lqq1+8tK/SaPowgncArn4MEV1OEOGtAEBo/wDK/w5sTOi/PufCxaC04+cwx/4Hz+AJ8rjyg=</latexit>
+
+⇤
+⇡R
+<latexit sha1_base64="eR6yqT+Ks6RTMU9vRJQ+3PNSL1s=">AAAB7nicbVBNSwMxEJ2tX7V+VT16CRZBPJTdKuix6MVjFfsB7VqyabYNzWZDkhXK0h/hxYMiXv093vw3pts9aOuDgcd7M8zMCyRn2rjut1NYWV1b3yhulra2d3b3yvsHLR0nitAmiXmsOgHWlDNBm4YZTjtSURwFnLaD8c3Mbz9RpVksHsxEUj/CQ8FCRrCxUrsn2eNZ/75frrhVNwNaJl5OKpCj0S9/9QYxSSIqDOFY667nSuOnWBlGOJ2WeommEpMxHtKupQJHVPtpdu4UnVhlgMJY2RIGZerviRRHWk+iwHZG2Iz0ojcT//O6iQmv/JQJmRgqyHxRmHBkYjT7HQ2YosTwiSWYKGZvRWSEFSbGJlSyIXiLLy+TVq3qnVdrdxeV+nUeRxGO4BhOwYNLqMMtNKAJBMbwDK/w5kjnxXl3PuatBSefOYQ/cD5/AMXajzI=</latexit>
+
+R
+<latexit sha1_base64="cVRUNBy/RTcU6LUbsjbBwonoaeo=">AAAB6HicbVDLTgJBEOzFF+IL9ehlIjHxRHbRRI9ELx7ByCOBDZkdemFkdnYzM2tCCF/gxYPGePWTvPk3DrAHBSvppFLVne6uIBFcG9f9dnJr6xubW/ntws7u3v5B8fCoqeNUMWywWMSqHVCNgktsGG4EthOFNAoEtoLR7cxvPaHSPJYPZpygH9GB5CFn1Fipft8rltyyOwdZJV5GSpCh1it+dfsxSyOUhgmqdcdzE+NPqDKcCZwWuqnGhLIRHWDHUkkj1P5kfuiUnFmlT8JY2ZKGzNXfExMaaT2OAtsZUTPUy95M/M/rpCa89idcJqlByRaLwlQQE5PZ16TPFTIjxpZQpri9lbAhVZQZm03BhuAtv7xKmpWyd1Gu1C9L1ZssjjycwCmcgwdXUIU7qEEDGCA8wyu8OY/Oi/PufCxac042cwx/4Hz+AK3vjNo=</latexit>
+
+Given: R
+<latexit sha1_base64="cVRUNBy/RTcU6LUbsjbBwonoaeo=">AAAB6HicbVDLTgJBEOzFF+IL9ehlIjHxRHbRRI9ELx7ByCOBDZkdemFkdnYzM2tCCF/gxYPGePWTvPk3DrAHBSvppFLVne6uIBFcG9f9dnJr6xubW/ntws7u3v5B8fCoqeNUMWywWMSqHVCNgktsGG4EthOFNAoEtoLR7cxvPaHSPJYPZpygH9GB5CFn1Fipft8rltyyOwdZJV5GSpCh1it+dfsxSyOUhgmqdcdzE+NPqDKcCZwWuqnGhLIRHWDHUkkj1P5kfuiUnFmlT8JY2ZKGzNXfExMaaT2OAtsZUTPUy95M/M/rpCa89idcJqlByRaLwlQQE5PZ16TPFTIjxpZQpri9lbAhVZQZm03BhuAtv7xKmpWyd1Gu1C9L1ZssjjycwCmcgwdXUIU7qEEDGCA8wyu8OY/Oi/PufCxac042cwx/4Hz+AK3vjNo=</latexit>
+
+R:S!R
+<latexit sha1_base64="FFa1nCpcGc/rZU7cw+VwM2P3aPA=">AAACBHicbVC7TsMwFHV4lvIKMHaxqJCYqqQggZgqWBhLoQ+piSrHdVqrjh3ZDqiKOrDwKywMIMTKR7DxNzhtBmg50pWOzrlX994TxIwq7Tjf1tLyyuraemGjuLm1vbNr7+23lEgkJk0smJCdACnCKCdNTTUjnVgSFAWMtIPRVea374lUVPA7PY6JH6EBpyHFSBupZ5caF/AWepIOhhpJKR6gFyE9DIK0MenZZafiTAEXiZuTMshR79lfXl/gJCJcY4aU6rpOrP0USU0xI5OilygSIzxCA9I1lKOIKD+dPjGBR0bpw1BIU1zDqfp7IkWRUuMoMJ3ZhWrey8T/vG6iw3M/pTxONOF4tihMGNQCZonAPpUEazY2BGFJza0QD5FEWJvciiYEd/7lRdKqVtyTSvXmtFy7zOMogBI4BMfABWegBq5BHTQBBo/gGbyCN+vJerHerY9Z65KVzxyAP7A+fwABrZe1</latexit>
+
+--- PDF page 3 ---
+Why learn from demonstrations?
+
+fi
+
+General purpose
+robot
+
+Speci c task
+
+Expert engineer
+
+--- PDF page 4 ---
+Why learn from demonstrations?
+
+•Natural and expressive
+•No expert knowledge required
+•Valuable human intuition
+•Program new tasks as-needed
+
+fi
+
+General purpose
+robot
+
+Speci c task
+
+End user
+
+--- PDF page 5 ---
+Why learn from demonstrations?
+
+What reward function describes a good cartwheel?
+
+--- PDF page 6 ---
+Why learn from demonstrations?
+
+--- PDF page 7 ---
+Why learn from demonstrations?
+
+--- PDF page 8 ---
+Why learn from demonstrations?
+
+Millions!
+
+fi
+
+Hessel, Matteo, et al. "Rainbow: Combining improvements
+in deep reinforcement learning." Proceedings of the AAAI
+conference on arti cial intelligence. Vol. 32. No. 1. 2018.
+
+--- PDF page 9 ---
+Why learn from demonstrations?
+
+--- PDF page 10 ---
+How to provide demonstrations?
+
+--- PDF page 11 ---
+How to provide demonstrations?
+
+--- PDF page 12 ---
+How to provide demonstrations?
+
+--- PDF page 13 ---
+How to provide demonstrations?
+
+Fu, Zipeng, Tony Z. Zhao, and Chelsea Finn. "Mobile aloha: Learning bimanual mobile manipulation with
+low-cost whole-body teleoperation." arXiv preprint arXiv:2401.02117 (2024).
+
+--- PDF page 14 ---
+How to provide demonstrations?
+
+--- PDF page 15 ---
+How to provide demonstrations?
+
+--- PDF page 16 ---
+Behavioral cloning
+D = {st , at , st+1 }N
+<latexit sha1_base64="lgzWiCpowtha8XgQjnosktz5nAc=">AAACBHicbVDLSgMxFM34rPU16rKbYBEEpcxUQTdCUReupIJ9QDsMmTRtQzOZIbkjlKELN/6KGxeKuPUj3Pk3pu0stPXAvRzOuZfkniAWXIPjfFsLi0vLK6u5tfz6xubWtr2zW9dRoiir0UhEqhkQzQSXrAYcBGvGipEwEKwRDK7GfuOBKc0jeQ/DmHkh6Une5ZSAkXy7cI0vcDvVPhxjMm7aT+HIHbVH/q1vF52SMwGeJ25GiihD1be/2p2IJiGTQAXRuuU6MXgpUcCpYKN8O9EsJnRAeqxlqCQh0146OWKED4zSwd1ImZKAJ+rvjZSEWg/DwEyGBPp61huL/3mtBLrnXsplnACTdPpQNxEYIjxOBHe4YhTE0BBCFTd/xbRPFKFgcsubENzZk+dJvVxyT0rlu9Ni5TKLI4cKaB8dIhedoQq6QVVUQxQ9omf0it6sJ+vFerc+pqMLVrazh/7A+vwBKtqWhw==</latexit>
+
+Learn:
+
+⇡:S!A
+<latexit sha1_base64="LqBlOEN5CmbIyO8hEyOQ/rJRYtc=">AAAB/XicbVDLSsNAFL2pr1pf8bFzM1gEVyWpguKq6sZlRfuAJpTJdNoOnWTCzESpofgrblwo4tb/cOffOG2z0NYDFw7n3Mu99wQxZ0o7zreVW1hcWl7JrxbW1jc2t+ztnboSiSS0RgQXshlgRTmLaE0zzWkzlhSHAaeNYHA19hv3VComojs9jKkf4l7EuoxgbaS2vefF7BzdIk+yXl9jKcUDumjbRafkTIDmiZuRImSotu0vryNIEtJIE46VarlOrP0US80Ip6OClygaYzLAPdoyNMIhVX46uX6EDo3SQV0hTUUaTdTfEykOlRqGgekMse6rWW8s/ue1Et0981MWxYmmEZku6iYcaYHGUaAOk5RoPjQEE8nMrYj0scREm8AKJgR39uV5Ui+X3ONS+eakWLnM4sjDPhzAEbhwChW4hirUgMAjPMMrvFlP1ov1bn1MW3NWNrMLf2B9/gBSgJR/</latexit>
+
+or more generally:
+
+⇡(s, a) := p(a|s)
+<latexit sha1_base64="o/LC9gKkBE/8WLT+UnkJoHXo0Ss=">AAAB+3icbVBNS8NAEN3Ur1q/Yj16WSxCC1KSKiiCUPTisYL9gDaUyXbTLt0ky+5GLLV/xYsHRbz6R7z5b9y2OWjrg4HHezPMzPMFZ0o7zreVWVldW9/Ibua2tnd29+z9fEPFiSS0TmIey5YPinIW0bpmmtOWkBRCn9OmP7yZ+s0HKhWLo3s9EtQLoR+xgBHQRura+Y5gRXUCJXx5hUURnlSpaxecsjMDXiZuSgooRa1rf3V6MUlCGmnCQam26wjtjUFqRjid5DqJogLIEPq0bWgEIVXeeHb7BB8bpYeDWJqKNJ6pvyfGECo1Cn3TGYIeqEVvKv7ntRMdXHhjFolE04jMFwUJxzrG0yBwj0lKNB8ZAkQycysmA5BAtIkrZ0JwF19eJo1K2T0tV+7OCtXrNI4sOkRHqIhcdI6q6BbVUB0R9Iie0St6sybWi/VufcxbM1Y6c4D+wPr8AVaikrE=</latexit>
+
+Straightforward supervised learning problem
+
+--- PDF page 17 ---
+Scaling up BC: π0.6
+
+https://www.pi.website/blog/pistar06
+
+--- PDF page 18 ---
+Scaling up BC: π0 (predecessor to 0.6)
+
+https://www.pi.website/blog/pi0
+
+--- PDF page 19 ---
+How to provide demonstrations?
+
+--- PDF page 20 ---
+Behavioral cloning
+D = {st , at , st+1 }N
+<latexit sha1_base64="lgzWiCpowtha8XgQjnosktz5nAc=">AAACBHicbVDLSgMxFM34rPU16rKbYBEEpcxUQTdCUReupIJ9QDsMmTRtQzOZIbkjlKELN/6KGxeKuPUj3Pk3pu0stPXAvRzOuZfkniAWXIPjfFsLi0vLK6u5tfz6xubWtr2zW9dRoiir0UhEqhkQzQSXrAYcBGvGipEwEKwRDK7GfuOBKc0jeQ/DmHkh6Une5ZSAkXy7cI0vcDvVPhxjMm7aT+HIHbVH/q1vF52SMwGeJ25GiihD1be/2p2IJiGTQAXRuuU6MXgpUcCpYKN8O9EsJnRAeqxlqCQh0146OWKED4zSwd1ImZKAJ+rvjZSEWg/DwEyGBPp61huL/3mtBLrnXsplnACTdPpQNxEYIjxOBHe4YhTE0BBCFTd/xbRPFKFgcsubENzZk+dJvVxyT0rlu9Ni5TKLI4cKaB8dIhedoQq6QVVUQxQ9omf0it6sJ+vFerc+pqMLVrazh/7A+vwBKtqWhw==</latexit>
+
+Learn:
+
+⇡:S!A
+<latexit sha1_base64="LqBlOEN5CmbIyO8hEyOQ/rJRYtc=">AAAB/XicbVDLSsNAFL2pr1pf8bFzM1gEVyWpguKq6sZlRfuAJpTJdNoOnWTCzESpofgrblwo4tb/cOffOG2z0NYDFw7n3Mu99wQxZ0o7zreVW1hcWl7JrxbW1jc2t+ztnboSiSS0RgQXshlgRTmLaE0zzWkzlhSHAaeNYHA19hv3VComojs9jKkf4l7EuoxgbaS2vefF7BzdIk+yXl9jKcUDumjbRafkTIDmiZuRImSotu0vryNIEtJIE46VarlOrP0US80Ip6OClygaYzLAPdoyNMIhVX46uX6EDo3SQV0hTUUaTdTfEykOlRqGgekMse6rWW8s/ue1Et0981MWxYmmEZku6iYcaYHGUaAOk5RoPjQEE8nMrYj0scREm8AKJgR39uV5Ui+X3ONS+eakWLnM4sjDPhzAEbhwChW4hirUgMAjPMMrvFlP1ov1bn1MW3NWNrMLf2B9/gBSgJR/</latexit>
+
+or more generally:
+
+⇡(s, a) := p(a|s)
+<latexit sha1_base64="o/LC9gKkBE/8WLT+UnkJoHXo0Ss=">AAAB+3icbVBNS8NAEN3Ur1q/Yj16WSxCC1KSKiiCUPTisYL9gDaUyXbTLt0ky+5GLLV/xYsHRbz6R7z5b9y2OWjrg4HHezPMzPMFZ0o7zreVWVldW9/Ibua2tnd29+z9fEPFiSS0TmIey5YPinIW0bpmmtOWkBRCn9OmP7yZ+s0HKhWLo3s9EtQLoR+xgBHQRura+Y5gRXUCJXx5hUURnlSpaxecsjMDXiZuSgooRa1rf3V6MUlCGmnCQam26wjtjUFqRjid5DqJogLIEPq0bWgEIVXeeHb7BB8bpYeDWJqKNJ6pvyfGECo1Cn3TGYIeqEVvKv7ntRMdXHhjFolE04jMFwUJxzrG0yBwj0lKNB8ZAkQycysmA5BAtIkrZ0JwF19eJo1K2T0tV+7OCtXrNI4sOkRHqIhcdI6q6BbVUB0R9Iie0St6sybWi/VufcxbM1Y6c4D+wPr8AVaikrE=</latexit>
+
+Straightforward supervised learning problem
+
+--- PDF page 21 ---
+Behavioral cloning from observation
+D = {st , at , st+1 }N
+<latexit sha1_base64="lgzWiCpowtha8XgQjnosktz5nAc=">AAACBHicbVDLSgMxFM34rPU16rKbYBEEpcxUQTdCUReupIJ9QDsMmTRtQzOZIbkjlKELN/6KGxeKuPUj3Pk3pu0stPXAvRzOuZfkniAWXIPjfFsLi0vLK6u5tfz6xubWtr2zW9dRoiir0UhEqhkQzQSXrAYcBGvGipEwEKwRDK7GfuOBKc0jeQ/DmHkh6Une5ZSAkXy7cI0vcDvVPhxjMm7aT+HIHbVH/q1vF52SMwGeJ25GiihD1be/2p2IJiGTQAXRuuU6MXgpUcCpYKN8O9EsJnRAeqxlqCQh0146OWKED4zSwd1ImZKAJ+rvjZSEWg/DwEyGBPp61huL/3mtBLrnXsplnACTdPpQNxEYIjxOBHe4YhTE0BBCFTd/xbRPFKFgcsubENzZk+dJvVxyT0rlu9Ni5TKLI4cKaB8dIhedoQq6QVVUQxQ9omf0it6sJ+vFerc+pqMLVrazh/7A+vwBKtqWhw==</latexit>
+
+Learn:
+
+⇡:S!A
+<latexit sha1_base64="LqBlOEN5CmbIyO8hEyOQ/rJRYtc=">AAAB/XicbVDLSsNAFL2pr1pf8bFzM1gEVyWpguKq6sZlRfuAJpTJdNoOnWTCzESpofgrblwo4tb/cOffOG2z0NYDFw7n3Mu99wQxZ0o7zreVW1hcWl7JrxbW1jc2t+ztnboSiSS0RgQXshlgRTmLaE0zzWkzlhSHAaeNYHA19hv3VComojs9jKkf4l7EuoxgbaS2vefF7BzdIk+yXl9jKcUDumjbRafkTIDmiZuRImSotu0vryNIEtJIE46VarlOrP0US80Ip6OClygaYzLAPdoyNMIhVX46uX6EDo3SQV0hTUUaTdTfEykOlRqGgekMse6rWW8s/ue1Et0981MWxYmmEZku6iYcaYHGUaAOk5RoPjQEE8nMrYj0scREm8AKJgR39uV5Ui+X3ONS+eakWLnM4sjDPhzAEbhwChW4hirUgMAjPMMrvFlP1ov1bn1MW3NWNrMLf2B9/gBSgJR/</latexit>
+
+or more generally:
+
+⇡(s, a) := p(a|s)
+<latexit sha1_base64="o/LC9gKkBE/8WLT+UnkJoHXo0Ss=">AAAB+3icbVBNS8NAEN3Ur1q/Yj16WSxCC1KSKiiCUPTisYL9gDaUyXbTLt0ky+5GLLV/xYsHRbz6R7z5b9y2OWjrg4HHezPMzPMFZ0o7zreVWVldW9/Ibua2tnd29+z9fEPFiSS0TmIey5YPinIW0bpmmtOWkBRCn9OmP7yZ+s0HKhWLo3s9EtQLoR+xgBHQRura+Y5gRXUCJXx5hUURnlSpaxecsjMDXiZuSgooRa1rf3V6MUlCGmnCQam26wjtjUFqRjid5DqJogLIEPq0bWgEIVXeeHb7BB8bpYeDWJqKNJ6pvyfGECo1Cn3TGYIeqEVvKv7ntRMdXHhjFolE04jMFwUJxzrG0yBwj0lKNB8ZAkQycysmA5BAtIkrZ0JwF19eJo1K2T0tV+7OCtXrNI4sOkRHqIhcdI6q6BbVUB0R9Iie0St6sybWi/VufcxbM1Y6c4D+wPr8AVaikrE=</latexit>
+
+How to infer action that caused transition from st to st+1 ?
+<latexit sha1_base64="wACjoN7BQCDe2qn5khzzu2Ur09I=">AAAB7HicbVBNS8NAEJ34WetX1aOXxSJ4KkkV9Fj04rGCaQttKJvtpl262YTdiVBCf4MXD4p49Qd589+4bXPQ1gcDj/dmmJkXplIYdN1vZ219Y3Nru7RT3t3bPzisHB23TJJpxn2WyER3Qmq4FIr7KFDyTqo5jUPJ2+H4bua3n7g2IlGPOEl5ENOhEpFgFK3km36O036l6tbcOcgq8QpShQLNfuWrN0hYFnOFTFJjup6bYpBTjYJJPi33MsNTysZ0yLuWKhpzE+TzY6fk3CoDEiXalkIyV39P5DQ2ZhKHtjOmODLL3kz8z+tmGN0EuVBphlyxxaIokwQTMvucDITmDOXEEsq0sLcSNqKaMrT5lG0I3vLLq6RVr3mXtfrDVbVxW8RRglM4gwvw4BoacA9N8IGBgGd4hTdHOS/Ou/OxaF1zipkT+APn8wcvyo7u</latexit>
+
+<latexit sha1_base64="qSxyRq6hTpvusUZiQv9rBIgz8mY=">AAAB7nicbVBNS8NAEJ3Ur1q/qh69LBZBEEpSBT0WvXisYD+gDWWz3bRLN5uwOxFK6I/w4kERr/4eb/4bt20O2vpg4PHeDDPzgkQKg6777RTW1jc2t4rbpZ3dvf2D8uFRy8SpZrzJYhnrTkANl0LxJgqUvJNoTqNA8nYwvpv57SeujYjVI04S7kd0qEQoGEUrtU0/wwtv2i9X3Ko7B1klXk4qkKPRL3/1BjFLI66QSWpM13MT9DOqUTDJp6VeanhC2ZgOeddSRSNu/Gx+7pScWWVAwljbUkjm6u+JjEbGTKLAdkYUR2bZm4n/ed0Uwxs/EypJkSu2WBSmkmBMZr+TgdCcoZxYQpkW9lbCRlRThjahkg3BW355lbRqVe+yWnu4qtRv8ziKcAKncA4eXEMd7qEBTWAwhmd4hTcncV6cd+dj0Vpw8plj+APn8wcJLI9e</latexit>
+
+--- PDF page 22 ---
+Inverse dynamics
+Dynamics:
+<latexit sha1_base64="Rr9EIlDaVBPgVuPYCF457d14cDk=">AAAB/nicbVDLSsNAFJ3UV62vqLhyM1iEilKSKuiy6MZlBfuANoTJdNIOnUzCzI1QYsFfceNCEbd+hzv/xuljoa0HLhzOuZd77wkSwTU4zreVW1peWV3Lrxc2Nre2d+zdvYaOU0VZncYiVq2AaCa4ZHXgIFgrUYxEgWDNYHAz9psPTGkey3sYJsyLSE/ykFMCRvLtg6Sk/QxO3RF+xNqHM0x8OPHtolN2JsCLxJ2RIpqh5ttfnW5M04hJoIJo3XadBLyMKOBUsFGhk2qWEDogPdY2VJKIaS+bnD/Cx0bp4jBWpiTgifp7IiOR1sMoMJ0Rgb6e98bif147hfDKy7hMUmCSTheFqcAQ43EWuMsVoyCGhhCquLkV0z5RhIJJrGBCcOdfXiSNStk9L1fuLorV61kceXSIjlAJuegSVdEtqqE6oihDz+gVvVlP1ov1bn1MW3PWbGYf/YH1+QM8ZpRe</latexit>
+
+Inverse dynamics:
+<latexit sha1_base64="ixCYdnZWxgivSviBZ6MfOZYEaPc=">AAACAHicbVDLSsNAFJ3UV62vqAsXbgaLUFFKUgVdFt24rGAf0IYwmU7aoZMHMzdCidn4K25cKOLWz3Dn3zhts9DWA/dyOOdeZu7xYsEVWNa3UVhaXlldK66XNja3tnfM3b2WihJJWZNGIpIdjygmeMiawEGwTiwZCTzB2t7oZuK3H5hUPArvYRwzJyCDkPucEtCSax7EFeKmkOFHrFw40y2FUzs7cc2yVbWmwIvEzkkZ5Wi45levH9EkYCFQQZTq2lYMTkokcCpYVuolisWEjsiAdTUNScCUk04PyPCxVvrYj6SuEPBU/b2RkkCpceDpyYDAUM17E/E/r5uAf+WkPIwTYCGdPeQnAkOEJ2ngPpeMghhrQqjk+q+YDokkFHRmJR2CPX/yImnVqvZ5tXZ3Ua5f53EU0SE6QhVko0tUR7eogZqIogw9o1f0ZjwZL8a78TEbLRj5zj76A+PzBxD8lWo=</latexit>
+
+p(st+1 |st , at )
+
+p(at |st , st+1 )
+
+Learn inverse dynamics from o ine data:
+
+…and guess the missing demonstration actions:
+
+D = {st , at , st+1 }N
+<latexit sha1_base64="lgzWiCpowtha8XgQjnosktz5nAc=">AAACBHicbVDLSgMxFM34rPU16rKbYBEEpcxUQTdCUReupIJ9QDsMmTRtQzOZIbkjlKELN/6KGxeKuPUj3Pk3pu0stPXAvRzOuZfkniAWXIPjfFsLi0vLK6u5tfz6xubWtr2zW9dRoiir0UhEqhkQzQSXrAYcBGvGipEwEKwRDK7GfuOBKc0jeQ/DmHkh6Une5ZSAkXy7cI0vcDvVPhxjMm7aT+HIHbVH/q1vF52SMwGeJ25GiihD1be/2p2IJiGTQAXRuuU6MXgpUcCpYKN8O9EsJnRAeqxlqCQh0146OWKED4zSwd1ImZKAJ+rvjZSEWg/DwEyGBPp61huL/3mtBLrnXsplnACTdPpQNxEYIjxOBHe4YhTE0BBCFTd/xbRPFKFgcsubENzZk+dJvVxyT0rlu9Ni5TKLI4cKaB8dIhedoQq6QVVUQxQ9omf0it6sJ+vFerc+pqMLVrazh/7A+vwBKtqWhw==</latexit>
+
+ffl
+
+Now we’re back to standard BC problem!
+
+--- PDF page 23 ---
+Agent-specific vs. task-specific state
+
+Inverse dynamics learning task
+
+BCO task
+
+--- PDF page 24 ---
+BCO(alpha)
+
+--- PDF page 25 ---
+Analyzing a paper
+• Warning: the next paper (A Reduction of Imitation Learning and Structured
+Prediction to No-Regret Online Learning) is challenging
+
+• You don’t need to understand everything!
+• Analyze at simplest conceptual level before getting stuck in details (and
+ignore details that you don’t need)
+
+• Be systematic!
+
+--- PDF page 26 ---
+Analyzing a paper: Claims (1/3)
+• Claims:
+• An inverse model can be learned from pre-demonstration data
+• A task-agnostic inverse dynamics model can be learned
+• BCO can accurately imitate with observation-only data
+• BCO allows for imitation without post-demonstration interaction
+• However, post-demonstration data helps, if you’re willing to collect it
+• BCO is better with less data than competing approaches
+
+--- PDF page 27 ---
+Analyzing a paper: Baselines
+• GAIL and FEM
+• We’ll look at methods like these later in the course
+• At a high-level, they aim to match state-action occupancies / feature
+expectations
+
+• To do so, need to have post-demonstration data to learn policies that
+match the state/features well
+
+--- PDF page 28 ---
+Analyzing a paper: Claims (2/3)
+• Claims supported?
+• An inverse model can be learned from pre-demonstration data
+• No direct experiments testing accuracy of inverse dynamics model, only done in context of how
+it e ects downstream policy learning
+
+• No experiments examining e ects of di erent amounts of pre-demonstration data
+• If BCO works well overall, then the inverse model must be decent
+• A task-agnostic inverse dynamics model can be learned
+• Reacher domain has partitioned agent/task state space
+• Only assess accuracy of overall algorithm, not inverse model
+
+ff
+
+ff
+
+ff
+
+• Partitioned by hand, and they don’t show consequences of not partitioning
+
+--- PDF page 29 ---
+Analyzing a paper: Claims (3/3)
+• Claims supported?
+• BCO can accurately imitate with observation-only data / without post-demonstration interaction / with
+less data than competing approaches
+
+• Performance much better than random, often close to expert, and often close to action-aware BC.
+• Competitive with baselines that have access to actions (kind of like having in nite pre-demonstration
+data)
+
+• Performance steadily improves with additional pre-demonstration data
+• 20 trials + small standard error bars provides con dence of correctness of results
+• They show that other methods (e.g. GAIL) need many post-demonstration interactions to do as well
+
+as BCO(0). But these are very simple domains, and GAIL has better guarantees than BCO outside of
+the support of the demonstrations.
+
+• Post-demonstration data helps, if you’re willing to collect it
+
+fi
+
+fi
+
+• Performance increases as alpha increases and approaches action-aware BC
+
+--- PDF page 30 ---
+Analyzing a paper: Reproducibility
+
+• Details provided of each domain, neural network architectures, number of interactions, etc.
+• While architecture is speci ed for dynamics model, they don’t say what it is for policy
+
+fi
+
+• Not clear if/how hyperparameters for GAIL and FEM were tuned
+
+--- PDF page 31 ---
+Analyzing a paper: Questions
+• All experiments were with synthetic demonstrations from TRPO. How close to optimal were
+they? Does BCO’s performance gracefully degrade with noisy demonstrations, e.g. from
+humans?
+
+• Can agent/task state space partitioning be learned? How much does performance su er if
+you don’t partition?
+
+• Domains were quite simple, but the motivation in the introduction was learning from Youtube
+
+ff
+
+videos. What would it take to scale? Can partitioning be learned (implicitly, perhaps)?
+
+--- PDF page 32 ---
+Analyzing a paper: Citations
+BCO cites:
+
+• Also imitates from observations
+
+Niekum, S., Osentoski, S., Konidaris, G., Chitta, S., Marthi, B., &
+Barto, A. G. (2015). Learning grounded nite-state representations
+from unstructured demonstrations. The International Journal of
+Robotics Research, 34(2), 131-157.
+
+• Doesn’t need actions due to robot arm controller with
+known functional form and simplistic generalization
+based only on changing start/goal locations
+
+• Automatically segments and reuses sub-skills for
+complex, multi-step tasks
+
+BCO cited by:
+Torabi, F., Warnell, G., & Stone, P. (2018). Generative
+adversarial imitation from observation. In ICML Workshop
+on Imitation, Intent, and Interaction. arXiv preprint
+arXiv:1709.04905, 2019
+
+• Same authors!
+• Aims to address compounding error that BCO
+
+can experience due to being purely supervised
+
+• Essentially GAIL, but from observation-only
+data
+
+• Has above advantages compared to BCO, but
+
+fi
+
+also requires post-demonstration data
+
+--- PDF page 33 ---
+Analyzing a paper: Future work ideas
+• Study approaches and e ects of automatic agent/task state partitioning:
+• In a simple domain, study performance degradation as task-speci c
+variables are leaked into agent’s state space for inverse model.
+
+• Learn a partitioning automatically
+• How does domain complexity in uence the above? E.g. real-world robotic
+
+fi
+
+fl
+
+ff
+
+manipulation from video vs. reacher domain?

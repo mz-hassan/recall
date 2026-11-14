@@ -1,26 +1,42 @@
 # Recall
 
-Recall helps students recover context during a lecture and revisit it afterward. The course library brings together assigned readings, past timelines and a planned cross-lecture knowledge graph. The live lecture interface groups incoming transcript chunks into moments that can carry summaries, equations, intuition, slides, diagrams and requested artifacts.
+Recall helps students recover context during a lecture and revisit it afterward. The course library brings together assigned readings, past timelines and a cross-lecture knowledge graph. The live lecture interface groups incoming transcript chunks into moments that can carry summaries, equations, intuition, slides, diagrams and requested artifacts.
 
 ## Run locally
 
-Use Node.js 22.13 or later (Node 24 recommended).
+Use Node.js 22.18 or later (Node 24 recommended). The TypeScript runner supports both backend features.
 
 ```sh
 npm ci
 cp .env.example .env
+```
+
+Set `DEEPSEEK_API_KEY` in `.env`. Both the graph and live lecture features use this same configuration. Start MongoDB for graph storage in a separate terminal (no Docker):
+
+```sh
 npm run db:start
 ```
 
-Add your DeepSeek API key to `.env`. Keep MongoDB running in that terminal, then in a second terminal:
+Then start the app:
 
 ```sh
-npm run dev
-npm test
+npm run dev        # Vite + one shared Fastify API, default 127.0.0.1:3001
+npm run typecheck
+npm test          # graph and live lecture tests, including nested test directories
 npm run build
 ```
 
-Open AI Alignment from the course library. Each lecture appears once, with **Reading breakdowns** and **Past timeline** actions. Open the lecture title for sources and **Simulate live**. **Knowledge graph** opens the database-backed course graph. See the [graph setup, demonstration commands, and live lecture completion contract](docs/knowledge-graph.md). No Docker is used. `npm run dev:web` runs the frontend alone; the graph needs the API and MongoDB.
+Open AI Alignment from the course library. Each lecture appears once, with **Reading breakdowns** and **Past timeline** actions. Open the lecture title for sources and **Simulate live**. **Knowledge graph** opens the database-backed course graph. See the [graph setup, demonstration commands, and live lecture completion contract](docs/knowledge-graph.md). No Docker is used. `npm run dev:web` runs the frontend alone; `npm run dev:server` runs the shared API. The graph needs MongoDB, but live lecture still runs if the graph database is unavailable. Start MongoDB and restart the API to enable the graph again.
+
+The shared API also exposes transcript replay/streaming, model-backed topic segmentation, topic enrichment, page-exact slides and running lecture summaries. Check it at `http://localhost:3001/api/health`. To run the backend pipelines directly:
+
+```sh
+npm run eval:segmentation -- --lecture 2
+npm run eval:lecture -- --lecture 2
+npm run extract:slides
+```
+
+The evaluation commands use the configured provider and can make paid calls when DeepSeek is selected. Set `LLM_PROVIDER=fixture` explicitly for deterministic offline live-lecture tests/demos. With no configuration, `loadConfig({})` also defaults to fixture mode; the checked-in template selects DeepSeek. There is no fabricated graph fallback.
 
 ## Dataset and simulation
 
@@ -48,7 +64,7 @@ Start with the [code ownership and stack guide](docs/architecture.md), then read
 
 ## Stack and implementation status
 
-The React + Vite frontend provides local dataset replay. The course graph now has a TypeScript/Fastify backend, MongoDB graph persistence, a DeepSeek extraction harness, and completion-triggered indexing. Lecture materials stay in the dataset folder. Live lecture recording/persistence and reading harnesses remain separate workstreams.
+The React + Vite frontend provides local dataset replay. The course graph now has a TypeScript/Fastify backend, MongoDB graph persistence, a DeepSeek extraction harness, and completion-triggered indexing. Lecture materials stay in the dataset folder. The live lecture backend provides transcript streaming, segmentation and enrichment with in-memory sessions; recording, durable timeline persistence and the frontend handoff remain separate work. Reading harnesses remain a separate workstream.
 
 The agreed direction is a Node.js + TypeScript/Fastify backend, MongoDB for course data and graph references, and task-specific harnesses behind a shared model-provider interface. Keep DeepSeek as the initial configurable provider; Gemini is the planned replacement. Fixture mode must remain usable without either API or a database. See the architecture guide for module boundaries, suggested libraries, storage design and implementation order.
 

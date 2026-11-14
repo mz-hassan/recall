@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.18.0"
   },
   "scripts": {
     "dev": "concurrently -k -n api,web \"npm:dev:server\" \"npm:dev:web\"",
@@ -18,7 +18,11 @@
     "preview": "vite preview",
     "predev": "node scripts/prepare-assets.mjs",
     "prebuild": "node scripts/prepare-assets.mjs",
-    "test": "tsx --test src/lecture/*.test.js src/graph/*.test.js server/src/data/*.test.ts server/src/llm/*.test.ts server/src/features/graph/*.test.ts"
+    "test": "node scripts/test.mjs",
+    "start:server": "node --import tsx --env-file-if-exists=.env server/src/index.ts",
+    "eval:segmentation": "node --import tsx --env-file-if-exists=.env server/src/features/lecture/segmentation/eval.ts",
+    "eval:lecture": "node --import tsx --env-file-if-exists=.env server/src/features/lecture/eval.ts",
+    "extract:slides": "node scripts/extract-slide-pages.mjs"
   },
   "dependencies": {
     "cytoscape": "^3.35.0",

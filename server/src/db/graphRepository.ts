@@ -64,8 +64,10 @@ export class MongoGraphRepository implements GraphRepository {
 }
 export async function connectGraphRepository(uri: string, name: string) {
   const client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 });
-  await client.connect();
-  const repository = new MongoGraphRepository(client.db(name));
-  await repository.initialize();
-  return { client, repository };
+  try {
+    await client.connect();
+    const repository = new MongoGraphRepository(client.db(name));
+    await repository.initialize();
+    return { client, repository };
+  } catch (error) { await client.close(); throw error; }
 }

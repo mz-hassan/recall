@@ -5,12 +5,20 @@ import { GraphError, type GraphService } from './service.ts';
 
 const courseParams = z.object({ courseId: completionSchema.shape.courseId });
 const sourceParams = courseParams.extend({ lectureId: completionSchema.shape.lectureId, sourceId: z.string().regex(/^[a-f0-9]{24}$/) });
-export function registerGraphRoutes(app: FastifyInstance, service: GraphService, providerConfigured: boolean) {
+export type GraphServiceSource = GraphService | (() => GraphService | undefined);
+export function registerGraphRoutes(app: FastifyInstance, source: GraphServiceSource, providerConfigured: boolean) {
+  function requireService() {
+    const service = typeof source === 'function' ? source() : source;
+    if (!service) throw new GraphError('The knowledge graph is unavailable. Start MongoDB with npm run db:start and restart the API. Live lecture remains available.', 503);
+    return service;
+  }
   app.post('/api/graph/lecture-completed', async (request, reply) => {
+    const service = requireService();
     const job = await service.complete(completionSchema.parse(request.body));
     return reply.code(job.state === 'completed' ? 200 : 202).send({ job });
   });
   app.get('/api/courses/:courseId/graph', async request => {
+    const service = requireService();
     const { courseId } = courseParams.parse(request.params);
     let available;
     try { available = await service.source.list(courseId); }
@@ -19,6 +27,7 @@ export function registerGraphRoutes(app: FastifyInstance, service: GraphService,
     return { ...graph, jobs, availableLectures: available, providerConfigured };
   });
   app.get('/api/courses/:courseId/lectures/:lectureId/sources/:sourceId', async (request, reply) => {
+    const service = requireService();
     const { courseId, lectureId, sourceId } = sourceParams.parse(request.params);
     const { hash } = z.object({ hash: z.string().regex(/^[a-f0-9]{64}$/) }).parse(request.query);
     const lecture = await service.source.load(courseId, lectureId);
