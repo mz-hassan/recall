@@ -3,19 +3,39 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k -n api,web \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:web": "vite",
+    "dev:server": "tsx watch --include .env --env-file-if-exists=.env server/src/index.ts",
+    "db:start": "node scripts/start-mongo.mjs",
+    "graph:complete": "node --env-file-if-exists=.env scripts/complete-lecture.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:graph:browser": "tsx --test tests/graph.browser.test.ts",
     "build": "vite build",
     "preview": "vite preview",
     "predev": "node scripts/prepare-assets.mjs",
     "prebuild": "node scripts/prepare-assets.mjs",
-    "test": "node --test"
+    "test": "tsx --test src/lecture/*.test.js src/graph/*.test.js server/src/data/*.test.ts server/src/llm/*.test.ts server/src/features/graph/*.test.ts"
   },
   "dependencies": {
+    "cytoscape": "^3.35.0",
+    "fastify": "^5.12.8",
+    "mongodb": "^7.9.0",
+    "pdfjs-dist": "^6.5.438",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
+    "concurrently": "^10.0.7",
+    "mongodb-memory-server": "^11.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
     "vite": "7.3.8"
   }
 }

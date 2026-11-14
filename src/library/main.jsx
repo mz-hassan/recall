@@ -6,6 +6,7 @@ import { baseCourses, baseSources } from './content.js';
 import './library.css';
 import { ReadingPage } from '../readings/ReadingPage.jsx';
 import { CourseGraphButton } from '../graph/CourseGraphButton.jsx';
+import { CourseGraphPage } from '../graph/CourseGraphPage.jsx';
 import { replayPath } from '../lecture/replay.js';
 
 const date = value => new Date(value + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -36,7 +37,7 @@ function CourseHeading({ course, sourceCount, active, onAdd, onRecord }) {
   return <>
     <a className="back" href="#courses">← All courses</a>
     <div className="hero course-hero"><div><div className="eyebrow">{course.code} &nbsp; / &nbsp; FALL 2026</div><h1>{course.name}<em>.</em></h1><p className="intro">{course.teacher || 'Your course workspace'} · {course.lectures.length} lectures in your library</p></div>
-    <div className="hero-actions">{active === 'course' && <CourseGraphButton/>}<button className="secondary" onClick={() => onAdd()}>+ Add sources</button><button className="primary" onClick={() => onRecord()}>◉ Start a session</button></div></div>
+    <div className="hero-actions">{active === 'course' && <CourseGraphButton courseId={course.id}/>}<button className="secondary" onClick={() => onAdd()}>+ Add sources</button><button className="primary" onClick={() => onRecord()}>◉ Start a session</button></div></div>
     <nav className="tabs"><a className={active === 'course' ? 'active' : ''} href={'#course/' + course.id}>Overview &amp; lectures <small>{course.lectures.length}</small></a><a className={active === 'sources' ? 'active' : ''} href={'#sources/' + course.id}>Sources <small>{sourceCount}</small></a></nav>
   </>;
 }
@@ -255,7 +256,7 @@ function Library() {
   useLayoutEffect(() => { window.scrollTo(0, 0); }, [hash]);
   useEffect(() => {
     if (view === 'courses') return;
-    if (!course || !['course', 'sources', 'lecture', 'reading', 'record'].includes(view)) location.hash = 'courses';
+    if (!course || !['course', 'sources', 'lecture', 'reading', 'record', 'graph'].includes(view)) location.hash = 'courses';
     else if ((['lecture', 'reading'].includes(view) && !lecture) || (view === 'record' && session?.course !== course.id)) location.hash = 'course/' + course.id;
   }, [course, lecture, session, view]);
 
@@ -294,19 +295,20 @@ function Library() {
     <div className="ambient" aria-hidden="true"/>
     <header><Brand href="#courses"/><div id="breadcrumb">{isLibrary ? <span>My courses</span> :
       view === 'course' ? <><a href="#courses">My courses</a><span>/ {course.name}</span></> :
-        <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['lecture', 'reading'].includes(view) ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : 'Session'}</span></>}</div>
+        <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['lecture', 'reading'].includes(view) ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : view === 'graph' ? 'Knowledge graph' : 'Session'}</span></>}</div>
       <div className="header-end"><span>FALL 2026</span><button className="avatar" aria-label="About this workspace" onClick={() => setDialog({ type: 'about' })}>M</button></div>
     </header>
     <main id="page" key={hash}>
       {isLibrary ? <Courses courses={courses} getSources={getSources} onNew={() => setDialog({ type: 'course' })}/> : <>
         {['course', 'sources'].includes(view) && <CourseHeading course={course} sourceCount={getSources(id).length} active={view} onAdd={onAdd} onRecord={onRecord}/>}
         {view === 'course' && <CourseOverview course={course} getSources={getSources}/>}
+        {view === 'graph' && <CourseGraphPage course={course}/>}
         {view === 'sources' && <CourseSources course={course} sources={getSources(id)} onAdd={onAdd} onLink={() => onLink()} onPdf={onPdf} onRemove={onRemove}/>}
         {view === 'reading' && lecture && <ReadingPage course={course} lecture={lecture}/>}
         {view === 'lecture' && lecture && <LecturePage course={course} lecture={lecture} sources={getSources(id, lectureId)} onAdd={onAdd} onPdf={onPdf} onRemove={onRemove}/>}
         {view === 'record' && session?.course === id && <Session course={course} session={session} contextCount={getSources(id, session.lecture === 'all' ? undefined : session.lecture).length}
           onEnd={() => { setSession(null); location.hash = 'course/' + id; notify('Demo ended. No audio was recorded.'); }}/>}
-        {view !== 'record' && <div className="bottom-note"><span>A little rewind. A lot of clarity.</span><span>Interactive prototype · No background AI connected</span></div>}
+        {view !== 'record' && <div className="bottom-note"><span>A little rewind. A lot of clarity.</span><span>{view === 'graph' ? 'Source-backed connections across lectures' : 'Interactive prototype · No background AI connected'}</span></div>}
       </>}
     </main>
     <Dialog wide={dialog?.type === 'preview'} onClose={() => setDialog(null)}>

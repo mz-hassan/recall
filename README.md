@@ -4,16 +4,23 @@ Recall helps students recover context during a lecture and revisit it afterward.
 
 ## Run locally
 
-Use Node.js 22.12 or later.
+Use Node.js 22.13 or later (Node 24 recommended).
 
 ```sh
 npm ci
+cp .env.example .env
+npm run db:start
+```
+
+Add your DeepSeek API key to `.env`. Keep MongoDB running in that terminal, then in a second terminal:
+
+```sh
 npm run dev
 npm test
 npm run build
 ```
 
-Open AI Alignment from the course library. Each lecture appears once, with **Reading breakdowns** and **Past timeline** actions. Open the lecture title for sources and **Simulate live**. The course-level **Knowledge graph** control is intentionally disabled pending implementation.
+Open AI Alignment from the course library. Each lecture appears once, with **Reading breakdowns** and **Past timeline** actions. Open the lecture title for sources and **Simulate live**. **Knowledge graph** opens the database-backed course graph. See the [graph setup, demonstration commands, and live lecture completion contract](docs/knowledge-graph.md). No Docker is used. `npm run dev:web` runs the frontend alone; the graph needs the API and MongoDB.
 
 ## Dataset and simulation
 
@@ -41,7 +48,7 @@ Start with the [code ownership and stack guide](docs/architecture.md), then read
 
 ## Stack and implementation status
 
-Today this is a React + Vite frontend with local dataset replay. Backend services, MongoDB persistence and runtime model harnesses are not implemented yet. Keep the existing UI and animations while building features in their own modules.
+The React + Vite frontend provides local dataset replay. The course graph now has a TypeScript/Fastify backend, MongoDB graph persistence, a DeepSeek extraction harness, and completion-triggered indexing. Lecture materials stay in the dataset folder. Live lecture recording/persistence and reading harnesses remain separate workstreams.
 
 The agreed direction is a Node.js + TypeScript/Fastify backend, MongoDB for course data and graph references, and task-specific harnesses behind a shared model-provider interface. Keep DeepSeek as the initial configurable provider; Gemini is the planned replacement. Fixture mode must remain usable without either API or a database. See the architecture guide for module boundaries, suggested libraries, storage design and implementation order.
 
