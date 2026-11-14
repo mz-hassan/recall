@@ -66,3 +66,7 @@
 .lecture-artifact-visual nav button{text-align:left;overflow-wrap:anywhere;max-width:100%}
 .lecture-animation-controls{display:flex;flex-wrap:wrap;gap:8px}
 .lecture-animation-node rect{transition:fill .3s,stroke .3s}
+.lecture-pdf-slide{display:grid;gap:10px;padding:20px;border:1px solid #385649;border-radius:9px;margin:24px 0;background:#121c17}
+.lecture-pdf-slide small{font-size:9px;letter-spacing:1px;color:#8cae9b}
+.lecture-pdf-slide strong{font-size:15px;font-weight:500;color:#c5e9d1}
+.lecture-pdf-slide span{font-size:11px;color:#adc4b5}

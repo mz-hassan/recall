@@ -48,7 +48,7 @@ Start with the [code ownership and stack guide](docs/architecture.md), then read
 
 ## Stack and implementation status
 
-The React + Vite frontend now connects to a TypeScript/Fastify backend for transcript replay, topic segmentation, contextual chat and validated visual artifacts. Fixture and DeepSeek providers share the same interface. MongoDB persistence, automatic enrichment and course graph integration remain later work. Keep the existing UI and animations while building features in their own modules.
+The React + Vite frontend now connects to a TypeScript/Fastify backend for transcript replay, topic segmentation, automatic enrichment, contextual chat and validated visual artifacts. Fixture and DeepSeek providers share the same interface. MongoDB persistence and course graph integration remain later work. Keep the existing UI and animations while building features in their own modules.
 
 The agreed direction is a Node.js + TypeScript/Fastify backend, MongoDB for course data and graph references, and task-specific harnesses behind a shared model-provider interface. Keep DeepSeek as the initial configurable provider; Gemini is the planned replacement. Fixture mode must remain usable without either API or a database. See the architecture guide for module boundaries, suggested libraries, storage design and implementation order.
 

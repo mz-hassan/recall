@@ -153,3 +153,16 @@ test('the original DAgger equation remains readable in past replay', async ({ pa
   // The authored fixture uses Unicode notation; its raw fallback remains readable.
   await expect(page.locator('.lecture-equation>div')).not.toBeEmpty();
 });
+
+test('enriched PDF slides open their cited page through the dataset route', async ({ page, request }) => {
+  const response = await request.post('/api/lectures/ai/3/session', { data: { start: 'instant', words: 160, limit: 6 } });
+  expect(response.status()).toBe(201);
+  await page.goto('/lecture.html?lecture=3&mode=live');
+  await page.locator('.moment.current').click();
+  const slide = page.locator('.lecture-pdf-slide').first();
+  await expect(slide).toHaveAttribute('href', /api\/datasets\/ai\/.*\.pdf#page=\d+/);
+  expect(await page.locator('.slide-frame img').count()).toBe(0);
+  const file = await request.get(await slide.getAttribute('href'));
+  expect(file.status()).toBe(200);
+  expect(file.headers()['content-type']).toContain('application/pdf');
+});

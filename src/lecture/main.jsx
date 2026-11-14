@@ -9,13 +9,13 @@ import { makeTranscriptMoments, replayOptions } from './replay.js';
 import { MomentExtras } from './MomentExtras.jsx';
 import { MomentChat } from './components/MomentChat.jsx';
 import { ServerReplayApp } from './components/ServerReplayApp.jsx';
+import { LectureSlide } from './components/LectureSlide.jsx';
 import { demoMoments } from './fixtures/lecture02.js';
 import { recordMomentStream } from './fixtures/stream.js';
 import { useLectureStream } from './hooks/useLectureStream.js';
 import { targetAfterArrival } from './streamState.js';
 
 const formatTime = seconds => [Math.floor(seconds / 60), Math.floor(seconds % 60)].map(n => String(n).padStart(2, '0')).join(':');
-const slideNumber = slide => String(slide.page).padStart(2, '0');
 function MomentDetail({ moment, saved, onSave, onOpen, onChat, chatEnabled, client, runId, onSelectMoment }) {
   return <>
     <div className="eyebrow">{moment.label} &nbsp; / &nbsp; {moment.type}</div>
@@ -26,10 +26,7 @@ function MomentDetail({ moment, saved, onSave, onOpen, onChat, chatEnabled, clie
     <div className="context-chat"><div><span className="chat-spark">✧</span><span>Stay with this idea<small>Ask with this moment as context</small></span></div>
       <button type="button" onClick={onChat}>Ask about this <span>↗</span><small>{chatEnabled ? 'LECTURE CHAT' : 'PREVIEW'}</small></button>
     </div>
-    {moment.slides.map(slide => <button key={slide.page} className="slide-frame" aria-label={'Expand original slide ' + slide.page} onClick={() => onOpen({ slide })}>
-      <img src={slide.url} alt={'Original lecture slide ' + slide.page + ': ' + moment.short}/>
-      <span className="caption"><span>FROM THE LECTURE · SLIDE {slideNumber(slide)}</span><span>EXPAND ↗</span></span>
-    </button>)}
+    {moment.slides.map(slide => <LectureSlide key={slide.page + '/' + slide.url} slide={slide} short={moment.short} onOpen={onOpen}/>)}
     {moment.intuition && <div className="intuition"><small>THE IDEA TO HOLD ONTO</small><p>{moment.intuition}</p></div>}
     <MomentExtras moment={moment} client={client} runId={runId} onSelectMoment={onSelectMoment}/>
     <div className="detail-actions"><button onClick={() => onOpen('transcript')}>Read the source ↗</button><button onClick={onSave}>{saved ? '✓ Moment saved' : '+ Save this moment'}</button></div>

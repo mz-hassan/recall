@@ -12,6 +12,9 @@ session, including a paused or completed session. If none exists, it creates a
 paused replay with the URL's settings: 160 words, 8 seconds, 6 chunks by default.
 The server owns playback and sends snapshots, moment revisions and session state.
 Topic count can differ from transcript chunk count because segmentation groups chunks.
+Closed topics receive main's generated notes and running summary. Slide image references
+expand in the page; PDF references open the original PDF at its cited page. Low-confidence
+slide matches are labelled as possible matches.
 
 Play and Pause use the existing HTTP commands. **Restart replay** creates a new
 paused run with the current session's settings. **Apply & restart** applies the
