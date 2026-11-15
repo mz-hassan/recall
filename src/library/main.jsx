@@ -408,6 +408,7 @@ function Library() {
       </div>
     </header>
     <main id="page" key={pageKey}>
+      {(!profile || view === 'courses') && <p style={{ marginBottom: 24 }}><a className="secondary" href="cs50.html">CS50 live microphone pilot ↗</a></p>}
       {!profile ? <AccountForm role={signInRole} signup={view === 'signup'} onSignIn={onSignIn}/>
         : view === 'courses' ? <Courses courses={courses.filter(item => enrolled.includes(item.id))} getSources={getSources} coursePath={coursePath} staff={teaching}/>
         : view === 'find-courses' ? <CourseSearch courses={courses} enrolled={enrolled} onJoin={onJoin} coursePath={coursePath} onCreate={() => setDialog({ type: 'course' })}/>

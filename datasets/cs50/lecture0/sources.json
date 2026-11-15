@@ -1,0 +1,14 @@
+{
+  "sources": {
+    "lecture0.pdf": "https://cdn.cs50.net/2024/fall/lectures/0/lecture0.pdf",
+    "transcript.txt": "https://cdn.cs50.net/2024/fall/lectures/0/lang/en/lecture0.txt",
+    "transcript.srt": "https://cdn.cs50.net/2024/fall/lectures/0/lang/en/lecture0.srt",
+    "notes.html": "https://cs50.harvard.edu/x/2025/notes/0/"
+  },
+  "sha256": {
+    "lecture0.pdf": "9b308e468c4c9124033d424960fb7a6ccb26b60767445855d0e22bd902ede7c4",
+    "transcript.txt": "a9edfdd75ab6cadb96e60fc22e8962fa391856c2b09b1875ac0eb646039f85d2",
+    "transcript.srt": "ba028fa32fc736b782e9d76af7ba13c3d68af65d97c594bf7bbe53779266a9a0",
+    "notes.html": "3652647fd46613deb089aaec9b7ab8006093aa266ace9aca614b2eb2e031b3f7"
+  }
+}

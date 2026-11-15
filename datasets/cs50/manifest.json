@@ -1,0 +1,16 @@
+{
+  "course": "CS50x",
+  "title": "Introduction to Computer Science",
+  "course_url": "https://cs50.harvard.edu/x/2025/weeks/0/",
+  "lectures": [{
+    "number": 0,
+    "date": "",
+    "title": "Scratch",
+    "folder": "lecture0",
+    "video_url": "https://www.youtube.com/watch?v=2WtPyqwTLKM",
+    "required": [{"title": "Lecture 0 notes", "source_url": "https://cs50.harvard.edu/x/2025/notes/0/", "files": ["lecture0/notes.txt"]}],
+    "optional": [],
+    "transcript": {"status": "available", "files": ["lecture0/transcript.vtt", "lecture0/transcript.txt"]},
+    "slides": {"status": "available", "source_url": "https://cdn.cs50.net/2024/fall/lectures/0/lecture0.pdf", "files": ["lecture0/lecture0.pdf", "lecture0/lecture0.pages.txt"]}
+  }]
+}
