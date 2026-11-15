@@ -8,12 +8,15 @@ import { interactRoutes } from '../features/lecture/routes/interact.ts';
 import type { LectureStore } from '../features/lecture/store/types.ts';
 import type { LectureService } from '../features/lecture/service.ts';
 import type { ModelProvider } from '../llm/types.ts';
+import { quizRoutes } from '../features/quizzes/routes.ts';
+import { curatedTopics, CURATED_RUN } from '../features/quizzes/sources.ts';
 
 export async function platformRoutes(app:FastifyInstance,{repository,runtimes,store,service,provider}:{repository:PlatformRepository;runtimes:UserLectureRuntimes;store:LectureStore;service:LectureService;provider:ModelProvider}){
   app.addHook('preHandler',async request=>{
     if(request.url.includes('/prepared/')&&request.method==='POST'&&request.url.includes('/session'))throw new AccountError(405,'Prepared study notes cannot be restarted as a replay.');
   });
   await app.register(authRoutes,{repository});
+  await app.register(quizRoutes,{repository,runtimes,provider});
   app.get('/courses/notes',async()=>({lectures:await repository.notesCatalog()}));
   app.get('/account/runs',async request=>{
     const user=await requireUser(request,repository),query=z.object({courseId:z.string().optional()}).parse(request.query);
@@ -32,11 +35,15 @@ export async function platformRoutes(app:FastifyInstance,{repository,runtimes,st
     const input=z.object({courseId:z.string(),lectureId:z.string(),runId:z.string().min(1),momentId:z.string().min(1),pastTopicId:z.string().optional(),unclear:z.boolean()}).parse(request.body);
     const user=await requireCourse(request,repository,input.courseId);
     request.params={courseId:input.courseId,lectureId:input.lectureId};
-    const note=await repository.notes(input.courseId,input.lectureId);
-    const runtime=await runtimes.resolve(request,note?.generationId===input.runId?'study':'live');await runtime.flush();
-    // A doubt must refer to a moment this user has actually received, including saved study notes.
-    const run=await repository.run(user.id,input.runId);
-    if(!run||run.courseId!==input.courseId||run.lectureId!==input.lectureId||!run.snapshot.moments.some(moment=>moment.id===input.momentId))throw new AccountError(404,'The lecture moment is not saved in your account.');
+    if(input.runId===CURATED_RUN){
+      if(!curatedTopics(input.courseId,input.lectureId).some(moment=>moment.id===input.momentId))throw new AccountError(404,'Curated topic not found.');
+    }else{
+      const note=await repository.notes(input.courseId,input.lectureId);
+      const runtime=await runtimes.resolve(request,note?.generationId===input.runId?'study':'live');await runtime.flush();
+      // A doubt must refer to a moment this user has actually received, including saved study notes.
+      const run=await repository.run(user.id,input.runId);
+      if(!run||run.courseId!==input.courseId||run.lectureId!==input.lectureId||!run.snapshot.moments.some(moment=>moment.id===input.momentId))throw new AccountError(404,'The lecture moment is not saved in your account.');
+    }
     await repository.setDoubt({_id:[user.id,input.courseId,input.lectureId,input.runId,input.momentId].join('/'),userId:user.id,courseId:input.courseId,lectureId:input.lectureId,runId:input.runId,momentId:input.momentId,...(input.pastTopicId?{pastTopicId:input.pastTopicId}:{}),createdAt:new Date()},input.unclear);
     return {doubts:(await repository.doubts(input.courseId,input.lectureId,user.id)).map(entry=>({...entry,email:user.email}))};
   });

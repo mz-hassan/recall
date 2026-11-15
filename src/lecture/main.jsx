@@ -7,6 +7,7 @@ import './lecture.css';
 import { getCourseLectures, loadTranscript } from './dataset.js';
 import { replayOptions } from './replay.js';
 import { MomentDetail } from './MomentDetail.jsx';
+import { QuizDialog } from '../quizzes/QuizDialog.jsx';
 import { isEnrolled, readDoubts, readProfile, toggleDoubt, loadDoubts, restoreAccount } from '../classroom/accounts.js';
 import { buildPastTopics } from './pastTopics.js';
 import { MomentChat } from './components/MomentChat.jsx';
@@ -99,6 +100,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
   const duration = server ? Math.max(0, (stream.session?.total ?? 1) - 1) * (stream.session?.interval ?? options.interval)
     : source?.duration ?? (rich ? 3660 : (allMoments.at(-1)?.time ?? 0) + options.interval);
   const [chat, setChat] = useState(false);
+  const [quizScope, setQuizScope] = useState(null);
   const saveKey = server ? 'recall-saved-live-' + courseId + '-' + lecture.id + '-' + stream.runId
     : source ? 'recall-saved-fixture-' + courseId + '-' + lecture.id : rich ? 'recall-saved' : 'recall-saved-' + courseId + '-' + lecture.id + '-topics';
   const moments = source ? stream.moments : allMoments.filter(moment => moment.time <= elapsed);
@@ -130,7 +132,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
   const doubtAction = canMarkDoubt && moment
     ? <button className="doubt-toggle" type="button" disabled={doubtPending} aria-pressed={doubtful} onClick={async () => {
       setDoubtPending(true);
-      try { setDoubts(await toggleDoubt({ ...profile, courseId,lectureId:lecture.id,runId:stream.runId }, moment.id, moment.pastTopicId)); }
+      try { setDoubts(await toggleDoubt({ ...profile, courseId,lectureId:lecture.id,runId:stream.runId||(rich?'curated:ai:2':null) }, moment.id, moment.pastTopicId)); }
       catch(failure) { notify(failure.message||'Your doubt marker could not be saved.'); }
       finally{setDoubtPending(false);}
     }}>{doubtful ? '✓ Marked unclear' : '? Mark as unclear'}</button>
@@ -287,10 +289,14 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
     const index = moments.findIndex(item => item.id === id);
     if (index >= 0) go(index); else notify('Waiting for this cited moment to arrive.');
   }
+  function openQuiz(scope) {
+    setQuizScope({courseId,lectureId:lecture.id,scope,source:source?.prepared?'notes':server?'run':rich||fixture?'curated':'transcript',...(scope==='topic'?{momentId:moment.id}:{}),...(stream.runId?{runId:stream.runId}:{})});
+  }
 
   const header = <header><Brand href="./#courses" lecture/>
     <button id="lectureInfo" className="lecture-name" onClick={() => setModal('about')}>{courseId === 'ai' ? 'AI ALIGNMENT' : lecture.courseCode} <span>{lecture.id.padStart(2, '0')}</span><small>{rich ? 'When imitation fails' : lecture.title}</small></button>
     <div className="header-actions"><a href={'./#lecture/' + courseId + '/' + lecture.id} className="map-button source-return" aria-label="Lecture and sources"><span>Lecture &amp; sources</span> ↗</a>
+      <button className="map-button lecture-quiz-launch" type="button" disabled={server && !source.prepared && stream.session?.state !== 'completed'} title={server && !source.prepared && stream.session?.state !== 'completed' ? 'Finish the lecture to quiz the whole lecture. Topic quizzes are available in moment details.' : 'Take a whole-lecture quiz'} onClick={() => openQuiz('lecture')}>Take lecture quiz</button>
       <button className="map-button" onClick={() => setModal('about')}>{source?.prepared?'About study notes':capture ? 'About live lecture' : options.live ? 'Simulation settings' : 'About replay'}</button>
     </div>
   </header>;
@@ -345,6 +351,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
       <button ref={closeButton} className="close-detail" aria-label="Close expanded moment" onClick={closeDetail}>✕ <span>Back to the thread</span></button>
       <section ref={detail} id="detail" className="detail" aria-label="Expanded lecture moment" hidden={!expanded}>
         {expanded && <MomentDetail moment={moment} saved={saved.includes(saveId)} onSave={saveMoment} onOpen={setModal} onChat={() => setChat(true)} chatEnabled={server} doubtAction={doubtAction}
+          onQuiz={() => openQuiz('topic')}
           client={server ? source.client : null} runId={stream.runId} onSelectMoment={selectMoment}
           slideContent={courseId === 'cs50' && server ? <SlideViewer moment={moment} runId={stream.runId}/> : undefined}/>}
       </section>
@@ -358,6 +365,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
       <div className="footer-center"><button aria-label="Earlier concept" disabled={focused === 0} onClick={() => go(focused - 1)}>↑</button><span id="positionLabel">{moment.short}</span><button aria-label="Later concept" disabled={focused === liveIndex} onClick={() => go(focused + 1)}>↓</button></div>
       <button className="return-live" onClick={() => { closeDetail(); go(liveIndex); }}>Back to now <span>↗</span></button><span className="live-hint">You’re right here.</span>
     </footer>
+    {quizScope && <QuizDialog options={quizScope} onClose={()=>setQuizScope(null)}/>}
     <Dialog lecture onClose={() => setModal(null)}>
       {modal?.slide && <><div className="eyebrow">ORIGINAL MATERIAL · SLIDE {modal.slide.page}</div><h2>{moment.short}</h2><img src={modal.slide.url} alt={'Full original slide ' + modal.slide.page}/><p>{lecture.title} · {lecture.teacher}</p></>}
       {modal === 'transcript' && <><div className="eyebrow">IN THE LECTURE</div><h2>{moment.short}</h2><blockquote>“{moment.quote}”</blockquote><p>{lecture.teacher} · {moment.quoteTime}</p><p className="notes">{capture ? 'From microphone capture; timestamps start at capture time zero.' : 'From the lecture transcript.'}</p></>}
