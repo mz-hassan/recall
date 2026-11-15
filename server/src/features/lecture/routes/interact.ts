@@ -1,11 +1,12 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { ArtifactRequest, ChatRequest } from '../../../../../shared/contracts/lectureInteractions.ts';
+import { ArtifactRequest, ChatRequest, CURATED_BC_RUN_ID } from '../../../../../shared/contracts/lectureInteractions.ts';
 import { ProviderError, type ModelProvider } from '../../../llm/types.ts';
 import type { LectureStore } from '../store/types.ts';
 import { ChatContextError } from '../chat/context.ts';
 import { registerChatFixture } from '../chat/fixture.ts';
-import { answerLectureQuestion } from '../chat/harness.ts';
+import { answerFromChatContext, answerLectureQuestion } from '../chat/harness.ts';
+import { curatedChatContext, requireCuratedLecture } from '../chat/curated.ts';
 import { registerArtifactFixture } from '../artifacts/fixture.ts';
 import { ArtifactRequestError, createArtifactService } from '../artifacts/service.ts';
 import { randomUUID } from 'node:crypto';
@@ -22,10 +23,12 @@ export async function interactRoutes(app: FastifyInstance, deps: { store: Lectur
   const services=new WeakMap<LectureStore,ReturnType<typeof createArtifactService>>();
   function artifactService(store:LectureStore){let service=services.get(store);if(!service){service=createArtifactService({store,provider});services.set(store,service);}return service;}
   app.get('/lectures/:courseId/:lectureId/chat/history',async request=>{
-    const key=Params.parse(request.params);await runtime(request);
+    const key=Params.parse(request.params);
+    const {runId}=z.object({runId:z.string().min(1)}).parse(request.query);
+    if (runId === CURATED_BC_RUN_ID) requireCuratedLecture(key);
+    else await runtime(request);
     if(!repository)return {messages:[]};
     const user=await requireCourse(request,repository,key.courseId);
-    const {runId}=z.object({runId:z.string().min(1)}).parse(request.query);
     return {messages:await repository.chats(user.id,key.courseId,key.lectureId,runId)};
   });
   app.post('/lectures/:courseId/:lectureId/chat', { bodyLimit: 16_384 }, async (request, reply) => {
@@ -37,7 +40,8 @@ export async function interactRoutes(app: FastifyInstance, deps: { store: Lectur
     try {
       const key = Params.parse(request.params);
       const input = ChatRequest.parse(request.body);
-      const resolved=await runtime(request),store=resolved.store;
+      const curated = input.runId === CURATED_BC_RUN_ID;
+      if (curated) requireCuratedLecture(key);
       const user=repository?await requireCourse(request,repository,key.courseId):undefined;
       if(repository&&user&&input.requestId){
         const previous=await repository.chat(user.id,input.requestId);
@@ -46,10 +50,13 @@ export async function interactRoutes(app: FastifyInstance, deps: { store: Lectur
           return previous.answer;
         }
       }
-      const answer=await answerLectureQuestion({ key, request: input, store, provider,
-        signal: AbortSignal.any([cancellation.signal, AbortSignal.timeout(60_000)]) });
+      const signal = AbortSignal.any([cancellation.signal, AbortSignal.timeout(60_000)]);
+      const resolved = curated ? null : await runtime(request);
+      const answer = resolved
+        ? await answerLectureQuestion({ key, request: input, store: resolved.store, provider, signal })
+        : await answerFromChatContext({ context: await curatedChatContext(key, input), runId: input.runId, provider, signal });
       if(repository&&user)await repository.saveChat({_id:user.id+'/'+(input.requestId??randomUUID()),userId:user.id,...key,runId:input.runId,request:input,answer,createdAt:new Date()});
-      if('flush' in resolved&&typeof resolved.flush==='function')await resolved.flush();
+      if (resolved && 'flush' in resolved) await resolved.flush?.();
       return answer;
     } catch (error) {
       if (error instanceof z.ZodError) return reply.code(400).send({ error: 'Invalid chat request.' });

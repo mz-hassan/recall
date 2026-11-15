@@ -8,6 +8,7 @@ import { interactRoutes } from '../features/lecture/routes/interact.ts';
 import type { LectureStore } from '../features/lecture/store/types.ts';
 import type { LectureService } from '../features/lecture/service.ts';
 import type { ModelProvider } from '../llm/types.ts';
+import { bookmarkRoutes } from '../features/bookmarks/routes.ts';
 import { quizRoutes } from '../features/quizzes/routes.ts';
 import { curatedTopics, CURATED_RUN } from '../features/quizzes/sources.ts';
 
@@ -16,6 +17,7 @@ export async function platformRoutes(app:FastifyInstance,{repository,runtimes,st
     if(request.url.includes('/prepared/')&&request.method==='POST'&&request.url.includes('/session'))throw new AccountError(405,'Prepared study notes cannot be restarted as a replay.');
   });
   await app.register(authRoutes,{repository});
+  await app.register(bookmarkRoutes, { repository, runtimes });
   await app.register(quizRoutes,{repository,runtimes,provider});
   app.get('/courses/notes',async()=>({lectures:await repository.notesCatalog()}));
   app.get('/account/runs',async request=>{

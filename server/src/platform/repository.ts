@@ -17,6 +17,11 @@ export type SavedRun = { _id: string; userId: string; courseId: string; lectureI
 export type SavedChat = { _id: string; userId: string; courseId: string; lectureId: string; runId: string; request: ChatRequest; answer: ChatAnswer; createdAt: Date };
 export type Doubt = { _id: string; userId: string; courseId: string; lectureId: string; runId: string; momentId: string; pastTopicId?: string; createdAt: Date };
 
+type Bookmark = {
+  _id: string; userId: string; courseId: string; lectureId: string; runId: string | null; momentId: string;
+  title: string; label: string; lectureTitle: string; moment: { id: string; title: string; label: string }; savedAt: Date;
+};
+
 export function createPlatformRepository({ uri, database }: { uri: string; database: string }) {
   const client = new MongoClient(uri, { serverSelectionTimeoutMS: 4000 });
   let connection: Promise<void> | undefined;
@@ -29,6 +34,7 @@ export function createPlatformRepository({ uri, database }: { uri: string; datab
         db.collection('auth_sessions').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
         db.collection('lecture_runs').createIndex({ userId: 1, courseId: 1, lectureId: 1, kind: 1, updatedAt: -1 }),
         db.collection('lecture_chats').createIndex({ userId: 1, courseId: 1, lectureId: 1, runId: 1, createdAt: 1 }),
+        db.collection('lecture_bookmarks').createIndex({ userId: 1, savedAt: -1 }),
         db.collection('lecture_doubts').createIndex({ courseId: 1, lectureId: 1, runId: 1, momentId: 1 }),
         db.collection('quiz_attempts').createIndex({ id: 1 }, { unique: true }),
         db.collection('quiz_attempts').createIndex({ courseId: 1, ranked: 1, status: 1, userId: 1 }),
@@ -64,6 +70,22 @@ export function createPlatformRepository({ uri, database }: { uri: string; datab
     async chats(userId: string, courseId: string, lectureId: string, runId: string) { return (await collection<SavedChat>('lecture_chats')).find({ userId, courseId, lectureId, runId }).sort({ createdAt: 1 }).limit(100).toArray(); },
     async setDoubt(doubt: Doubt, unclear: boolean) { const c = await collection<Doubt>('lecture_doubts'); if (unclear) await c.replaceOne({ _id: doubt._id }, doubt, { upsert: true }); else await c.deleteOne({ _id: doubt._id }); },
     async doubts(courseId: string, lectureId?: string, userId?: string) { return (await collection<Doubt>('lecture_doubts')).find({ courseId, ...(lectureId ? { lectureId } : {}), ...(userId ? { userId } : {}) }).toArray(); },
+    async bookmarks(userId: string, filter: { courseId?: string; lectureId?: string }) {
+      const rows = await (await collection<Bookmark>('lecture_bookmarks'))
+        .find({ userId, ...filter }).project<Omit<Bookmark, 'userId' | 'moment'>>({ userId: 0, moment: 0 }).sort({ savedAt: -1 }).toArray();
+      return rows.map(({ _id, ...row }) => ({ id: _id, ...row }));
+    },
+    async bookmark(userId: string, id: string) {
+      return (await collection<Bookmark>('lecture_bookmarks')).findOne({ _id: id, userId });
+    },
+    async saveBookmark(bookmark: Bookmark) {
+      await (await collection<Bookmark>('lecture_bookmarks')).updateOne(
+        { _id: bookmark._id }, { $setOnInsert: bookmark }, { upsert: true },
+      );
+    },
+    async removeBookmark(userId: string, id: string) {
+      await (await collection<Bookmark>('lecture_bookmarks')).deleteOne({ _id: id, userId });
+    },
     async saveArtifact(userId: string, artifact: GeneratedArtifact) { await (await collection<{ _id: string; userId: string; artifact: GeneratedArtifact }>('lecture_artifacts')).replaceOne({ _id: userId + '/' + artifact.id }, { userId, artifact }, { upsert: true }); },
     async artifact(userId: string, id: string) { return (await (await collection<{ _id: string; userId: string; artifact: GeneratedArtifact }>('lecture_artifacts')).findOne({ _id: userId + '/' + id }))?.artifact ?? null; },
   };

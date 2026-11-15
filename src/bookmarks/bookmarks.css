@@ -1,0 +1,11 @@
+.saved-moment-list { list-style: none; padding: 0; margin: 0; }
+.saved-moment-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding: 16px 0; }
+.saved-moment-list li:last-child { border-bottom: 1px solid var(--line); }
+.saved-moment-open { display: grid; gap: 5px; text-align: left; padding: 0; overflow-wrap: anywhere; }
+.saved-moment-open strong { font-size: 17px; font-weight: 600; }
+.saved-moment-open small, .saved-moment-open span { color: var(--muted); }
+.saved-moment-detail { max-width: 780px; margin: auto; }
+.saved-moment-links { margin-bottom: 18px; }
+.saved-moment-source { margin-top: 20px; }
+.saved-moment-source blockquote { margin: 0; padding: 16px; border-left: 2px solid var(--mint); line-height: 1.6; }
+.saved-moment-import { margin-bottom: 18px; }

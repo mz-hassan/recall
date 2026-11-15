@@ -13,6 +13,7 @@ export type ChatContext = {
   moments: Pick<Moment, 'id' | 'title' | 'label' | 'time' | 'quote' | 'summary'>[];
   chunks: Pick<TranscriptChunk, 'seq' | 'text' | 'span'>[];
   runningSummary: string | null;
+  slides?: { page: number; text: string; equationNotes?: unknown }[];
 };
 
 export function retrieveChatContext(store: LectureStore, key: LectureKey, request: ChatRequest): ChatContext {

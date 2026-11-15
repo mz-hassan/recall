@@ -2,9 +2,9 @@ import React, { useEffect, useId, useState } from 'react';
 import './behaviorCloningVisual.css';
 
 const visuals = {
-  'ai/2/curated/2': { kind: 'shift', title: 'A wrong turn changes the world', description: 'Scrub through a rollout. The expert stays inside familiar training states; a small learner deviation leads into states with no demonstration coverage.' },
-  'ai/2/curated/4': { kind: 'cost', title: 'The horizon amplifies a mistake', description: 'Compare a linear reference with the quadratic worst-case scaling discussed in the lecture. These are illustrative scaling curves, not measured performance or exact guarantees.' },
-  'ai/2/curated/5': { kind: 'dagger', title: 'Turn unfamiliar states into training data', description: 'Follow one DAgger iteration: visit states with the learner, query expert actions, add those pairs to the dataset, then retrain.' },
+  'ai/2/curated/2': { kind: 'shift', title: 'Distribution shift during a rollout', description: 'Scrub through a rollout. The expert stays inside familiar training states; a small learner deviation leads into states with no demonstration coverage.' },
+  'ai/2/curated/4': { kind: 'cost', title: 'Excess cost as a function of horizon', description: 'Compare a linear reference with the quadratic worst-case scaling discussed in the lecture. These are illustrative scaling curves, not measured performance or exact guarantees.' },
+  'ai/2/curated/5': { kind: 'dagger', title: 'One iteration of DAgger', description: 'Follow one DAgger iteration: visit states with the learner, query expert actions, add those pairs to the dataset, then retrain.' },
 };
 const steps = ['Roll out the learner', 'Ask the expert', 'Aggregate state–action pairs', 'Retrain the policy'];
 const nodes = [[140, 85], [430, 85], [430, 235], [140, 235]];

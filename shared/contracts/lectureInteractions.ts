@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { TimeSource } from './lecture.ts';
 
 // Student-side contracts (Helly). The pipeline's lecture.ts contract stays unchanged.
+export const CURATED_BC_RUN_ID = 'curated:ai:2';
+
 export const ChatRequest = z.object({
   requestId: z.uuid().optional(),
   runId: z.string().min(1),

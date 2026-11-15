@@ -11,6 +11,8 @@ import { createPlatformRepository, type PreparedNotes } from './repository.ts';
 import { createUserLectureRuntimes } from './lectureRuntime.ts';
 import type { FastifyRequest } from 'fastify';
 import type { Moment, TranscriptChunk } from '../../../shared/contracts/lecture.ts';
+import { CURATED_BC_RUN_ID } from '../../../shared/contracts/lectureInteractions.ts';
+import type { ChatContext } from '../features/lecture/chat/context.ts';
 
 test('Mongo accounts share prepared notes and preserve isolated lecture histories across restart', { timeout: 120_000 }, async t => {
   const mongo = await MongoMemoryServer.create({ binary: { version: '8.0.17' } });
@@ -18,8 +20,17 @@ test('Mongo accounts share prepared notes and preserve isolated lecture historie
   let repository = createPlatformRepository(settings);
   const provider = createFixtureProvider();
   let chatCalls = 0, modelCalls = 0;
+  let lastChatContext: ChatContext | undefined;
   const generate = provider.generateStructured.bind(provider);
-  provider.generateStructured = async request => { modelCalls++; if (request.task.includes('chat')) chatCalls++; return generate(request); };
+  provider.generateStructured = async request => {
+    modelCalls++;
+    if (request.task.includes('chat')) {
+      chatCalls++;
+      const evidence = request.evidence.find(item => item.id === 'lecture-context');
+      if (evidence?.kind === 'text') lastChatContext = JSON.parse(evidence.text);
+    }
+    return generate(request);
+  };
   const decoder = { status: () => ({ installed: true, ready: true, busy: false, model: 'test', device: 'test' }), warmup: async () => {}, close() {}, transcribe: async () => 'Algorithms transform inputs into outputs. Binary search repeatedly divides a sorted list in half to find an item efficiently. Each step eliminates half of the remaining possibilities.' };
   const createApp = () => buildApp({ config: loadConfig({}), provider, repository, speechDecoder: decoder });
   let app = await createApp();
@@ -30,7 +41,7 @@ test('Mongo accounts share prepared notes and preserve isolated lecture historie
   const note: PreparedNotes = { _id: 'cv/1', ...key, generationId, title: 'Images and filters', basis: 'transcript', contentHash: 'test', promptVersion: 'test', provider: 'fixture', model: 'fixture', summary: 'Images contain pixels; filters combine their values.', moments: [moment], chunks: [chunk], sources: [{ id: 's1', title: 'Recording 1', path: span.path, kind: 'transcript', text: chunk.text, hash: 'test' }], createdAt: new Date() };
   let alice = '', bob = '', aliceId = '';
   let chatRequest: object, artifactRequest: object, artifactId = '', liveRunId = '';
-  let slideRequest: object, slideNotes: unknown;
+  let slideRequest: object, slideNotes: unknown, bookmarkId = '';
   const study = '/api/prepared/lectures/cv/1';
   async function signup(email: string, courses: string[]) {
     const response = await app.inject({ method: 'POST', url: '/api/auth/signup', payload: { email, role: 'student', password: 'test-password-123', courses } });
@@ -59,6 +70,23 @@ test('Mongo accounts share prepared notes and preserve isolated lecture historie
       assert.equal((await app.inject({ method: 'POST', url: '/api/lectures/cs50/0/session', headers: { cookie: alice, origin: 'http://other.example' }, payload: {} })).statusCode, 403);
       assert.equal((await app.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'alice@example.edu', role: 'student', password: 'wrong-password' } })).statusCode, 401);
     });
+    await t.test('bookmarks are idempotent, private, and resolve only existing topics', async () => {
+      const url = '/api/account/bookmarks';
+      const payload = { ...key, runId: generationId, momentId: moment.id, saved: true };
+      assert.equal((await app.inject(url)).statusCode, 401);
+      for (let repeat = 0; repeat < 2; repeat++) {
+        const result = await app.inject({ method: 'PUT', url, headers: { cookie: alice }, payload });
+        assert.equal(result.statusCode, 200, result.body);
+      }
+      const list = (await app.inject({ url, headers: { cookie: alice } })).json().bookmarks;
+      assert.equal(list.length, 1);
+      assert.equal(list[0].title, moment.title);
+      assert.ok(!list[0].moment);
+      bookmarkId = list[0].id;
+      assert.deepEqual((await app.inject({ url, headers: { cookie: bob } })).json().bookmarks, []);
+      assert.equal((await app.inject({ url: url + '/' + bookmarkId, headers: { cookie: bob } })).statusCode, 404);
+      assert.equal((await app.inject({ method: 'PUT', url, headers: { cookie: alice }, payload: { ...payload, momentId: 'invented' } })).statusCode, 404);
+    });
     await t.test('chat, doubts and generated visuals belong to their owner', async () => {
       chatRequest = { requestId: randomUUID(), runId: generationId, question: 'Explain this moment', context: { kind: 'moment', momentId: moment.id } };
       const chat = await app.inject({ method: 'POST', url: study + '/chat', headers: { cookie: alice }, payload: chatRequest });
@@ -77,6 +105,28 @@ test('Mongo accounts share prepared notes and preserve isolated lecture historie
       assert.equal((await app.inject({ url: study + '/artifacts/' + artifactId + '?runId=' + generationId, headers: { cookie: bob } })).statusCode, 404);
       const other = (await app.inject({ url: study + '/moments', headers: { cookie: bob } })).json();
       assert.equal(other.moments[0].artifacts.length, 0);
+    });
+    await t.test('curated chat uses selected topic and exact linked slides without a live run', async () => {
+      const url = '/api/lectures/ai/2/chat';
+      const momentId = 'ai/2/curated/4';
+      const payload = { runId: CURATED_BC_RUN_ID, requestId: randomUUID(),
+        question: 'Explain the quadratic bound', context: { kind: 'moment', momentId } };
+      assert.equal((await app.inject({ method: 'POST', url, headers: { cookie: bob }, payload })).statusCode, 403);
+      assert.equal((await app.inject({ method: 'POST', url: '/api/auth/courses', headers: { cookie: alice }, payload: { courseId: 'ai' } })).statusCode, 200);
+      const answer = await app.inject({ method: 'POST', url, headers: { cookie: alice }, payload });
+      assert.equal(answer.statusCode, 200, answer.body);
+      assert.equal(answer.json().citations[0].momentId, momentId);
+      assert.deepEqual(lastChatContext?.moments.map(item => item.id), [momentId]);
+      assert.deepEqual(lastChatContext?.slides?.map(item => item.page), [6, 7]);
+      assert.ok(lastChatContext?.slides?.every(item => item.text.length > 20));
+      assert.ok(lastChatContext?.slides?.some(item => item.equationNotes));
+      assert.ok(lastChatContext?.moments[0]?.quote);
+      assert.equal(await repository.run(aliceId, CURATED_BC_RUN_ID), null);
+      const history = url + '/history?runId=' + encodeURIComponent(CURATED_BC_RUN_ID);
+      assert.equal((await app.inject({ url: history, headers: { cookie: alice } })).json().messages.length, 1);
+      assert.equal((await app.inject({ url: history, headers: { cookie: bob } })).statusCode, 403);
+      assert.equal((await app.inject({ method: 'POST', url, headers: { cookie: alice },
+        payload: { ...payload, requestId: randomUUID(), context: { kind: 'moment', momentId: 'ai/3/topic/1' } } })).statusCode, 404);
     });
     await t.test('microphone sessions and transcripts are private and durably saved', async () => {
       const headers = { cookie: alice, 'x-recall-microphone': '1' };
@@ -120,6 +170,15 @@ test('Mongo accounts share prepared notes and preserve isolated lecture historie
     });
     await app.close(); await repository.close();
     repository = createPlatformRepository(settings); app = await createApp();
+    await t.test('bookmarked content survives restart and can be removed', async () => {
+      const url = '/api/account/bookmarks';
+      const detail = await app.inject({ url: url + '/' + bookmarkId, headers: { cookie: alice } });
+      assert.equal(detail.statusCode, 200, detail.body);
+      assert.equal(detail.json().moment.summary, moment.summary);
+      assert.equal((await app.inject({ method: 'PUT', url, headers: { cookie: alice },
+        payload: { ...key, runId: generationId, momentId: moment.id, saved: false } })).statusCode, 200);
+      assert.equal((await app.inject({ url: url + '/' + bookmarkId, headers: { cookie: alice } })).statusCode, 404);
+    });
     await t.test('opening the completed transcript replay after restart makes no model calls', async () => {
       assert.ok(savedReplay);
       const headers = { cookie: alice };

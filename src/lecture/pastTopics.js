@@ -1,5 +1,4 @@
 import { demoMoments } from './fixtures/lecture02.js';
-import { loadTranscript } from './dataset.js';
 
 // Vary the count per lecture while keeping topic IDs stable for saved doubts.
 function topicCount(lectureId) {
@@ -52,5 +51,6 @@ export async function loadPastTopics(lecture,{prepared=false}={}) {
     if(!response.ok)throw new Error('Prepared notes are unavailable.');
     return (await response.json()).moments;
   }
+  const { loadTranscript } = await import('./dataset.js');
   return buildPastTopics(lecture, await loadTranscript(lecture));
 }

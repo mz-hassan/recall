@@ -1,16 +1,18 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Brand, Dialog } from '../ui.jsx';
-import { readStored } from '../storage.js';
+import { loadBookmarks, setBookmark } from '../bookmarks/api.js';
 import { art } from './content.js';
 import './lecture.css';
 import { getCourseLectures, loadTranscript } from './dataset.js';
 import { replayOptions } from './replay.js';
+import { createLectureClient } from './api.js';
+import { CURATED_BC_RUN_ID } from '../../shared/contracts/lectureInteractions.ts';
 import { MomentDetail } from './MomentDetail.jsx';
 import { QuizDialog } from '../quizzes/QuizDialog.jsx';
 import { isEnrolled, readDoubts, readProfile, toggleDoubt, loadDoubts, restoreAccount } from '../classroom/accounts.js';
 import { buildPastTopics } from './pastTopics.js';
-import { MomentChat } from './components/MomentChat.jsx';
+import { MomentChat, MomentChatButton } from './components/MomentChat.jsx';
 import { ServerReplayApp } from './components/ServerReplayApp.jsx';
 import { demoMoments } from './fixtures/lecture02.js';
 import { recordMomentStream } from './fixtures/stream.js';
@@ -84,9 +86,10 @@ function lede(item) {
   return summaryCopy(item);
 }
 
-function Lecture({ allMoments, lecture, options, rich, source, capture, provider }) {
+function Lecture({ allMoments, lecture, options, rich, source, capture, provider, profile }) {
   const courseId = lecture.courseId ?? 'ai';
   const server = source?.kind === 'server';
+  const curatedClient = useMemo(() => rich ? createLectureClient(courseId, lecture.id) : null, [rich, courseId, lecture.id]);
   const fixture = source?.kind === 'fixture';
   const start = options.live ? 0 : allMoments.at(-1)?.time ?? 0;
   const initialIndex = source?.prepared?0:server ? Math.max(0, allMoments.length - 1) : source ? 0 : allMoments.findLastIndex(moment => moment.time <= start);
@@ -100,16 +103,16 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
   const duration = server ? Math.max(0, (stream.session?.total ?? 1) - 1) * (stream.session?.interval ?? options.interval)
     : source?.duration ?? (rich ? 3660 : (allMoments.at(-1)?.time ?? 0) + options.interval);
   const [chat, setChat] = useState(false);
+  const chatButton = useRef(null);
   const [quizScope, setQuizScope] = useState(null);
-  const saveKey = server ? 'recall-saved-live-' + courseId + '-' + lecture.id + '-' + stream.runId
-    : source ? 'recall-saved-fixture-' + courseId + '-' + lecture.id : rich ? 'recall-saved' : 'recall-saved-' + courseId + '-' + lecture.id + '-topics';
   const moments = source ? stream.moments : allMoments.filter(moment => moment.time <= elapsed);
   const [expanded, setExpanded] = useState(requestedIndex >= 0);
   const [localPlaying, setPlaying] = useState(false);
   const playing = capture ? capture.listening : server ? stream.session?.state === 'playing' : localPlaying;
   const [commandPending, setCommandPending] = useState(false);
   const [commandError, setCommandError] = useState('');
-  const [saved, setSaved] = useState(() => readStored(saveKey));
+  const [bookmarks, setBookmarks] = useState(null);
+  const [bookmarkPending, setBookmarkPending] = useState(false);
   const [modal, setModal] = useState(null);
   const [message, setMessage] = useState('');
   const stage = useRef(null);
@@ -121,8 +124,9 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
   const liveIndex = moments.length - 1;
   const focused = Math.max(0, Math.min(liveIndex, Math.round(target)));
   const moment = moments[focused];
-  const saveId = source ? moment?.id : rich ? focused - 1 : focused;
-  const [profile] = useState(readProfile);
+  const bookmarkRunId = server ? stream.runId : null;
+  const canBookmark = Boolean(profile?.id && !fixture && (!server || bookmarkRunId));
+  const saved = bookmarks?.some(item => item.runId === bookmarkRunId && item.momentId === moment?.id) ?? false;
   const canMarkDoubt = profile?.role === 'student' && isEnrolled(profile, courseId);
   const [doubts, setDoubts] = useState(readDoubts);
   const [doubtPending,setDoubtPending]=useState(false);
@@ -132,7 +136,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
   const doubtAction = canMarkDoubt && moment
     ? <button className="doubt-toggle" type="button" disabled={doubtPending} aria-pressed={doubtful} onClick={async () => {
       setDoubtPending(true);
-      try { setDoubts(await toggleDoubt({ ...profile, courseId,lectureId:lecture.id,runId:stream.runId||(rich?'curated:ai:2':null) }, moment.id, moment.pastTopicId)); }
+      try { setDoubts(await toggleDoubt({ ...profile, courseId,lectureId:lecture.id,runId:stream.runId||(rich?CURATED_BC_RUN_ID:null) }, moment.id, moment.pastTopicId)); }
       catch(failure) { notify(failure.message||'Your doubt marker could not be saved.'); }
       finally{setDoubtPending(false);}
     }}>{doubtful ? '✓ Marked unclear' : '? Mark as unclear'}</button>
@@ -144,13 +148,27 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
     }
     previousRun.current = stream.runId;
   }, [server, stream.runId]);
-  useEffect(() => setSaved(readStored(saveKey)), [saveKey]);
+  useEffect(() => {
+    if (!profile?.id || fixture) return;
+    const abort = new AbortController();
+    loadBookmarks({ courseId, lectureId: lecture.id }, abort.signal).then(setBookmarks).catch(error => {
+      if (!abort.signal.aborted) {
+        setBookmarks([]);
+        notify(error.message);
+      }
+    });
+    return () => abort.abort();
+  }, [profile?.id, fixture, courseId, lecture.id]);
 
   useTimelineMotion(stage, nodes, target, expanded, liveIndex);
   function notify(text) {
     clearTimeout(toastTimer.current);
     setMessage(text);
     toastTimer.current = setTimeout(() => setMessage(''), 2500);
+  }
+  function closeChat() {
+    setChat(false);
+    chatButton.current?.focus({ preventScroll: true });
   }
   function closeDetail() {
     setExpanded(false);
@@ -245,7 +263,8 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
   }, [modal, liveIndex]);
   useEffect(() => {
     function handleKey(event) {
-      if (modal) return;
+      if (modal || event.defaultPrevented) return;
+      if (event.key === 'Escape' && chat) { closeChat(); return; }
       if (event.key === 'Escape' && expanded) { closeDetail(); return; }
       if (event.target.closest('.detail, .moment-chat') || ['INPUT', 'TEXTAREA'].includes(event.target.tagName)) return;
       if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
@@ -254,14 +273,24 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
     }
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [modal, expanded, focused, liveIndex]);
+  }, [modal, chat, expanded, focused, liveIndex]);
 
-  function saveMoment() {
-    const next = saved.includes(saveId) ? saved.filter(id => id !== saveId) : [...saved, saveId];
-    setSaved(next);
-    try { localStorage.setItem(saveKey, JSON.stringify(next)); }
-    catch { notify('This change will last for this session.'); return; }
-    notify(next.includes(saveId) ? 'Moment saved.' : 'Moment removed from your saved ideas.');
+  async function saveMoment() {
+    if (bookmarkPending || !moment) return;
+    const ref = { courseId, lectureId: lecture.id, runId: bookmarkRunId, momentId: moment.id };
+    setBookmarkPending(true);
+    try {
+      await setBookmark(ref, !saved);
+      setBookmarks(current => {
+        const rest = (current ?? []).filter(item => item.runId !== ref.runId || item.momentId !== ref.momentId);
+        return saved ? rest : [...rest, ref];
+      });
+      notify(saved ? 'Removed from Saved moments.' : 'Added to Saved moments.');
+    } catch (error) {
+      notify(error.message);
+    } finally {
+      setBookmarkPending(false);
+    }
   }
 
   async function command(action) {
@@ -294,7 +323,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
   }
 
   const header = <header><Brand href="./#courses" lecture/>
-    <button id="lectureInfo" className="lecture-name" onClick={() => setModal('about')}>{courseId === 'ai' ? 'AI ALIGNMENT' : lecture.courseCode} <span>{lecture.id.padStart(2, '0')}</span><small>{rich ? 'When imitation fails' : lecture.title}</small></button>
+    <button id="lectureInfo" className="lecture-name" onClick={() => setModal('about')}>{courseId === 'ai' ? 'AI ALIGNMENT' : lecture.courseCode} <span>{lecture.id.padStart(2, '0')}</span><small>{lecture.title}</small></button>
     <div className="header-actions"><a href={'./#lecture/' + courseId + '/' + lecture.id} className="map-button source-return" aria-label="Lecture and sources"><span>Lecture &amp; sources</span> ↗</a>
       <button className="map-button lecture-quiz-launch" type="button" disabled={server && !source.prepared && stream.session?.state !== 'completed'} title={server && !source.prepared && stream.session?.state !== 'completed' ? 'Finish the lecture to quiz the whole lecture. Topic quizzes are available in moment details.' : 'Take a whole-lecture quiz'} onClick={() => openQuiz('lecture')}>Take lecture quiz</button>
       <button className="map-button" onClick={() => setModal('about')}>{source?.prepared?'About study notes':capture ? 'About live lecture' : options.live ? 'Simulation settings' : 'About replay'}</button>
@@ -350,13 +379,14 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
         : options.live ? moments.length + " of " + allMoments.length + (source ? " fixture moments" : " chunks") : "One thought at a time"}</small></div></div>
       <button ref={closeButton} className="close-detail" aria-label="Close expanded moment" onClick={closeDetail}>✕ <span>Back to the thread</span></button>
       <section ref={detail} id="detail" className="detail" aria-label="Expanded lecture moment" hidden={!expanded}>
-        {expanded && <MomentDetail moment={moment} saved={saved.includes(saveId)} onSave={saveMoment} onOpen={setModal} onChat={() => setChat(true)} chatEnabled={server} doubtAction={doubtAction}
+        {expanded && <MomentDetail moment={moment} saved={saved} onSave={canBookmark ? saveMoment : undefined} savePending={bookmarkPending || bookmarks === null} onOpen={setModal} doubtAction={doubtAction}
           onQuiz={() => openQuiz('topic')}
           client={server ? source.client : null} runId={stream.runId} onSelectMoment={selectMoment}
           slideContent={courseId === 'cs50' && server ? <SlideViewer moment={moment} runId={stream.runId}/> : undefined}/>}
       </section>
-      {expanded && chat && <MomentChat key={server ? stream.runId : moment.id} moment={moment} client={server ? source.client : null}
-        runId={stream.runId} onClose={() => setChat(false)} onSelectMoment={selectMoment}/>}
+      {expanded && <MomentChatButton ref={chatButton} open={chat} onClick={() => chat ? closeChat() : setChat(true)}/>}
+      {expanded && chat && <MomentChat key={server ? stream.runId : moment.id} moment={moment} client={server ? source.client : curatedClient}
+        runId={rich ? CURATED_BC_RUN_ID : stream.runId} momentOnly={rich} onClose={closeChat} onSelectMoment={selectMoment}/>}
     </main>
     <footer><div className="lecture-status">{!source?.prepared&&<button className="pause" aria-label={capture ? playing ? 'Stop microphone capture' : 'Start microphone capture' : playing ? 'Pause simulated lecture' : 'Play simulated lecture'}
       disabled={capture ? capture.pending || capture.queued > 0 && !playing : commandPending || (server && stream.session?.state === 'completed')} onClick={playback}>{playing ? 'Ⅱ' : '▶'}</button>}<div><div className="status-line"><i/><span>{source?.prepared?'STUDY NOTES':focused === liveIndex ? capture ? playing ? 'MICROPHONE · LIVE EDGE' : 'CAPTURED TIMELINE' : options.live ? 'SIMULATION · LIVE EDGE' : 'PAST TIMELINE' : 'REWINDING THE THREAD'}</span></div>
@@ -421,9 +451,9 @@ function ReplayApp() {
     <a href={profile ? './#find-courses' : './#signin/student'}>{profile ? 'Find a course ↗' : 'Log in ↗'}</a>
   </section>;
   if (backend && lecture) return <ServerReplayApp lecture={lecture} options={options}>{(serverSource, initialMoments, capture, provider) =>
-    <Lecture allMoments={initialMoments} lecture={serverSource.info?{...lecture,title:serverSource.info.title}:lecture} options={options} rich={false} source={serverSource} capture={capture} provider={provider}/>
+    <Lecture allMoments={initialMoments} lecture={serverSource.info?{...lecture,title:serverSource.info.title}:lecture} options={options} rich={false} source={serverSource} capture={capture} provider={provider} profile={profile}/>
   }</ServerReplayApp>;
-  if (moments) return <Lecture allMoments={moments} lecture={lecture} options={options} rich={rich} source={source}/>;
+  if (moments) return <Lecture allMoments={moments} lecture={lecture} options={options} rich={rich} source={source} profile={profile}/>;
   return <section className="replay-error"><Brand href="./#courses" lecture/>
     <p role="status">{error || (lecture?.replay ? 'Loading transcript…' : 'This lecture has no transcript available.')}</p>
     <a href={'./#course/' + options.courseId}>← Back to course</a>

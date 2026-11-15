@@ -17,6 +17,7 @@ import { enrolledCourseIds, isCourseStaff, joinCourse, readProfile, saveProfile,
 import { AccountForm, CourseSearch, StaffOverview } from '../classroom/Classroom.jsx';
 import { QuizDialog } from '../quizzes/QuizDialog.jsx';
 import { Leaderboard } from '../quizzes/Leaderboard.jsx';
+import { SavedMoments } from '../bookmarks/SavedMoments.jsx';
 
 const date = value => new Date(value + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 const number = lecture => lecture.id.padStart(2, '0');
@@ -350,7 +351,7 @@ function Library() {
       return;
     }
     if (accountPage) { location.hash = 'courses'; return; }
-    if (['courses', 'find-courses'].includes(view)) return;
+    if (['courses', 'find-courses', 'saved'].includes(view)) return;
     if (!canOpenCourse) { location.hash = 'find-courses'; return; }
     if (view === 'staff' && !staff) { location.hash = 'course/' + id; return; }
     if (!['course', 'sources', 'papers', 'paper', 'lecture', 'reading', 'record', 'staff', 'graph', 'leaderboard'].includes(view)) location.hash = 'courses';
@@ -426,10 +427,11 @@ function Library() {
 
   return <>
     <div className="ambient" aria-hidden="true"/>
-    <header><Brand href={profile ? '#courses' : '#signin/' + signInRole}/><div id="breadcrumb">{!canOpenCourse ? <span>{view === 'find-courses' ? 'Find a course' : profile ? 'My courses' : 'Account access'}</span> :
+    <header><Brand href={profile ? '#courses' : '#signin/' + signInRole}/><div id="breadcrumb">{!canOpenCourse ? <span>{view === 'find-courses' ? 'Find a course' : view === 'saved' ? 'Saved moments' : profile ? 'My courses' : 'Account access'}</span> :
       view === 'course' ? <><a href="#courses">My courses</a><span>/ {course.name}</span></> :
         <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['papers', 'paper'].includes(view) ? 'Papers' : ['lecture', 'reading'].includes(view) ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : view === 'staff' ? 'Lecture doubts' : view === 'graph' ? 'Knowledge graph' : view === 'leaderboard' ? 'Quiz leaderboard' : 'Session'}</span></>}</div>
       <div className="header-end">
+        {profile?.id && view !== 'saved' && <a className="secondary" href="#saved">Saved moments</a>}
         {profile ? <button className="secondary" onClick={onSignOut}>Sign out</button>
           : <a className="secondary" href="#signin/student">Sign in</a>}
         <button className="avatar" aria-label="About this workspace" onClick={() => setDialog({ type: 'about' })}>M</button>
@@ -438,6 +440,7 @@ function Library() {
     <main id="page" key={pageKey}>
       {!accountReady||!catalogReady ? <p role="status">Opening your workspace…</p> : !profile ? <AccountForm role={signInRole} signup={view === 'signup'} onSignIn={onSignIn}/>
         : view === 'courses' ? <Courses courses={courses.filter(item => enrolled.includes(item.id))} getSources={getSources} coursePath={coursePath} staff={teaching}/>
+        : view === 'saved' ? <SavedMoments courses={courses} enrolled={enrolled}/>
         : view === 'find-courses' ? <CourseSearch courses={courses} enrolled={enrolled} onJoin={onJoin} coursePath={coursePath} onCreate={() => setDialog({ type: 'course' })}/>
         : canOpenCourse && <>
         {['course', 'sources', 'papers', 'leaderboard'].includes(view) && <CourseHeading course={course} sourceCount={getSources(id).length} active={view} onAdd={onAdd} staff={staff} nextLecture={nextLecture} onStartSession={onStartSession}/>}

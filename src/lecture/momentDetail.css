@@ -127,8 +127,7 @@
 }
 
 .detail-actions button,
-.detail-actions a,
-.detail .context-chat button {
+.detail-actions a {
   font-size: 13px;
 }
 

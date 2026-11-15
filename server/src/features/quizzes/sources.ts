@@ -7,7 +7,8 @@ import { findLecture, readDatasetFile } from '../../data/dataset.ts';
 import { demoMoments } from '../../../../src/lecture/fixtures/lecture02.js';
 import { plain, type QuizTopic } from './planner.ts';
 
-export const CURATED_RUN = 'curated:ai:2';
+export { CURATED_BC_RUN_ID as CURATED_RUN } from '../../../../shared/contracts/lectureInteractions.ts';
+import { CURATED_BC_RUN_ID } from '../../../../shared/contracts/lectureInteractions.ts';
 export function curatedTopics(courseId: string, lectureId: string): QuizTopic[] {
   if (courseId !== 'ai' || lectureId !== '2') throw new AccountError(404, 'This lecture has no curated timeline.');
   return [{ id:'ai/2/topic/1',title:'Lecture setup and expert policies',type:'LOGISTICS',summary:'',quote:'',equations:[] }, ...demoMoments.map(moment => ({ id: moment.id, title: moment.title, type: moment.type,
@@ -27,7 +28,7 @@ export async function quizSource(request: FastifyRequest, input: QuizStart, user
     if (input.scope === 'lecture' && run.snapshot.session?.state !== 'completed') throw new AccountError(409, 'Finish this lecture before taking its whole-lecture quiz. Topic quizzes are available now.');
     topics = run.snapshot.moments; runId = run.runId;
   } else if (input.source === 'curated') {
-    topics = curatedTopics(courseId, lectureId); title = 'Limitations of behavior cloning'; runId = CURATED_RUN;
+    topics = curatedTopics(courseId, lectureId); title = 'Limitations of behavior cloning'; runId = CURATED_BC_RUN_ID;
     const lecture = await findLecture(courseId,lectureId), path = lecture?.transcript.files.find(file=>file.endsWith('.txt'));
     if(path){const words=(await readDatasetFile(courseId,path)).match(/\S+/g)??[];topics[0]!.quote=words.slice(0,Math.ceil(words.length*demoMoments[0]!.time/3660)).join(' ');}
   } else {
