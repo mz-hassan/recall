@@ -1,0 +1,857 @@
+--- PDF page 1 ---
+
+
+--- PDF page 2 ---
+
+
+--- PDF page 3 ---
+
+
+--- PDF page 4 ---
+
+
+--- PDF page 5 ---
+
+
+--- PDF page 6 ---
+
+
+--- PDF page 7 ---
+most CS50 students
+have never taken CS before
+
+--- PDF page 8 ---
+what ultimately matters in this course is not so much where
+you end up relative to your classmates but where
+you end up relative to yourself when you began
+
+--- PDF page 9 ---
+
+
+--- PDF page 10 ---
+
+
+--- PDF page 11 ---
+
+
+--- PDF page 12 ---
+
+
+--- PDF page 13 ---
+computer science
+
+--- PDF page 14 ---
+computational thinking
+
+--- PDF page 15 ---
+problem solving
+
+--- PDF page 16 ---
+input →
+→ output
+
+--- PDF page 17 ---
+unary
+
+--- PDF page 18 ---
+base-1
+
+--- PDF page 19 ---
+base-2
+
+--- PDF page 20 ---
+binary digit
+
+--- PDF page 21 ---
+binary digit
+
+--- PDF page 22 ---
+binary digit
+
+--- PDF page 23 ---
+bitnary digi
+
+--- PDF page 24 ---
+0
+
+--- PDF page 25 ---
+
+
+--- PDF page 26 ---
+1
+
+--- PDF page 27 ---
+
+
+--- PDF page 28 ---
+base-10
+
+--- PDF page 29 ---
+decimal
+
+--- PDF page 30 ---
+123
+
+--- PDF page 31 ---
+123
+1
+
+--- PDF page 32 ---
+123
+10
+1
+
+--- PDF page 33 ---
+123
+100
+10
+1
+
+--- PDF page 34 ---
+123
+100
+10
+1
+100 × 1
+
+--- PDF page 35 ---
+123
+100
+10
+1
+100 × 1
+10 × 2
++
+
+--- PDF page 36 ---
+123
+100
+10
+1
+100 × 1
+10 × 2
+1 × 3
++
++
+
+--- PDF page 37 ---
+123
+100
+10
+1
+100
+20
+3
++
++
+
+--- PDF page 38 ---
+123
+
+--- PDF page 39 ---
+#
+#
+#
+100
+10
+1
+
+--- PDF page 40 ---
+#
+#
+#
+10
+2
+10
+1
+10
+0
+
+--- PDF page 41 ---
+#
+#
+#
+2
+2
+2
+1
+2
+0
+
+--- PDF page 42 ---
+#
+#
+#
+4
+2
+1
+
+--- PDF page 43 ---
+000
+4
+2
+1
+
+--- PDF page 44 ---
+001
+4
+2
+1
+
+--- PDF page 45 ---
+010
+4
+2
+1
+
+--- PDF page 46 ---
+011
+4
+2
+1
+
+--- PDF page 47 ---
+100
+4
+2
+1
+
+--- PDF page 48 ---
+101
+4
+2
+1
+
+--- PDF page 49 ---
+110
+4
+2
+1
+
+--- PDF page 50 ---
+111
+4
+2
+1
+
+--- PDF page 51 ---
+000
+4
+2
+1
+
+--- PDF page 52 ---
+1000
+4
+2
+1
+8
+
+--- PDF page 53 ---
+byte
+
+--- PDF page 54 ---
+00000000
+4
+2
+1
+8
+64
+32
+16
+128
+
+--- PDF page 55 ---
+11111111
+4
+2
+1
+8
+64
+32
+16
+128
+
+--- PDF page 56 ---
+A
+
+--- PDF page 57 ---
+01000001
+4
+2
+1
+8
+64
+32
+16
+128
+
+--- PDF page 58 ---
+65
+
+--- PDF page 59 ---
+ASCII
+
+--- PDF page 60 ---
+
+
+--- PDF page 61 ---
+
+
+--- PDF page 62 ---
+01001000
+01001001
+00100001
+
+--- PDF page 63 ---
+72
+73
+33
+
+--- PDF page 64 ---
+
+
+--- PDF page 65 ---
+
+
+--- PDF page 66 ---
+H
+I
+!
+72
+73
+33
+
+--- PDF page 67 ---
+
+
+--- PDF page 68 ---
+
+
+--- PDF page 69 ---
+
+
+--- PDF page 70 ---
+
+
+--- PDF page 71 ---
+
+
+--- PDF page 72 ---
+Unicode
+
+--- PDF page 73 ---
+11110000100111111001100010000010
+
+--- PDF page 74 ---
+4036991106
+
+--- PDF page 75 ---
+
+
+--- PDF page 76 ---
+
+
+--- PDF page 77 ---
+
+
+--- PDF page 78 ---
+
+
+--- PDF page 79 ---
+RGB
+
+--- PDF page 80 ---
+
+
+--- PDF page 81 ---
+72
+73
+33
+
+--- PDF page 82 ---
+72
+73
+33
+
+--- PDF page 83 ---
+
+
+--- PDF page 84 ---
+
+
+--- PDF page 85 ---
+
+
+--- PDF page 86 ---
+
+
+--- PDF page 87 ---
+
+
+--- PDF page 88 ---
+
+
+--- PDF page 89 ---
+
+
+--- PDF page 90 ---
+input →
+→ output
+
+--- PDF page 91 ---
+algorithm
+
+--- PDF page 92 ---
+
+
+--- PDF page 93 ---
+algorithm
+
+--- PDF page 94 ---
+
+
+--- PDF page 95 ---
+
+
+--- PDF page 96 ---
+
+
+--- PDF page 97 ---
+
+
+--- PDF page 98 ---
+n
+
+--- PDF page 99 ---
+n
+/2
+n
+
+--- PDF page 100 ---
+n
+/2
+n
+
+--- PDF page 101 ---
+n
+/2
+n
+
+--- PDF page 102 ---
+n
+/2
+n
+log
+2
+n
+
+--- PDF page 103 ---
+algorithm
+
+--- PDF page 104 ---
+code
+
+--- PDF page 105 ---
+pseudocode
+
+--- PDF page 106 ---
+1
+Pick up phone book
+2
+Open to middle of phone book
+3
+Look at page
+4
+If person is on page
+5
+Call person
+6
+Else if person is earlier in book
+7
+Open to middle of left half of book
+8
+Go back to line 3
+9
+Else if person is later in book
+10
+Open to middle of right half of book
+11
+Go back to line 3
+12
+Else
+13
+Quit
+
+--- PDF page 107 ---
+1
+Pick up phone book
+2
+Open to middle of phone book
+3
+Look at page
+4
+If person is on page
+5
+Call person
+6
+Else if person is earlier in book
+7
+Open to middle of left half of book
+8
+Go back to line 3
+9
+Else if person is later in book
+10
+Open to middle of right half of book
+11
+Go back to line 3
+12
+Else
+13
+Quit
+
+--- PDF page 108 ---
+1
+Pick up phone book
+2
+Open to middle of phone book
+3
+Look at page
+4
+If person is on page
+5
+Call person
+6
+Else if person is earlier in book
+7
+Open to middle of left half of book
+8
+Go back to line 3
+9
+Else if person is later in book
+10
+Open to middle of right half of book
+11
+Go back to line 3
+12
+Else
+13
+Quit
+
+--- PDF page 109 ---
+1
+Pick up phone book
+2
+Open to middle of phone book
+3
+Look at page
+4
+If person is on page
+5
+Call person
+6
+Else if person is earlier in book
+7
+Open to middle of left half of book
+8
+Go back to line 3
+9
+Else if person is later in book
+10
+Open to middle of right half of book
+11
+Go back to line 3
+12
+Else
+13
+Quit
+
+--- PDF page 110 ---
+1
+Pick up phone book
+2
+Open to middle of phone book
+3
+Look at page
+4
+If person is on page
+5
+Call person
+6
+Else if person is earlier in book
+7
+Open to middle of left half of book
+8
+Go back to line 3
+9
+Else if person is later in book
+10
+Open to middle of right half of book
+11
+Go back to line 3
+12
+Else
+13
+Quit
+
+--- PDF page 111 ---
+●
+functions
+○
+arguments, return values, variables
+●
+conditionals
+●
+Boolean expressions
+●
+loops
+●
+...
+
+--- PDF page 112 ---
+artificial intelligence
+
+--- PDF page 113 ---
+If student says hello
+Say hello
+
+--- PDF page 114 ---
+If student says hello
+Say hello
+Else if student says goodbye
+Say goodbye
+
+--- PDF page 115 ---
+If student says hello
+Say hello
+Else if student says goodbye
+Say goodbye
+Else if student asks how you are
+Say well
+
+--- PDF page 116 ---
+If student says hello
+Say hello
+Else if student says goodbye
+Say goodbye
+Else if student asks how you are
+Say well
+Else if student asks why 111 in binary is 7 is decimal
+…
+
+--- PDF page 117 ---
+large language models
+
+--- PDF page 118 ---
+
+
+--- PDF page 119 ---
+
+
+--- PDF page 120 ---
+Not Reasonable
+Using AI-based software other than CS50's own…
+
+--- PDF page 121 ---
+Reasonable
+Using CS50's own AI-based software…
+
+--- PDF page 122 ---
+CS50 Duck
+cs50.ai
+
+--- PDF page 123 ---
+Visual Studio Code for CS50
+cs50.dev
+
+--- PDF page 124 ---
+#include <stdio.h>
+int main(void)
+{
+printf("hello, world\n");
+}
+
+--- PDF page 125 ---
+011111110100010101001100010001100000001000000001000000010000000000000000000000000000000000000000000000
+000000000000000000000000000000000100000000001111100000000000000001000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000001010000000000010000000000000000000000000000000000000000000000000000000000000000000000000
+000000000100000000000000000000000000000000000000000000000100000000000000000010100000000000000001000000
+000101010101001000100010011110010101001000100000111110110000010000001100011100000010001001110001110100
+100010111110000000000000000000000000000000000000000000000000000000000000000010110000000000001110100000
+000000000000000000000000000000010010001011111100000000000000000000000000000000000000000000000000000000
+0000000001001000...01111111010001010100110001000110000000100000000100000001000000000000000000000000000
+000000000000000000000000000000000000000000000000000110000000000111110000000000000000100000000000000000
+000000011000000000011110000000000000000000000000000000000000000000000000100000000000000000000000000000
+000000000000000000000000000000000001010000011001000000000000000000000000000000000000000000000000000000
+000000000000000000000000000010000000000000000111000000000000000011100000000010000000000000000011100000
+000000001100100000000000000010000000000000000000000000000010100000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000000000000000000000000000001011100001001010000000000000
+00000000000000000000000000000000000...0010111101101100011010010110001001100011001011100111001101101111
+001011100011011000100000001011110111010101110011011100100010111101101100011010010110001000101111011110
+000011100000110110010111110011011000110100001011010110110001101001011011100111010101111000001011010110
+011101101110011101010010111101101100011010010110001001100011010111110110111001101111011011100111001101
+101000011000010111001001100101011001000010111001100001001000000010000001000001010100110101111101001110
+010001010100010101000100010001010100010000100000001010000010000000101111011011000110100101100010001011
+110111100000111000001101100101111100110110001101000010110101101100011010010110111001110101011110000010
+110101100111011011100111010100101111011011000110010000101101011011000110100101101110011101010111100000
+101101011110000011100000110110001011010011011000110100...
+
+--- PDF page 126 ---
+break
+
+--- PDF page 127 ---
+011111110100010101001100010001100000001000000001000000010000000000000000000000000000000000000000000000
+000000000000000000000000000000000100000000001111100000000000000001000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000001010000000000010000000000000000000000000000000000000000000000000000000000000000000000000
+000000000100000000000000000000000000000000000000000000000100000000000000000010100000000000000001000000
+000101010101001000100010011110010101001000100000111110110000010000001100011100000010001001110001110100
+100010111110000000000000000000000000000000000000000000000000000000000000000010110000000000001110100000
+000000000000000000000000000000010010001011111100000000000000000000000000000000000000000000000000000000
+0000000001001000...01111111010001010100110001000110000000100000000100000001000000000000000000000000000
+000000000000000000000000000000000000000000000000000110000000000111110000000000000000100000000000000000
+000000011000000000011110000000000000000000000000000000000000000000000000100000000000000000000000000000
+000000000000000000000000000000000001010000011001000000000000000000000000000000000000000000000000000000
+000000000000000000000000000010000000000000000111000000000000000011100000000010000000000000000011100000
+000000001100100000000000000010000000000000000000000000000010100000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000000000000000000000000000001011100001001010000000000000
+00000000000000000000000000000000000...0010111101101100011010010110001001100011001011100111001101101111
+001011100011011000100000001011110111010101110011011100100010111101101100011010010110001000101111011110
+000011100000110110010111110011011000110100001011010110110001101001011011100111010101111000001011010110
+011101101110011101010010111101101100011010010110001001100011010111110110111001101111011011100111001101
+101000011000010111001001100101011001000010111001100001001000000010000001000001010100110101111101001110
+010001010100010101000100010001010100010000100000001010000010000000101111011011000110100101100010001011
+110111100000111000001101100101111100110110001101000010110101101100011010010110111001110101011110000010
+110101100111011011100111010100101111011011000110010000101101011011000110100101101110011101010111100000
+101101011110000011100000110110001011010011011000110100...
+
+--- PDF page 128 ---
+#include <stdio.h>
+int main(void)
+{
+printf("hello, world\n");
+}
+
+--- PDF page 129 ---
+
+
+--- PDF page 130 ---
+Scratch
+scratch.mit.edu
+
+--- PDF page 131 ---
+
+
+--- PDF page 132 ---
+
+
+--- PDF page 133 ---
+
+
+--- PDF page 134 ---
+
+
+--- PDF page 135 ---
+
+
+--- PDF page 136 ---
+
+
+--- PDF page 137 ---
+
+
+--- PDF page 138 ---
+side effect
+
+--- PDF page 139 ---
+input →
+→ output
+algorithm
+
+--- PDF page 140 ---
+→
+→
+algorithm
+→ output
+
+--- PDF page 141 ---
+→
+→
+→ output
+
+--- PDF page 142 ---
+→
+→
+
+--- PDF page 143 ---
+
+
+--- PDF page 144 ---
+return value
+
+--- PDF page 145 ---
+input →
+→ output
+algorithm
+
+--- PDF page 146 ---
+→
+→
+→ output
+algorithm
+
+--- PDF page 147 ---
+→
+→
+→ output
+
+--- PDF page 148 ---
+→
+→
+
+--- PDF page 149 ---
+
+
+--- PDF page 150 ---
+input →
+→ output
+algorithm
+
+--- PDF page 151 ---
+→
+→
+→ output
+algorithm
+
+--- PDF page 152 ---
+→
+→
+→ output
+
+--- PDF page 153 ---
+→
+→
+
+--- PDF page 154 ---
+→
+
+--- PDF page 155 ---
+→
+
+--- PDF page 156 ---
+→
+→
+
+--- PDF page 157 ---
+→
+→
+→
+
+--- PDF page 158 ---
+
+
+--- PDF page 159 ---

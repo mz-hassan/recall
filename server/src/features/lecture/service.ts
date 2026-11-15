@@ -5,6 +5,7 @@ import { createPassthroughSegmenter } from './segmentation/passthrough.ts';
 import type { Segmenter } from './segmentation/types.ts';
 import type { LectureStore } from './store/types.ts';
 import { hasTranscript, loadTranscriptChunks } from './transcription/index.ts';
+import { createMicrophoneSession, CaptureConflict, type MicrophoneSession } from './microphone/session.ts';
 
 export class LectureNotFoundError extends Error {
   constructor(key: LectureKey) {
@@ -22,15 +23,16 @@ export class SessionNotFoundError extends Error {
 
 export type LectureService = ReturnType<typeof createLectureService>;
 
-type Run = { replay: ReplaySession; enricher: Enricher | null; controller: AbortController };
+type Run = { replay: ReplaySession; microphone?: MicrophoneSession; enricher: Enricher | null; controller: AbortController };
 
 /**
  * Runs one replay session per lecture and wires transcript → segmenter → store, with an optional
  * enricher that fills in each topic as it closes.
  */
-export function createLectureService({ store, createSegmenter = createPassthroughSegmenter, createEnricher, timers, onError }: {
+export function createLectureService({ store, createSegmenter = createPassthroughSegmenter, createMicrophoneSegmenter, createEnricher, timers, onError }: {
   store: LectureStore;
   createSegmenter?: () => Segmenter;
+  createMicrophoneSegmenter?: () => Segmenter;
   createEnricher?: () => Enricher;
   timers?: Timers;
   onError?: (error: unknown) => void;
@@ -53,6 +55,23 @@ export function createLectureService({ store, createSegmenter = createPassthroug
 
   return {
     hasTranscript,
+
+    async startMicrophone(key: LectureKey) {
+      if (!await hasTranscript(key)) throw new LectureNotFoundError(key);
+      stopRun(runs.get(id(key)));
+      const controller = new AbortController();
+      const enricher = createEnricher?.() ?? null;
+      const microphone = createMicrophoneSession({ key, store, segmenter: (createMicrophoneSegmenter ?? createSegmenter)() });
+      runs.set(id(key), { replay: microphone, microphone, enricher, controller });
+      enricher?.start({ key, store, signal: controller.signal });
+      microphone.start();
+      return microphone.state();
+    },
+    microphone(key: LectureKey, runId: string) {
+      const capture = runs.get(id(key))?.microphone;
+      if (!capture || capture.runId !== runId) throw new CaptureConflict('The microphone session changed. Start listening again.');
+      return capture;
+    },
 
     /** (Re)starts a replay. Resolves once the first chunk (or, for 'instant', every chunk) is segmented. */
     async startReplay(key: LectureKey, options: ReplayOptions): Promise<SessionState> {

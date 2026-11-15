@@ -7,6 +7,16 @@ const number = value => value !== 0 && (Math.abs(value) >= 1e6 || Math.abs(value
 
 function Chart({ spec }) {
   const titleId = useId();
+  const [visible, setVisible] = useState(spec.xValues.length);
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    if (!playing) return;
+    const timer = setInterval(() => setVisible(count => {
+      if (count >= spec.xValues.length) { setPlaying(false); return count; }
+      return count + 1;
+    }), 1400);
+    return () => clearInterval(timer);
+  }, [playing, spec.xValues.length]);
   const all = spec.series.flatMap(series => series.values);
   const min = Math.min(0, ...all), max = Math.max(0, ...all);
   const x = index => 60 + index * 420 / (spec.xValues.length - 1);
@@ -25,12 +35,20 @@ function Chart({ spec }) {
       <text x="280" y="278" textAnchor="middle" fill="#adc4b5" fontSize="12">{spec.xLabel}</text>
       <text x="62" y="25" fill="#adc4b5" fontSize="12">{spec.yLabel}</text>
       {spec.series.map((series, index) => spec.chartType === 'line'
-        ? <polyline key={series.label} points={series.values.map((value, i) => x(i) + ',' + y(value)).join(' ')} fill="none" stroke={colors[index]} strokeWidth="3"/>
-        : <g key={series.label}>{series.values.map((value, i) => <rect key={i}
+        ? <g key={series.label}><polyline points={series.values.slice(0, visible).map((value, i) => x(i) + ',' + y(value)).join(' ')} fill="none" stroke={colors[index]} strokeWidth="3"/>
+          <circle cx={x(visible - 1)} cy={y(series.values[visible - 1])} r="4" fill={colors[index]}/></g>
+        : <g key={series.label}>{series.values.slice(0, visible).map((value, i) => <rect key={i}
           x={x(i) - barWidth * spec.series.length / 2 + index * barWidth} y={Math.min(y(value), baseline)}
           width={Math.max(1, barWidth - 2)} height={Math.abs(y(value) - baseline)} fill={colors[index]}/>)}</g>)}
     </svg>
     <ul className="lecture-artifact-legend">{spec.series.map((series, index) => <li key={series.label} style={{ color: colors[index] }}>{series.label}</li>)}</ul>
+    <div className="lecture-animation-controls">
+      <button type="button" onClick={() => { setVisible(1); setPlaying(true); }}>Animate chart</button>
+      <button type="button" disabled={!playing} onClick={() => setPlaying(false)}>Pause chart</button>
+      <button type="button" disabled={visible >= spec.xValues.length} onClick={() => { setPlaying(false); setVisible(count => count + 1); }}>Next chart point</button>
+      <button type="button" onClick={() => { setPlaying(false); setVisible(spec.xValues.length); }}>Show complete chart</button>
+      <span aria-live="polite">Point {visible} of {spec.xValues.length}</span>
+    </div>
     <details><summary>View chart data</summary><div className="lecture-artifact-table"><table>
       <thead><tr><th scope="col">{spec.xLabel}</th>{spec.series.map(series => <th key={series.label} scope="col">{series.label}</th>)}</tr></thead>
       <tbody>{spec.xValues.map((value, index) => <tr key={index}><th scope="row">{number(value)}</th>{spec.series.map(series => <td key={series.label}>{number(series.values[index])}</td>)}</tr>)}</tbody>

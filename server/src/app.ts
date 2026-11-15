@@ -41,13 +41,14 @@ export type AppDependencies = {
   logger?: boolean;
   lectureStore?: LectureStore;
   lectureService?: LectureService;
+  speechDecoder?: import('./features/lecture/microphone/worker.ts').SpeechDecoder;
   graphService?: GraphServiceSource;
   graphProviderConfigured?: boolean;
 };
 
 /** One shared API; a missing graph database must not disable the live lecture service. */
 export async function buildApp({
-  config, provider, logger = false, lectureStore, lectureService,
+  config, provider, logger = false, lectureStore, lectureService, speechDecoder,
   graphService = () => undefined, graphProviderConfigured = config.llm.provider === 'deepseek',
 }: AppDependencies): Promise<FastifyInstance> {
   const app = baseApp(logger);
@@ -57,6 +58,7 @@ export async function buildApp({
   const service = lectureService ?? createLectureService({
     store,
     createSegmenter: () => createModelSegmenter({ provider, onCall: call => app.log.info({ segmentation: call }, 'segmentation') }),
+    createMicrophoneSegmenter: () => createModelSegmenter({ provider, minWords: 20, onCall: call => app.log.info({ segmentation: call }, 'segmentation') }),
     createEnricher: () => createModelEnricher({ provider, onCall: call => app.log.info({ enrichment: call }, 'enrichment') }),
     onError: error => app.log.error(error),
   });
@@ -64,7 +66,7 @@ export async function buildApp({
   await app.register(async api => {
     api.get('/health', async () => ({ ok: true, provider: provider.name, model: provider.model }));
     await api.register(datasetRoutes);
-    await api.register(lectureFeature, { service, store, provider });
+    await api.register(lectureFeature, { service, store, provider, decoder: speechDecoder });
     await api.register(readingsFeature, { provider });
   }, { prefix: '/api' });
   registerGraphRoutes(app, graphService, graphProviderConfigured);

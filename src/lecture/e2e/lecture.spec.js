@@ -120,6 +120,13 @@ test('requested chart and animation attach to the selected moment and survive re
     await expect(page.getByRole('status').filter({ hasText: 'Visual added' })).toBeVisible();
   }
   await expect(page.locator('.lecture-artifact-visual')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Animate chart', exact: true }).click();
+  const chartControls = page.locator('.lecture-animation-controls').filter({ has: page.getByRole('button', { name: 'Animate chart', exact: true }) });
+  await expect(chartControls).toContainText('Point 1 of');
+  await page.getByRole('button', { name: 'Pause chart', exact: true }).click();
+  await page.getByRole('button', { name: 'Next chart point', exact: true }).click();
+  await expect(chartControls).toContainText('Point 2 of');
+  await page.getByRole('button', { name: 'Show complete chart', exact: true }).click();
   await expect(page.locator('.lecture-artifact-visual .katex')).toHaveCount(1);
   await expect(page.locator('.lecture-artifact-visual .lecture-equation>div').last()).toHaveText('\\notarealcommand{');
   expect(await selected(page)).toBe(id);
