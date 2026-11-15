@@ -38,10 +38,17 @@ npm ci
 cp .env.example .env
 ```
 
-Choose your model mode in `.env`:
+Choose a provider in the server-side `.env` file.
 
-- **AI generation:** set `DEEPSEEK_API_KEY` and keep `LLM_PROVIDER=deepseek`. Generation makes paid API calls; keep the key server-side.
-- **Offline pipeline preview:** set `LLM_PROVIDER=fixture`. This produces deterministic live-lecture output without an API key; it does not generate a knowledge graph.
+| Mode | Setting | API key | Default model |
+| --- | --- | --- | --- |
+| Google Gemini | `LLM_PROVIDER=gemini` | `GEMINI_API_KEY` | `gemini-4-hydrogen` |
+| DeepSeek | `LLM_PROVIDER=deepseek` | `DEEPSEEK_API_KEY` | `deepseek-flash` |
+| Offline demo | `LLM_PROVIDER=fixture` | None | Deterministic fixtures |
+
+Use Gemini for Hydrogen, DeepSeek if you already have a funded DeepSeek project, or fixture mode for a demo without API access. You can keep both keys in the git-ignored `.env`. The selected provider uses only its own key. Leave `LLM_MODEL` blank for the default, or set it to a model ID supported by the selected provider. Clear any previous model override when switching providers.
+
+Restart the API after editing `.env`. The setting controls language generation for lectures, chat, readings, teaching artifacts, and the knowledge graph. CS50 microphone transcription runs on local Whisper. Previously saved MongoDB data stays available. Fixture mode previews the live lecture pipeline and can display saved graphs.
 
 Start MongoDB in a separate terminal:
 
@@ -77,9 +84,9 @@ flowchart LR
     G --> M
 ```
 
-The frontend uses **React + Vite**. A **TypeScript + Fastify** API runs the lecture pipeline and account features. **DeepSeek** powers configured language-model tasks; **faster-whisper / Whisper large-v3-turbo** handles speech recognition locally without an OpenAI API account. **MongoDB** stores persistent application data and graph documents. Equations render with **KaTeX**.
+The frontend uses **React + Vite**. A **TypeScript + Fastify** API runs the lecture pipeline and account features. **Gemini or DeepSeek** powers configured language-model tasks; **faster-whisper / Whisper large-v3-turbo** handles speech recognition locally without an OpenAI API account. **MongoDB** stores persistent application data and graph documents. Equations render with **KaTeX**.
 
-Model tasks use a shared provider interface and task-specific harnesses. A fixture provider supports offline testing; Gemini is a planned integration, not a working provider advertised by this demo.
+Model tasks use a shared provider interface and task-specific harnesses. A fixture provider supports offline testing.
 
 ## Data and persistence
 

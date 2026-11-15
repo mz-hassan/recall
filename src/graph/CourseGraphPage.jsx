@@ -64,7 +64,7 @@ export function CourseGraphPage({ course }) {
     {error && <div className="cg-notice cg-error" role="alert">{error} <button className="secondary" onClick={() => setRefresh(value => value + 1)}>Reconnect</button></div>}
     {!data && !error && <p className="cg-notice" role="status">Loading course graph…</p>}
     {curated && <p className="cg-notice">Curated demo · Built from the course slides.</p>}
-    {data && !curated && !data.providerConfigured && <p className="cg-notice">Graph generation needs a DeepSeek API key configured on the server. Saved concepts remain available.</p>}
+    {data && !curated && !data.providerConfigured && <p className="cg-notice">Graph generation needs a Gemini or DeepSeek API key configured on the server. Saved concepts remain available.</p>}
     <div aria-live="polite" aria-atomic="true" className="cg-status">
       {pending.length ? <p>Updating graph… {pending.length} lecture{pending.length === 1 ? '' : 's'} waiting or processing.</p> : recent ? <p>Updated from lecture {recent.id} · {changes.nodes.length} new concepts · {changes.edges.length} new connections{!changes.nodes.length && !changes.edges.length ? ' · Existing concepts and source references refreshed.' : ''}</p> : null}
     </div>

@@ -54,7 +54,7 @@ export type AppDependencies = {
 /** One shared API; a missing graph database must not disable the live lecture service. */
 export async function buildApp({
   config, provider, logger = false, lectureStore, lectureService, speechDecoder,repository,
-  graphService = () => undefined, graphProviderConfigured = config.llm.provider === 'deepseek',
+  graphService = () => undefined, graphProviderConfigured = config.llm.provider !== 'fixture',
 }: AppDependencies): Promise<FastifyInstance> {
   const app = baseApp(logger);
   registerLectureFixtures(provider);

@@ -1,7 +1,8 @@
 import type { Config } from '../config.ts';
-import { createDeepSeekProvider, DEFAULT_DEEPSEEK_MODEL } from './deepseek.ts';
+import { createDeepSeekProvider, DeepSeekProvider, DEFAULT_DEEPSEEK_BASE_URL, DEFAULT_DEEPSEEK_MODEL } from './deepseek.ts';
 import { createFixtureProvider } from './fixture.ts';
-import { ProviderError, type ModelProvider } from './types.ts';
+import { createGeminiProviders } from './gemini.ts';
+import type { ModelProvider } from './types.ts';
 
 export * from './types.ts';
 export { createFixtureProvider } from './fixture.ts';
@@ -19,6 +20,21 @@ export function createProvider(config: Config['llm']): ModelProvider {
         ...(config.deepseekBaseUrl && { baseUrl: config.deepseekBaseUrl }),
       });
     case 'gemini':
-      throw new ProviderError('not_implemented', 'The Gemini adapter is not implemented yet. Use LLM_PROVIDER=fixture or deepseek.');
+      return createGeminiProviders(config.geminiApiKey!, config.model).live;
   }
+}
+
+export function createGraphProvider(config: Config['llm']) {
+  if (config.provider === 'gemini') return createGeminiProviders(config.geminiApiKey!, config.model).graph;
+  if (config.provider === 'fixture') return {
+    identity: 'fixture',
+    async generateStructured(): Promise<never> {
+      throw new Error('Select Gemini or DeepSeek in .env to generate a knowledge graph.');
+    },
+  };
+  return new DeepSeekProvider({
+    key: config.deepseekApiKey,
+    model: config.model ?? DEFAULT_DEEPSEEK_MODEL,
+    baseUrl: config.deepseekBaseUrl ?? DEFAULT_DEEPSEEK_BASE_URL,
+  });
 }
