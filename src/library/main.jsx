@@ -61,13 +61,17 @@ function CourseHeading({ course, sourceCount, active, onAdd, nextLecture, onStar
   </>;
 }
 
+// A lecture opens its generated (live) timeline, except Lecture 2, whose hand-curated replay
+// with authored notes and slides is the version to show. Its live demo stays on Course material.
+const lectureTimelinePath = lecture => replayPath(lecture.id, lecture.id !== '2');
+
 function CourseOverview({ course, getSources }) {
   return <>
     <div className="subhead"><span>LECTURES</span><small>{course.lectures.length} in the course library</small></div>
     {course.lectures.length ? <div className="lecture-list">{course.lectures.map(lecture => <article key={lecture.id} className="lecture-row course-lecture-row">
       <span className="lecture-number">{number(lecture)}</span>
       <div>
-        <h3>{lecture.replay ? <a className="lecture-timeline-link" href={replayPath(lecture.id)}>{lecture.title}</a> : lecture.title}</h3>
+        <h3>{lecture.replay ? <a className="lecture-timeline-link" href={lectureTimelinePath(lecture)}>{lecture.title}</a> : lecture.title}</h3>
         <p>{date(lecture.date)}, 2026{!lecture.replay && ' · No timeline available'}</p>
       </div>
       <div className="course-lecture-actions">

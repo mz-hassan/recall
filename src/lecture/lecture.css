@@ -86,3 +86,17 @@
 .lecture-pdf-slide small{font-size:9px;letter-spacing:1px;color:#8cae9b}
 .lecture-pdf-slide strong{font-size:15px;font-weight:500;color:#c5e9d1}
 .lecture-pdf-slide span{font-size:11px;color:#adc4b5}
+/* Generated topics: long titles step down a size, the preview line stays two lines, and cards that
+   are not in focus collapse to eyebrow + title so their hidden text never pushes into a neighbour. */
+.moment h1.title-long{font-size:clamp(32px,3.6vw,56px);letter-spacing:-2.4px}
+.moment h1.title-longer{font-size:clamp(28px,3vw,46px);letter-spacing:-1.8px}
+.moment .lede{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.moment .lede,.moment .open-hint{max-height:120px;transition:opacity .5s,max-height .45s var(--ease),margin-top .45s var(--ease)}
+.moment:not(.current) .lede,.moment:not(.current) .open-hint{max-height:0;margin-top:0;overflow:hidden;transition:opacity .4s,max-height .45s var(--ease),margin-top .45s var(--ease)}
+@media(min-width:1600px){.moment h1.title-long{font-size:62px}.moment h1.title-longer{font-size:52px}}
+@media(max-height:750px) and (min-width:801px){.moment h1.title-long{font-size:40px}.moment h1.title-longer{font-size:34px}}
+@media(max-width:800px){.moment h1.title-long{font-size:clamp(30px,6vw,44px)}.moment h1.title-longer{font-size:clamp(26px,5vw,38px)}}
+/* Rewound, the next topic sits where the status label is, so the label steps aside until "Back to now". */
+.rewound .scroll-instruction{opacity:0}
+/* With a topic open, the side thread is narrower so long titles never run under the notes panel. */
+@media(min-width:801px){.expanded .moment .moment-content{width:56%}}
