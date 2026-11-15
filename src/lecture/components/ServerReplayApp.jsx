@@ -6,6 +6,15 @@ import { useMicrophoneCapture } from '../microphone/useMicrophoneCapture.js';
 export function ServerReplayApp({ lecture, options, children }) {
   const courseId = lecture.courseId ?? 'ai';
   const client = useMemo(() => createLectureClient(courseId, lecture.id,fetch,options.prepared?'/api/prepared':'/api'), [courseId, lecture.id,options.prepared]);
+  const [provider, setProvider] = useState(null);
+  useEffect(() => {
+    const cancellation = new AbortController();
+    fetch('/api/health', { signal: cancellation.signal })
+      .then(response => response.ok ? response.json() : null)
+      .then(health => { if (!cancellation.signal.aborted) setProvider(health?.provider ?? null); })
+      .catch(() => {});
+    return () => cancellation.abort();
+  }, []);
   const [snapshot, setSnapshot] = useState(null);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
@@ -28,7 +37,7 @@ export function ServerReplayApp({ lecture, options, children }) {
     return () => cancellation.abort();
   }, [client, options, attempt]);
   const source = useMemo(() => snapshot ? {...createServerStream(client, snapshot),prepared:options.prepared,info} : null, [client, snapshot,info,options.prepared]);
-  if (source) return children(source, snapshot.moments, options.microphone ? capture : null);
+  if (source) return children(source, snapshot.moments, options.microphone ? capture : null, provider);
   return <section className="replay-error"><Brand href={'./#course/' + courseId} lecture/>
     <p role="status">{error || 'Connecting to the lecture…'}</p>
     {error && <><button type="button" onClick={() => setAttempt(value => value + 1)}>Retry connection</button>

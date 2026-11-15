@@ -83,7 +83,7 @@ function lede(item) {
   return summaryCopy(item);
 }
 
-function Lecture({ allMoments, lecture, options, rich, source, capture }) {
+function Lecture({ allMoments, lecture, options, rich, source, capture, provider }) {
   const courseId = lecture.courseId ?? 'ai';
   const server = source?.kind === 'server';
   const fixture = source?.kind === 'fixture';
@@ -312,6 +312,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture }) {
       <span>{stream.error || (stream.connectionStatus === 'reconnecting' ? 'Reconnecting…' : server
         ? source.prepared?(source.info?.basis==='materials'?'Preparation notes · slides and readings':'Study notes · lecture transcript'):stream.session?.state === 'completed' ? 'Lecture complete' : 'Live lecture stream'
         : stream.connectionStatus === 'complete' ? 'Fixture complete' : 'Recorded fixture stream')}</span>
+      {provider === 'fixture' && !source.prepared && <span>Offline preview · transcript excerpts</span>}
       <button type="button" onClick={stream.reconnect}>{stream.error ? 'Retry stream' : 'Reconnect stream'}</button>
       {server && !source.prepared&&<button type="button" disabled={commandPending} onClick={restart}>Restart replay</button>}
       {commandError && <span role="alert">{commandError}</span>}
@@ -411,8 +412,8 @@ function ReplayApp() {
     <p>Add {lecture?.courseName ?? 'this course'} to your courses to open this timeline.</p>
     <a href={profile ? './#find-courses' : './#signin/student'}>{profile ? 'Find a course ↗' : 'Log in ↗'}</a>
   </section>;
-  if (backend && lecture) return <ServerReplayApp lecture={lecture} options={options}>{(serverSource, initialMoments, capture) =>
-    <Lecture allMoments={initialMoments} lecture={serverSource.info?{...lecture,title:serverSource.info.title}:lecture} options={options} rich={false} source={serverSource} capture={capture}/>
+  if (backend && lecture) return <ServerReplayApp lecture={lecture} options={options}>{(serverSource, initialMoments, capture, provider) =>
+    <Lecture allMoments={initialMoments} lecture={serverSource.info?{...lecture,title:serverSource.info.title}:lecture} options={options} rich={false} source={serverSource} capture={capture} provider={provider}/>
   }</ServerReplayApp>;
   if (moments) return <Lecture allMoments={moments} lecture={lecture} options={options} rich={rich} source={source}/>;
   return <section className="replay-error"><Brand href="./#courses" lecture/>

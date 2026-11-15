@@ -1,9 +1,11 @@
 import React from 'react';
 import { Equation } from './components/Equation.jsx';
 import { MomentArtifacts } from './components/MomentArtifacts.jsx';
+import { BehaviorCloningVisual } from './components/artifacts/BehaviorCloningVisual.jsx';
 
 export function MomentExtras({ moment, client, runId, onSelectMoment }) {
   return <>
+    <BehaviorCloningVisual momentId={moment.id}/>
     {moment.equations.map(equation => <Equation key={equation.expression} {...equation}/>)}
     {moment.graph && <div className="intuition">
       <small>TOPIC DIAGRAM · {moment.graph.origin.toUpperCase()}</small>

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { MongoClient } from 'mongodb';
 import { buildApp } from '../app.ts';
@@ -16,9 +17,9 @@ test('Mongo accounts share prepared notes and preserve isolated lecture historie
   const settings = { uri: mongo.getUri(), database: 'platform-test' };
   let repository = createPlatformRepository(settings);
   const provider = createFixtureProvider();
-  let chatCalls = 0;
+  let chatCalls = 0, modelCalls = 0;
   const generate = provider.generateStructured.bind(provider);
-  provider.generateStructured = async request => { if (request.task.includes('chat')) chatCalls++; return generate(request); };
+  provider.generateStructured = async request => { modelCalls++; if (request.task.includes('chat')) chatCalls++; return generate(request); };
   const decoder = { status: () => ({ installed: true, ready: true, busy: false, model: 'test', device: 'test' }), warmup: async () => {}, close() {}, transcribe: async () => 'Algorithms transform inputs into outputs. Binary search repeatedly divides a sorted list in half to find an item efficiently. Each step eliminates half of the remaining possibilities.' };
   const createApp = () => buildApp({ config: loadConfig({}), provider, repository, speechDecoder: decoder });
   let app = await createApp();
@@ -97,8 +98,40 @@ test('Mongo accounts share prepared notes and preserve isolated lecture historie
       const empty = (await app.inject({ url: '/api/lectures/cs50/0/moments', headers: { cookie: bob } })).json();
       assert.equal(empty.runId, null); assert.equal(empty.moments.length, 0);
     });
+    const replay = '/api/lectures/ai/3';
+    let savedReplay: { runId: string; moments: Moment[] };
+    await t.test('a completed transcript replay saves its generated notes', async () => {
+      const headers = { cookie: alice };
+      const joined = await app.inject({ method: 'POST', url: '/api/auth/courses', headers, payload: { courseId: 'ai' } });
+      assert.equal(joined.statusCode, 200, joined.body);
+      const started = await app.inject({ method: 'POST', url: replay + '/session', headers, payload: { start: 'instant', limit: 3 } });
+      assert.equal(started.statusCode, 201, started.body);
+      const runId = started.json().runId;
+      for (let attempt = 0; attempt < 100; attempt++) {
+        const run = await repository.run(aliceId, runId);
+        if (run?.snapshot.moments.length && run.snapshot.moments.every(moment => moment.status === 'closed' && moment.enrichment === 'ready')) {
+          assert.equal(run.kind, 'replay');
+          savedReplay = { runId, moments: run.snapshot.moments };
+          return;
+        }
+        await delay(25);
+      }
+      assert.fail('Completed replay notes were not saved');
+    });
     await app.close(); await repository.close();
     repository = createPlatformRepository(settings); app = await createApp();
+    await t.test('opening the completed transcript replay after restart makes no model calls', async () => {
+      assert.ok(savedReplay);
+      const headers = { cookie: alice };
+      const calls = modelCalls;
+      const session = await app.inject({ url: replay + '/session', headers });
+      assert.equal(session.statusCode, 200, session.body);
+      assert.equal(session.json().runId, savedReplay.runId);
+      assert.equal(session.json().state, 'completed');
+      const snapshot = await app.inject({ url: replay + '/moments', headers });
+      assert.deepEqual(snapshot.json().moments, savedReplay.moments);
+      assert.equal(modelCalls, calls);
+    });
     await t.test('sessions, summaries, chat, doubts and visuals survive API/repository restart', async () => {
       assert.equal((await app.inject({ url: '/api/auth/session', headers: { cookie: alice } })).json().user.id, aliceId);
       const snapshot = (await app.inject({ url: study + '/moments', headers: { cookie: alice } })).json();

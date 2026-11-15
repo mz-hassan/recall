@@ -1,0 +1,138 @@
+.detail .moment-takeaway,
+.staff-topic-detail .moment-takeaway {
+  margin: 26px 0;
+  padding: 14px 16px;
+  border-left: 2px solid #759c83;
+  border-radius: 0 8px 8px 0;
+  background: #17241d;
+}
+
+.moment-takeaway small {
+  color: #9dc3aa;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .14em;
+}
+
+.detail .moment-takeaway p,
+.staff-topic-detail .moment-takeaway p {
+  color: #d3e3d8;
+  font-size: 16px;
+  line-height: 1.65;
+  margin: 7px 0 0;
+}
+
+.slide-equation-notes {
+  margin: 12px 0 24px;
+  padding: clamp(12px, 3vw, 20px);
+  border: 1px solid #34483d;
+  border-radius: 10px;
+  background: #121b16;
+}
+
+.slide-equation-notes h3 {
+  color: #acd3b9;
+  font-size: 14px;
+  font-weight: 650;
+  margin: 0;
+}
+
+.detail .slide-equation-notes .lecture-equation,
+.staff-topic-detail .slide-equation-notes .lecture-equation {
+  border: 0;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.detail .slide-equation-notes .lecture-equation + .lecture-equation,
+.staff-topic-detail .slide-equation-notes .lecture-equation + .lecture-equation {
+  border-top: 1px solid #34483d;
+  padding-top: 12px;
+}
+
+.slide-equation-notes .lecture-equation > div {
+  overflow-x: auto;
+  color: #e0f0e6;
+}
+
+.slide-equation-notes .katex-display {
+  margin: .65em 0;
+  text-align: left;
+}
+
+.detail .slide-equation-notes .lecture-equation p,
+.staff-topic-detail .slide-equation-notes .lecture-equation p {
+  color: #d3e3d8;
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 6px 0 12px;
+}
+
+.equation-terms {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.equation-terms > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 28%) 1fr;
+  gap: 10px;
+}
+
+.equation-terms dt {
+  overflow-x: auto;
+  color: #b6dfc6;
+}
+
+.equation-terms dd {
+  margin: 0;
+  color: #aebfb5;
+}
+
+@media (max-width: 520px) {
+  .equation-terms > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+/* Use the same reading size in authored and generated lecture details. */
+.detail .summary,
+.detail .chunk-copy,
+.detail .lecture-equation p,
+.detail .lecture-artifact-visual figcaption p,
+.detail .bc-visual figcaption p,
+.staff-topic-detail .summary,
+.staff-topic-detail .chunk-copy,
+.staff-topic-detail .lecture-equation p,
+.staff-topic-detail .bc-visual figcaption p {
+  color: #d3e3d8;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.detail .slide-equation-notes .lecture-equation p,
+.staff-topic-detail .slide-equation-notes .lecture-equation p,
+.equation-terms {
+  font-size: 16px;
+}
+
+.detail .lecture-stream-note,
+.detail .lecture-artifact-visual .lecture-artifact-basis,
+.detail .slide-frame .caption {
+  font-size: 12px;
+}
+
+.detail-actions button,
+.detail-actions a,
+.detail .context-chat button {
+  font-size: 13px;
+}
+
+.moment.current .lede {
+  font-size: clamp(14px, 1.1vw, 16px);
+  line-height: 1.65;
+}

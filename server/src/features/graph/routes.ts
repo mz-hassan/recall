@@ -9,7 +9,7 @@ export type GraphServiceSource = GraphService | (() => GraphService | undefined)
 export function registerGraphRoutes(app: FastifyInstance, source: GraphServiceSource, providerConfigured: boolean) {
   function requireService() {
     const service = typeof source === 'function' ? source() : source;
-    if (!service) throw new GraphError('The knowledge graph is unavailable. Start MongoDB with npm run db:start and restart the API. Live lecture remains available.', 503);
+    if (!service) throw new GraphError('The knowledge graph is unavailable. The API reconnects automatically when MongoDB is available. Live lecture remains available.', 503);
     return service;
   }
   app.post('/api/graph/lecture-completed', async (request, reply) => {

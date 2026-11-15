@@ -63,7 +63,13 @@ function CourseHeading({ course, sourceCount, active, onAdd, nextLecture, onStar
 }
 
 // Prepared notes use the normal timeline. Explicit simulations remain on Course material.
-const lectureTimelinePath = lecture => lecture.notesAvailable?replayPath(lecture.id,false,lecture.courseId)+'&view=notes':replayPath(lecture.id, lecture.courseId !== 'ai' || lecture.id !== '2', lecture.courseId, lecture.microphone);
+const hasCuratedReplay = lecture => lecture.courseId === 'ai' && lecture.id === '2';
+const studyNotesPath = lecture => replayPath(lecture.id, false, lecture.courseId) + '&view=notes';
+function lectureTimelinePath(lecture) {
+  if (hasCuratedReplay(lecture)) return replayPath(lecture.id);
+  if (lecture.notesAvailable) return studyNotesPath(lecture);
+  return replayPath(lecture.id, true, lecture.courseId, lecture.microphone);
+}
 
 function CourseOverview({ course, getSources }) {
   return <>
@@ -163,7 +169,8 @@ function LectureMaterials({ course, lecture, sources, onAdd, ...actions }) {
       </div>
       <div className="hero-actions">
         <button className="secondary" onClick={() => onAdd(lecture.id)}>+ Add to this lecture</button>
-        {lecture.notesAvailable&&<a className="primary" href={lectureTimelinePath(lecture)}>Study notes ↗</a>}
+        {hasCuratedReplay(lecture) && <a className="primary" href={lectureTimelinePath(lecture)}>Curated timeline ↗</a>}
+        {lecture.notesAvailable && <a className={hasCuratedReplay(lecture) ? 'secondary' : 'primary'} href={studyNotesPath(lecture)}>Study notes ↗</a>}
         {lecture.microphone && <a className="primary" href={replayPath(lecture.id, false, course.id, true)}>Start live lecture ↗</a>}
         {lecture.replay && <a className="secondary" href={replayPath(lecture.id, true, course.id) + (lecture.microphone ? '&restart=1' : '')}>{lecture.microphone ? 'Replay reference transcript' : 'Simulate live'} ↗</a>}
       </div>

@@ -172,13 +172,13 @@ test('artifact errors are recoverable without losing a draft', async ({ page, re
   await expect(page.locator('.lecture-artifact-visual')).toHaveCount(1);
 });
 
-test('the original DAgger equation remains readable in past replay', async ({ page }) => {
-  await page.goto('/lecture.html?lecture=2');
-  await page.locator('.moment.current').click();
-  await expect(page.locator('.lecture-equation')).toBeVisible();
-  await expect(page.locator('.lecture-equation')).toContainText('Under the DAgger assumptions');
-  // The authored fixture uses Unicode notation; its raw fallback remains readable.
-  await expect(page.locator('.lecture-equation>div')).not.toBeEmpty();
+test('the DAgger slide explains the rollout and dataset equations', async ({ page }) => {
+  await page.goto('/lecture.html?lecture=2&topic=ai/2/curated/5');
+  const notes = page.getByRole('region', { name: 'Slide 9 equation breakdown' });
+  await expect(notes).toBeVisible();
+  await expect(notes.locator('.katex-display')).toHaveCount(2);
+  await expect(notes).toContainText('The probability that the expert acts');
+  await expect(notes).toContainText('Combine the old and new examples');
 });
 
 test('enriched PDF slides show the cited page as an image and link to it in the dataset route', async ({ page, request }) => {
