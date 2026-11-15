@@ -37,15 +37,27 @@ function useTimelineMotion(stage, nodes, target, expanded, liveIndex) {
       state.expansion += (Number(state.expanded) - state.expansion) * (reduced ? 1 : 1 - Math.exp(-dt / 150));
       const spacing = Math.min(260, stage.current.clientHeight * .42);
       const width = window.innerWidth;
+      const scaleAt = depth => (1 - Math.min(depth * .15, .5)) * (1 - state.expansion * .5);
+      // Generated titles vary in length, so neighbours are spaced by their measured content height
+      // (never closer than the designed spacing) instead of a fixed step that long titles overflow.
+      const offsets = [0];
+      for (let index = 1; index < nodes.current.length; index++) {
+        const [above, below] = [nodes.current[index - 1], nodes.current[index]];
+        const height = (element, i) => (element?.firstElementChild?.offsetHeight ?? 0) * scaleAt(Math.abs(i - state.position));
+        offsets[index] = offsets[index - 1] + Math.max(spacing, (height(above, index - 1) + height(below, index)) / 2 + 44);
+      }
+      const low = Math.max(0, Math.min(offsets.length - 1, Math.floor(state.position)));
+      const high = Math.min(offsets.length - 1, low + 1);
+      const origin = offsets[low] + ((offsets[high] ?? 0) - offsets[low]) * (state.position - low) || 0;
       nodes.current.forEach((element, index) => {
         if (!element) return;
         const distance = index - state.position;
         const depth = Math.abs(distance);
         const x = -Math.min(270, distance ** 2 * 42) * (1 - state.expansion * .7) - state.expansion * (width <= 800 ? 0 : width * .17);
-        const scale = (1 - Math.min(depth * .15, .5)) * (1 - state.expansion * .5);
+        const scale = scaleAt(depth);
         const opacity = index > state.liveIndex || depth > 2.3 ? 0 : Math.max(0, 1 - depth * .53) * (1 - state.expansion * .18);
         const tilt = Math.max(-12, Math.min(12, distance * 7));
-        element.style.transform = 'translate3d(' + x + 'px,calc(-50% + ' + distance * spacing + 'px),' + -depth * 70 + 'px) scale(' + scale + ') rotateX(' + tilt + 'deg)';
+        element.style.transform = 'translate3d(' + x + 'px,calc(-50% + ' + (offsets[index] - origin) + 'px),' + -depth * 70 + 'px) scale(' + scale + ') rotateX(' + tilt + 'deg)';
         element.style.opacity = opacity;
         element.style.filter = 'blur(' + Math.max(0, depth - .7) * 1.3 + 'px)';
         element.style.pointerEvents = opacity > .12 ? 'auto' : 'none';
@@ -56,6 +68,17 @@ function useTimelineMotion(stage, nodes, target, expanded, liveIndex) {
     draw(lastTime);
     return () => cancelAnimationFrame(frame);
   }, [stage, nodes]);
+}
+
+// Long generated titles step down a size so a card stays about two or three lines tall.
+const titleSize = title => title.length > 42 ? 'title-longer' : title.length > 24 ? 'title-long' : undefined;
+
+// The line under a title previews the notes the reader finds inside the moment (the summary),
+// falling back to the opening of the transcript while notes are still being written.
+function lede(item) {
+  if (item.lede) return item.lede;
+  const summary = (item.summary || '').replace(/<[^>]+>/g, '').trim();
+  return summary || item.quote.slice(0, 150) + '…';
 }
 
 function Lecture({ allMoments, lecture, options, rich, source }) {
@@ -296,7 +319,7 @@ function Lecture({ allMoments, lecture, options, rich, source }) {
             else setExpanded(true);
           }}>
           <div className="moment-content"><div className="eyebrow"><span className="index">{String(index + 1).padStart(2, '0')}</span>{item.type}{index === liveIndex && ' · NOW'}</div>
-            {item.headline ? <h1 dangerouslySetInnerHTML={{ __html: item.headline }}/> : <h1>{item.title}</h1>}<p className="lede">{item.lede || item.quote.slice(0, 150) + "…"}</p>
+            {item.headline ? <h1 dangerouslySetInnerHTML={{ __html: item.headline }}/> : <h1 className={titleSize(item.title)}>{item.title}</h1>}<p className="lede">{lede(item)}</p>
             {item.enrichment === 'pending' && <p className="lecture-stream-note">Filling in notes…</p>}
             <div className="open-hint"><span>↗</span>Step inside this moment</div>
           </div><span className="timestamp">{item.label}</span>{item.artIndex != null && <div className="art" dangerouslySetInnerHTML={{ __html: art(item.artIndex) }}/>}

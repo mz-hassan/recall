@@ -165,14 +165,16 @@ test('the original DAgger equation remains readable in past replay', async ({ pa
   await expect(page.locator('.lecture-equation>div')).not.toBeEmpty();
 });
 
-test('enriched PDF slides open their cited page through the dataset route', async ({ page, request }) => {
+test('enriched PDF slides show the cited page as an image and link to it in the dataset route', async ({ page, request }) => {
   const response = await request.post('/api/lectures/ai/3/session', { data: { start: 'instant', words: 160, limit: 6 } });
   expect(response.status()).toBe(201);
   await page.goto('/lecture.html?lecture=3&mode=live');
   await page.locator('.moment.current').click();
-  const slide = page.locator('.lecture-pdf-slide').first();
+  const image = page.locator('.detail .slide-frame img').first();
+  await expect(image).toBeVisible({ timeout: 15_000 });
+  await expect.poll(() => image.evaluate(element => element.naturalWidth)).toBeGreaterThan(0);
+  const slide = page.locator('.detail .slide-source').first();
   await expect(slide).toHaveAttribute('href', /api\/datasets\/ai\/.*\.pdf#page=\d+/);
-  expect(await page.locator('.slide-frame img').count()).toBe(0);
   const file = await request.get(await slide.getAttribute('href'));
   expect(file.status()).toBe(200);
   expect(file.headers()['content-type']).toContain('application/pdf');
