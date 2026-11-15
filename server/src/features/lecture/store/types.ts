@@ -14,6 +14,8 @@ export type TimeRange = { from: number; to: number };
  * becomes a numbered TimelineEvent for live clients.
  */
 export interface LectureStore {
+  /** Restores a durable checkpoint without replaying model calls. */
+  restore(key: LectureKey, data: { snapshot: TimelineSnapshotEvent; chunks: TranscriptChunk[]; summary: string | null }): void;
   // Read side: what chat and artifacts use.
   getMoments(key: LectureKey, range?: TimeRange): Moment[];
   getMoment(key: LectureKey, momentId: string): Moment | undefined;

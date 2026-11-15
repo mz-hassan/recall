@@ -1,8 +1,8 @@
 import { SessionState, TimelineSnapshotEvent } from '../../shared/contracts/lecture.ts';
 import { ArtifactRequest, GeneratedArtifact, ChatAnswer, ChatRequest } from '../../shared/contracts/lectureInteractions.ts';
 
-export function createLectureClient(courseId, lectureId, fetchImpl = fetch) {
-  const base = '/api/lectures/' + encodeURIComponent(courseId) + '/' + encodeURIComponent(lectureId);
+export function createLectureClient(courseId, lectureId, fetchImpl = fetch, prefix = '/api') {
+  const base = prefix + '/lectures/' + encodeURIComponent(courseId) + '/' + encodeURIComponent(lectureId);
   async function request(path, { method = 'GET', body, signal, allowMissing = false } = {}) {
     const response = await fetchImpl(base + path, {
       method, ...(body !== undefined && { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }),
@@ -21,6 +21,8 @@ export function createLectureClient(courseId, lectureId, fetchImpl = fetch) {
     async play(signal) { return SessionState.parse(await request('/session/play', { method: 'POST', signal })); },
     async pause(signal) { return SessionState.parse(await request('/session/pause', { method: 'POST', signal })); },
     async chat(input, signal) { return ChatAnswer.parse(await request('/chat', { method: 'POST', body: ChatRequest.parse(input), signal })); },
+    async chatHistory(runId,signal){return request('/chat/history?runId='+encodeURIComponent(runId),{signal});},
+    async info(signal){return request('/info',{signal});},
     async createArtifact(input, signal) { return GeneratedArtifact.parse(await request('/artifacts', { method: 'POST', body: ArtifactRequest.parse(input), signal })); },
     async artifact(id, runId, signal) { return GeneratedArtifact.parse(await request('/artifacts/' + encodeURIComponent(id) + '?runId=' + encodeURIComponent(runId), { signal })); },
   };

@@ -3,6 +3,7 @@ import { loadConfig } from './config.ts';
 import { createProvider } from './llm/index.ts';
 import { DeepSeekProvider, DEFAULT_DEEPSEEK_BASE_URL, DEFAULT_DEEPSEEK_MODEL } from './llm/deepseek.ts';
 import { startGraphRuntime } from './features/graph/runtime.ts';
+import { createPlatformRepository } from './platform/repository.ts';
 
 try {
   const config = loadConfig();
@@ -13,21 +14,23 @@ try {
     baseUrl: config.llm.deepseekBaseUrl ?? DEFAULT_DEEPSEEK_BASE_URL,
   });
   const graph = startGraphRuntime(config.mongo, graphProvider, message => console.warn(message));
+  const repository=createPlatformRepository(config.mongo);
   const app = await buildApp({
-    config, provider, logger: true, graphService: graph.getService,
+    config, provider, logger: true, graphService: graph.getService,repository,
     graphProviderConfigured: Boolean(config.llm.deepseekApiKey),
-  }).catch(async error => { await graph.close(); throw error; });
+  }).catch(async error => { await graph.close();await repository.close(); throw error; });
   app.addHook('onClose', async () => graph.close());
+  const close=async()=>{try{await app.close();}finally{await repository.close();}};
   let stopping = false;
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     process.once(signal, () => {
       if (stopping) return;
       stopping = true;
-      app.close().catch(error => { console.error(error); process.exitCode = 1; });
+      close().catch(error => { console.error(error); process.exitCode = 1; });
     });
   }
   try { await app.listen({ host: config.host, port: config.port }); }
-  catch (error) { await app.close(); throw error; }
+  catch (error) { await close(); throw error; }
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
   process.exitCode = 1;

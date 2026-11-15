@@ -39,7 +39,7 @@ Keep feature-specific styles inside their feature folder and namespace class nam
 
 ## MongoDB plan
 
-Graph uses a repository interface with MongoDB in the application and an isolated fixture implementation for tests. Server-only `MONGODB_URI` and `MONGODB_DB` configure storage. As agreed for the current graph implementation, only generated graph data/citations and indexing metadata are persisted; lectures and full source text are read from the folder through a replaceable source adapter. The broader collections below remain a future storage plan. Do not move or delete the checked-in dataset.
+Graph uses a repository interface with MongoDB in the application and an isolated fixture implementation for tests. Server-only `MONGODB_URI` and `MONGODB_DB` configure storage. The graph still persists only generated graph data/citations and indexing metadata, reading its source text through a folder adapter. Separately, `server/src/platform/` now persists accounts, shared prepared notes/evidence, user/run lecture checkpoints, completed chats, doubts and artifacts in that configured database. See [implemented collections and recovery](shared-study-notes.md). The broader normalized collections below remain a future storage plan. Do not move or delete the checked-in dataset.
 
 Suggested collections and identifiers:
 

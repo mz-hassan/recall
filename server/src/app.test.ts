@@ -13,7 +13,7 @@ test('GET /api/health reports the active provider', async () => {
   try {
     const response = await app.inject({ method: 'GET', url: '/api/health' });
     assert.equal(response.statusCode, 200);
-    assert.deepEqual(response.json(), { ok: true, provider: 'fixture', model: 'fixture' });
+    assert.deepEqual(response.json(), { ok: true, provider: 'fixture', model: 'fixture',accounts:'fixture' });
   } finally {
     await app.close();
   }

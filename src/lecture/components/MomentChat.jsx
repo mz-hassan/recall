@@ -8,6 +8,14 @@ export function MomentChat({ moment, client, runId, onClose, onSelectMoment }) {
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
   const request = useRef(null);
+  const identity=useRef(null);
+  const [history,setHistory]=useState([]);
+  useEffect(()=>{
+    if(!client?.chatHistory||!runId)return;
+    const cancellation=new AbortController();
+    client.chatHistory(runId,cancellation.signal).then(result=>{if(!cancellation.signal.aborted)setHistory(result.messages??[]);}).catch(()=>{});
+    return()=>cancellation.abort();
+  },[client,runId]);
   useEffect(() => {
     request.current?.abort();
     setPending(false);
@@ -23,12 +31,16 @@ export function MomentChat({ moment, client, runId, onClose, onSelectMoment }) {
     setPending(true);
     setError('');
     const label = context === 'recent' ? 'Last 3 minutes' : moment.short;
+    const fingerprint=JSON.stringify([runId,question.trim(),context,moment.id]);
+    if(identity.current?.fingerprint!==fingerprint)identity.current={fingerprint,requestId:crypto.randomUUID()};
     try {
-      const result = await client.chat({ runId, question: question.trim(), context: context === 'recent'
+      const result = await client.chat({ requestId:identity.current.requestId,runId, question: question.trim(), context: context === 'recent'
         ? { kind: 'recent', seconds: 180 } : { kind: 'moment', momentId: moment.id } }, cancellation.signal);
       if (cancellation.signal.aborted) return;
       setAnswer(result);
       setAnswerContext(label);
+      const id=identity.current.requestId;
+      setHistory(previous=>previous.some(item=>item.request?.requestId===id)?previous:[...previous,{_id:id,request:{requestId:id,question:question.trim()},answer:result}]);
     } catch (failure) {
       if (!cancellation.signal.aborted) setError(failure.message);
     } finally {
@@ -53,6 +65,7 @@ export function MomentChat({ moment, client, runId, onClose, onSelectMoment }) {
         <button className="lecture-chat-send" type="submit" disabled={pending || !question.trim() || !runId}>{pending ? 'Finding lecture context…' : error ? 'Retry question' : 'Send question'}</button>
       </form>
       {error && <p className="lecture-chat-error" role="alert">{error}</p>}
+      {!!history.length&&<details className="lecture-chat-history"><summary>Saved questions ({history.length})</summary>{history.map(item=><details key={item._id}><summary>{item.request.question}</summary><p>{item.answer.answer}</p><nav aria-label="Saved answer sources">{item.answer.citations.map(citation=><button key={citation.momentId} onClick={()=>onSelectMoment(citation.momentId)}>{citation.label} · {citation.title} ↗</button>)}</nav></details>)}</details>}
       <div aria-live="polite">{answer && <section className="lecture-chat-answer" aria-label="Lecture answer">
         <small>{answerContext} · {answer.provider === 'fixture' ? 'Offline fixture answer' : answer.model}</small>
         <p className="lecture-chat-copy">{answer.answer}</p>

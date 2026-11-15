@@ -11,7 +11,7 @@ npm ci
 cp .env.example .env
 ```
 
-Set `DEEPSEEK_API_KEY` in `.env`. Both the graph and live lecture features use this same configuration. Start MongoDB for graph storage in a separate terminal (no Docker):
+Set `DEEPSEEK_API_KEY` in `.env`. Both the graph and live lecture features use this same configuration. Start MongoDB for accounts, shared notes, lecture histories and graph storage in a separate terminal (no Docker):
 
 ```sh
 npm run db:start
@@ -80,4 +80,6 @@ Create a demo account with an academic email such as `student@example.edu` and a
 
 Students can mark a topic **Unclear** from its expanded timeline view. Instructors and TAs open **Lecture doubts** from their course card. Lectures are listed newest first with total counts. Expand a lecture to see each topic’s count and select a topic to open its details.
 
-Past timelines use 8–12 stable demo topics per available lecture. Counts include simulated data and student marks from this browser. Account records, course memberships and doubt markers stay in this browser. Passwords are stored as salted verifiers. Email ownership, staff authorization and cross-device syncing require a backend.
+AI Alignment and Computer Vision open prepared study notes in the normal lecture timeline. All users enrolled in a course share its prepared notes. When a transcript is unavailable, the page explicitly labels notes from slides/readings as preparation notes. See [shared notes and saved accounts](docs/shared-study-notes.md) for generation and storage details.
+
+The normal API saves accounts, memberships, lecture transcripts/topics/summaries, completed question/answer exchanges, doubts and generated visuals in the configured MongoDB. Personal histories are scoped to the signed-in user. Passwords use salted scrypt hashes; sessions use HttpOnly cookies and hashed database tokens. Email ownership and staff roles remain unverified prototype choices. Custom course definitions and uploaded PDFs still use browser storage. Isolated fixture tests retain the older browser-only demo behavior and simulated counts; database accounts show actual saved doubt counts.

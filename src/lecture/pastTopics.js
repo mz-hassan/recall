@@ -46,6 +46,11 @@ export function buildPastTopics(lecture, transcript) {
     : topics;
 }
 
-export async function loadPastTopics(lecture) {
+export async function loadPastTopics(lecture,{prepared=false}={}) {
+  if(prepared){
+    const response=await fetch('/api/prepared/lectures/'+encodeURIComponent(lecture.courseId??'ai')+'/'+encodeURIComponent(lecture.id)+'/moments');
+    if(!response.ok)throw new Error('Prepared notes are unavailable.');
+    return (await response.json()).moments;
+  }
   return buildPastTopics(lecture, await loadTranscript(lecture));
 }

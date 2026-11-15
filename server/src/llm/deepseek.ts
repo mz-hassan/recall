@@ -108,10 +108,10 @@ type DeepSeekOptions = {
 };
 
 function formatEvidence(evidence: Evidence[]): string {
-  return evidence.map(item => {
+  return Buffer.from(evidence.map(item => {
     if (item.kind !== 'text') throw new ProviderError('unsupported_modality', 'The DeepSeek adapter sends text only');
     return `<evidence id="${item.id}">\n${item.text}\n</evidence>`;
-  }).join('\n\n');
+  }).join('\n\n'), 'utf8').toString('utf8'); // Repair lone UTF-16 surrogates from PDF extracts before JSON encoding.
 }
 
 /** Live lecture facade over the same validated/retrying transport used by graph extraction. */
@@ -141,7 +141,7 @@ export function createDeepSeekProvider({
         if (request.signal?.aborted) throw new ProviderError('aborted', `Task ${request.task} was cancelled`);
         if (error instanceof ProviderError) throw error;
         throw new ProviderError(error instanceof StructuredOutputError ? 'invalid_output' : 'request_failed',
-          error instanceof Error ? error.message : 'DeepSeek request failed');
+          error instanceof Error ? error.message : 'DeepSeek request failed', error);
       }
     },
   };

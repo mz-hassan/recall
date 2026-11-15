@@ -50,8 +50,8 @@ export interface ModelProvider {
 /** Thrown when a provider cannot produce a valid result. Harnesses keep the previous result or raw text. */
 export class ProviderError extends Error {
   readonly code: 'unsupported_modality' | 'invalid_output' | 'no_fixture' | 'not_implemented' | 'aborted' | 'request_failed';
-  constructor(code: ProviderError['code'], message: string) {
-    super(message);
+  constructor(code: ProviderError['code'], message: string, cause?: unknown) {
+    super(message, { cause });
     this.name = 'ProviderError';
     this.code = code;
   }

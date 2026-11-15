@@ -6,6 +6,9 @@ import type { LectureStore } from '../store/types.ts';
 import { findCandidateSlides } from '../enrichment/slides.ts';
 import { CoachingSpec, SlideCoaching } from '../../../../../shared/contracts/slideCoaching.ts';
 import { CaptureConflict } from './session.ts';
+import type { RuntimeResolver } from '../../../platform/lectureRuntime.ts';
+import type { PlatformRepository } from '../../../platform/repository.ts';
+import { requireCourse } from '../../../platform/auth.ts';
 
 const key = { courseId: 'cs50', lectureId: '0' };
 const Input = z.object({ runId: z.uuid(), momentId: z.string().min(1).max(150), page: z.number().int().min(1).max(159).optional() });
@@ -19,7 +22,8 @@ export function groundCoaching(spec: CoachingSpec, runs: SlideCoaching['runs']):
   };
 }
 
-export async function coachingRoutes(app: FastifyInstance, { store, provider }: { store: LectureStore; provider: ModelProvider }) {
+export async function coachingRoutes(app: FastifyInstance, deps: { store: LectureStore; provider: ModelProvider; resolve?: RuntimeResolver; repository?:PlatformRepository }) {
+  const {provider,repository}=deps;
   if ('register' in provider && typeof provider.register === 'function') provider.register('lecture.slide-coaching', ({ evidence }: { evidence: { id: string; kind: string; text?: string }[] }) => {
     const text = evidence.find(item => item.id === 'slide-text')?.text ?? '';
     const id = /^\[([^\]]+)\]/m.exec(text)?.[1] ?? '0';
@@ -32,6 +36,9 @@ export async function coachingRoutes(app: FastifyInstance, { store, provider }: 
   let deck: Promise<Deck> | undefined;
   let notes: Promise<string> | undefined;
   app.post('/lectures/cs50/0/slide-coaching', async (request, reply) => {
+    // This fixed route has no path params; provide the canonical course key to the resolver.
+    request.params=key;
+    const {store}=deps.resolve?await deps.resolve(request):deps;
     const input = Input.parse(request.body);
     const checkRun = () => { if (store.getSession(key)?.runId !== input.runId) throw new CaptureConflict('The lecture session changed. Refresh slide notes.'); };
     checkRun();
@@ -49,7 +56,9 @@ export async function coachingRoutes(app: FastifyInstance, { store, provider }: 
     const readings = findCandidateSlides(noteParagraphs, moment.quote, 2).map(paragraph => ({
       title: 'CS50 Lecture 0 notes', url: 'https://cs50.harvard.edu/x/2025/notes/0/', excerpt: paragraph.text.slice(0, 1200),
     }));
-    const id = [input.runId, moment.id, moment.revision, selected.page].join(':');
+    const user=repository?await requireCourse(request,repository,'cs50'):undefined;
+    const id = [input.runId, moment.id, moment.revision, selected.page,document.fingerprint].join(':');
+    if(repository&&user){const saved=await repository.slideNotes(user.id,id);if(saved){checkRun();return saved;}}
     let result = cache.get(id);
     if (!result) {
       result = (async () => {
@@ -79,6 +88,7 @@ Do not add decorative content, unsupported facts, HTML, or executable code. All 
     }
     const response = await result;
     checkRun();
+    if(repository&&user)await repository.saveSlideNotes(user.id,id,response);
     return response;
   });
 }

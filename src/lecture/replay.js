@@ -12,6 +12,7 @@ export function replayOptions(search) {
     lectureId: query.get('lecture') ?? '2',
     courseId: query.get('course') ?? 'ai',
     microphone: query.get('mode') === 'microphone',
+    prepared: query.get('view') === 'notes',
     live: query.get('mode') === 'live',
     words: bounded('words', 160, 30, 1000),
     interval: bounded('interval', 8, 1, 60),

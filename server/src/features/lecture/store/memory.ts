@@ -75,6 +75,13 @@ export function createMemoryStore({ maxLog = 5000 }: { maxLog?: number } = {}): 
   }
 
   return {
+    restore(key, data) {
+      const lecture = state(key);
+      Object.assign(lecture, { runId: data.snapshot.runId, seq: data.snapshot.seq + 1, log: [], chunks: data.chunks,
+        moments: new Map(data.snapshot.moments.map(moment => [moment.id, moment])), order: data.snapshot.moments.map(moment => moment.id),
+        summary: data.summary, session: data.snapshot.session });
+      emit(lecture, buildSnapshot(lecture));
+    },
     getMoments(key, range?: TimeRange) {
       const lecture = state(key);
       const moments = lecture.order.map(id => lecture.moments.get(id)!);

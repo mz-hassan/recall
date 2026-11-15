@@ -106,7 +106,13 @@ export function createLectureService({ store, createSegmenter = createPassthroug
       return session.state();
     },
     getSession(key: LectureKey): ReplaySession | undefined {
-      return runs.get(id(key))?.replay;
+      const active = runs.get(id(key))?.replay;
+      if (active) return active;
+      const saved = store.getSession(key);
+      if (!saved) return undefined;
+      return { runId: saved.runId, state: () => saved, start() {}, stop() {}, step() {},
+        play() { throw new CaptureConflict('This saved session has ended. Restart to begin a new replay.'); },
+        pause() {}, async idle() {} };
     },
     close() {
       for (const run of runs.values()) stopRun(run);

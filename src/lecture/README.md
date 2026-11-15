@@ -1,7 +1,7 @@
 # Helly live lecture: H1 through H5
 
 Run `npm ci` and `npm run dev` with Node 22.18+ (the local checks used the existing
-Node 24 runtime). Main's Vite proxy connects the page to Fastify on port 8787.
+Node 24 runtime). Main's Vite proxy connects the page to Fastify on port 3001 (`API_PORT`).
 KaTeX renders equations and Playwright runs the desktop/mobile checks. Pipeline
 contracts remain unchanged; the store preserves student attachments on later revisions.
 
@@ -23,9 +23,10 @@ so refreshing the resulting URL resumes instead of restarting again.
 
 EventSource connections automatically retry after two seconds, resuming with
 `?after=<last validated seq>`. Manual reconnect uses the same cursor. Invalid
-events leave the existing timeline readable and offer retry. A server restart
-can reset the stream to an empty snapshot; use Restart replay to begin again.
-Storage is still main's in-memory store, so sessions do not survive a server restart.
+events leave the existing timeline readable and offer retry. The normal API checkpoints
+each user's timeline in MongoDB. Reloading restores it; after a server restart a saved
+capture/replay is completed and readable. Start a new recording or restart replay to
+begin another run. Older runs remain stored under their original run IDs.
 
 The [offline H1 fixture](fixtures/README.md) remains available with
 `transport=fixture`. The original curated past replay is unchanged.
@@ -55,9 +56,10 @@ Questions are limited to 2000 characters; chat request bodies are limited to 16 
 Empty context, stale runs, unsupported citations and provider failures have recoverable
 responses. Client cancellation and a 60-second request budget bound in-flight work.
 
-Chat state is kept in the open panel and is not persisted. The app and feature entry
-point pass the existing provider to student-side routes. Pipeline and provider logic
-stay intact; the approved store change retains attachments across topic revisions.
+Completed questions, answers, context selections and citations persist per user/run.
+The panel restores them under Saved questions. Optional UUID request IDs make completed
+chat retries idempotent across reloads/restarts. Failed/cancelled requests are not saved
+as completed answers. The provider remains server-side.
 
 ## Artifacts (H4)
 
@@ -77,9 +79,17 @@ unsupported evidence fail without attaching a visual. Illustrative chart values 
 labelled separately from evidence-derived values. Fixture visuals use deterministic
 source word counts or transcript review steps, and identify themselves as fixtures.
 
-The current in-memory architecture retains specs only for the server session. A new
-lecture run invalidates old artifact references; a server restart clears all sessions.
-Later pipeline revisions preserve existing artifacts. Durable storage remains future work.
+The normal API saves visual specs and their owning user/run in MongoDB. Reloading or
+restarting the server preserves specs and timeline attachments. A new run cannot access
+another run's visuals. Later topic revisions retain existing attachments. Explicit fixture
+servers without a repository retain in-memory behavior for isolated tests.
+
+## Shared prepared notes
+
+`lecture.html?course=ai&lecture=2&view=notes` uses the same timeline with saved course
+notes instead of starting a simulation. `/api/prepared/lectures/:courseId/:lectureId/`
+provides snapshots, events, info, source text, chat and artifacts. It forbids replay
+commands. See [storage and generation](../../docs/shared-study-notes.md).
 
 ## Checks
 

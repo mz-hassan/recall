@@ -74,7 +74,7 @@ If a correction or delayed slide arrives after completion, finish saving the new
 
 ## Current integration boundary
 
-The current live lecture sessions and artifacts are held in memory. Ending the existing replay does not yet write a final transcript/slides package or call the graph endpoint. The teammate implementing durable lecture completion must add that writer first, then place this handoff after it. Timeline moments and artifacts are not part of the current graph input; the graph reads transcript and slide sources from the configured datasource.
+Live lecture snapshots, recognized text, summaries and artifacts now persist per user/run in the configured MongoDB (see [saved accounts](shared-study-notes.md)). Ending a replay still does not write the graph's final transcript/slides package or call its completion endpoint. A future handoff must resolve ownership and the completed run revision before indexing. Timeline moments and artifacts are not yet graph input; the graph continues reading transcript and slide sources from its configured datasource.
 
 ## Local verification
 

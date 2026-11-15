@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { authenticateDemo, matchCourse, readDoubts, topicDoubts } from './accounts.js';
+import { authenticateDemo, matchCourse, readDoubts, topicDoubts, loadDoubts } from './accounts.js';
 import { loadPastTopics } from '../lecture/pastTopics.js';
 import { Dialog } from '../ui.jsx';
 import { MomentDetail } from '../lecture/MomentDetail.jsx';
@@ -30,7 +30,7 @@ export function AccountForm({ role, signup, onSignIn }) {
       setError('');
       try {
         const profile = await authenticateDemo({ email, role, password: form.get('password'), signup });
-        if (!onSignIn(profile)) setError('This browser could not save your demo login.');
+        if (!onSignIn(profile)) setError('This browser could not save your login.');
       } catch (failure) { setError(failure.message); }
       finally { setBusy(false); }
     }}>
@@ -43,7 +43,7 @@ export function AccountForm({ role, signup, onSignIn }) {
         <a className="source-link" href={'#' + (signup ? 'signin' : 'signup') + '/' + role}>{signup ? 'Already have an account? Log in' : 'Create an account'}</a>
       </div>
     </form>
-    <p className="form-note classroom-access-note">Demo accounts are saved in this browser. Email ownership and staff roles aren’t verified.</p>
+    <p className="form-note classroom-access-note">Sign in to keep lecture history, questions, and doubts with your account. Email ownership and staff roles aren’t verified.</p>
   </section>;
 }
 
@@ -65,7 +65,7 @@ export function CourseSearch({ courses, enrolled, onJoin, onCreate, coursePath }
 }
 
 export function StaffOverview({ course, profile }) {
-  const lectures = course.lectures.filter(lecture => lecture.replay)
+  const lectures = course.lectures.filter(lecture => lecture.replay || lecture.notesAvailable)
     .sort((a, b) => b.date.localeCompare(a.date) || Number(b.id) - Number(a.id));
   const [entries, setEntries] = useState(readDoubts);
   const [reports, setReports] = useState(null);
@@ -79,11 +79,12 @@ export function StaffOverview({ course, profile }) {
   useEffect(() => {
     let active = true;
     Promise.all(lectures.map(async lecture => {
-      try { return { lecture, topics: await loadPastTopics(lecture) }; }
+      try { return { lecture, topics: await loadPastTopics(lecture,{prepared:Boolean(profile.id)&&lecture.notesAvailable}) }; }
       catch { return { lecture, topics: [] }; }
     })).then(result => { if (active) setReports(result); });
     return () => { active = false; };
   }, [course]);
+  useEffect(()=>{let active=true;loadDoubts(profile,course.id).then(entries=>{if(active)setEntries(entries);}).catch(()=>{});return()=>{active=false;};},[profile,course.id]);
 
   useEffect(() => {
     const refresh = () => setEntries(readDoubts());
@@ -105,7 +106,7 @@ export function StaffOverview({ course, profile }) {
     <div className="staff-lecture-list">
       {!!reports?.length && <div className="staff-doubt-heading">Doubts</div>}
       {reports?.map(({ lecture, topics }) => {
-        const rows = topics.map(moment => ({ moment, count: topicDoubts(course.id, moment.id, entries).total }));
+        const rows = topics.map(moment => ({ moment, count: topicDoubts(course.id, moment.id, entries,Boolean(profile.id)).total }));
         const total = rows.reduce((sum, row) => sum + row.count, 0);
         return <details className="source-group staff-lecture" key={lecture.id}>
           <summary>
@@ -124,7 +125,7 @@ export function StaffOverview({ course, profile }) {
         </details>;
       })}
     </div>
-    <p className="form-note classroom-access-note">Counts include simulated data and student marks from this browser. Lecture totals add up the marks across topics.</p>
+    <p className="form-note classroom-access-note">{profile.id?'Counts reflect saved doubt markers from students in this course.':'Counts include simulated data and student marks from this browser.'} Lecture totals add up the marks across topics.</p>
     <Dialog onClose={() => { setTopic(null); setPreview(null); }}>
       {topic && <div className="staff-topic-detail">
         <MomentDetail moment={topic} onOpen={setPreview}/>

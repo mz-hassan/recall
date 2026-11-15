@@ -21,6 +21,13 @@ const chat = (content: string | null, usage = { prompt_tokens: 120, completion_t
   () => Response.json({ model: 'deepseek-flash', choices: [{ message: { content }, finish_reason: 'stop' }], usage });
 const provider = (fetch: typeof globalThis.fetch) => createDeepSeekProvider({ apiKey: 'test-key', fetch, sleep: async () => {} });
 
+test('repairs invalid UTF-16 in extracted evidence before encoding the provider request', async () => {
+  const { fetch, calls } = scripted([chat('{"title":"Valid evidence"}')]);
+  await provider(fetch).generateStructured({ ...request, evidence: [{ id: 's1', kind: 'text', text: 'Equation \ud800 and valid emoji 🧠' }] });
+  assert.equal(calls[0]!.body.messages[1].content.isWellFormed(), true);
+  assert.ok(calls[0]!.body.messages[1].content.includes('🧠'));
+});
+
 test('sends a JSON-mode chat request and returns validated data with usage', async () => {
   const { fetch, calls } = scripted([chat('{"title":"Distribution shift"}')]);
   const result = await provider(fetch).generateStructured(request);

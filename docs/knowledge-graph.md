@@ -41,7 +41,7 @@ npm run dev
 
 Open the URL Vite prints, choose **AI Alignment → Knowledge graph**. The API listens on `127.0.0.1:3001` (set `API_PORT` in `.env` to change it); Vite proxies `/api` to the same port. These are local development services. They are not configured as a public authenticated deployment.
 
-The shared API starts live lecture independently of MongoDB. If graph database initialization fails, graph requests return an unavailable message while live lecture stays usable. Start MongoDB and restart the API to restore graph indexing. Both features use the DeepSeek settings from `.env`.
+Graph initialization remains independent of the lecture pipeline. The normal API now needs MongoDB for account access and saved lecture data as well as graph storage; health and public dataset routes still respond if MongoDB is unavailable. Fixture tests can explicitly omit the account repository. Start MongoDB and restart the API to restore database features. Both features use the DeepSeek settings from `.env`.
 
 ## See the graph update before live lecture integration
 
@@ -118,7 +118,7 @@ Updates are serialized. A complete immutable graph version is staged before atom
 
 Adding or modifying files alone does not trigger indexing: the completion event is the boundary. Initial historical lectures also need completion events. A provider/prompt change can be evaluated and reindexed by sending a higher lecture revision.
 
-Moment/artifact persistence and links remain a later milestone. The current completion revision belongs to dataset materials and does not pretend to be a saved timeline revision.
+Moments/artifacts now persist per user/run in the platform repository; graph links to them remain a later milestone. The current completion revision belongs to dataset materials and does not pretend to be a saved timeline revision.
 
 ## Verification
 

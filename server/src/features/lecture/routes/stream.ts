@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ReplayOptions, type LectureKey, type TimelineEvent } from '../../../../../shared/contracts/lecture.ts';
 import { LectureNotFoundError, SessionNotFoundError, type LectureService } from '../service.ts';
 import type { LectureStore } from '../store/types.ts';
+import type { RuntimeResolver } from '../../../platform/lectureRuntime.ts';
 
 const Params = z.object({
   courseId: z.string().regex(/^[a-z0-9-]{1,40}$/i),
@@ -31,14 +32,18 @@ function sendError(reply: FastifyReply, error: unknown) {
  *   GET  /lectures/:courseId/:lectureId/moments        full current timeline (a snapshot)
  *   GET  /lectures/:courseId/:lectureId/events         server-sent TimelineEvents
  */
-export async function streamRoutes(app: FastifyInstance, { service, store }: { service: LectureService; store: LectureStore }) {
+export async function streamRoutes(app: FastifyInstance, deps: { service: LectureService; store: LectureStore; resolve?: RuntimeResolver }) {
+  const runtime=deps.resolve??(async()=>deps);
   const keyOf = (params: unknown): LectureKey => Params.parse(params);
 
   app.post('/lectures/:courseId/:lectureId/session', async (request, reply) => {
     try {
       const key = keyOf(request.params);
+      const resolved=await runtime(request),{service}=resolved;
       const options = ReplayOptions.parse(request.body ?? {});
-      return reply.code(201).send(await service.startReplay(key, options));
+      const session=await service.startReplay(key, options);
+      if ('flush' in resolved && typeof resolved.flush === 'function') await resolved.flush();
+      return reply.code(201).send(session);
     } catch (error) {
       return sendError(reply, error);
     }
@@ -46,7 +51,9 @@ export async function streamRoutes(app: FastifyInstance, { service, store }: { s
 
   app.post('/lectures/:courseId/:lectureId/session/play', async (request, reply) => {
     try {
-      return service.play(keyOf(request.params));
+      const resolved=await runtime(request),session=resolved.service.play(keyOf(request.params));
+      if ('flush' in resolved && typeof resolved.flush === 'function') await resolved.flush();
+      return session;
     } catch (error) {
       return sendError(reply, error);
     }
@@ -54,7 +61,9 @@ export async function streamRoutes(app: FastifyInstance, { service, store }: { s
 
   app.post('/lectures/:courseId/:lectureId/session/pause', async (request, reply) => {
     try {
-      return service.pause(keyOf(request.params));
+      const resolved=await runtime(request),session=resolved.service.pause(keyOf(request.params));
+      if ('flush' in resolved && typeof resolved.flush === 'function') await resolved.flush();
+      return session;
     } catch (error) {
       return sendError(reply, error);
     }
@@ -63,6 +72,7 @@ export async function streamRoutes(app: FastifyInstance, { service, store }: { s
   app.get('/lectures/:courseId/:lectureId/session', async (request, reply) => {
     try {
       const key = keyOf(request.params);
+      const {service}=await runtime(request);
       const session = service.getSession(key);
       if (!session) throw new SessionNotFoundError(key);
       return session.state();
@@ -74,7 +84,8 @@ export async function streamRoutes(app: FastifyInstance, { service, store }: { s
   app.get('/lectures/:courseId/:lectureId/moments', async (request, reply) => {
     try {
       const key = keyOf(request.params);
-      if (!await service.hasTranscript(key)) throw new LectureNotFoundError(key);
+      const {service,store}=await runtime(request);
+      if (!store.getSession(key)&&!await service.hasTranscript(key)) throw new LectureNotFoundError(key);
       return store.snapshot(key);
     } catch (error) {
       return sendError(reply, error);
@@ -84,11 +95,13 @@ export async function streamRoutes(app: FastifyInstance, { service, store }: { s
   app.get('/lectures/:courseId/:lectureId/events', async (request, reply) => {
     let key: LectureKey;
     let after: number | undefined;
+    let store:LectureStore;
     try {
       key = keyOf(request.params);
+      const resolved=await runtime(request);store=resolved.store;
       const lastEventId = request.headers['last-event-id'];
       after = EventsQuery.parse({ after: (request.query as { after?: string }).after ?? lastEventId }).after;
-      if (!await service.hasTranscript(key)) throw new LectureNotFoundError(key);
+      if (!store.getSession(key)&&!await resolved.service.hasTranscript(key)) throw new LectureNotFoundError(key);
     } catch (error) {
       return sendError(reply, error);
     }

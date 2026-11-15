@@ -11,6 +11,10 @@ import type { LectureService } from './features/lecture/service.ts';
 import { readingsFeature, registerReadingsFixtures } from './features/readings/index.ts';
 import { registerGraphRoutes, type GraphServiceSource } from './features/graph/routes.ts';
 import { GraphError, type GraphService } from './features/graph/service.ts';
+import type { PlatformRepository } from './platform/repository.ts';
+import { createUserLectureRuntimes } from './platform/lectureRuntime.ts';
+import { platformRoutes } from './platform/routes.ts';
+import { AccountError, requireCourse } from './platform/auth.ts';
 
 function baseApp(logger: boolean) {
   const app = Fastify({ logger, forceCloseConnections: true, bodyLimit: 16384 });
@@ -42,13 +46,14 @@ export type AppDependencies = {
   lectureStore?: LectureStore;
   lectureService?: LectureService;
   speechDecoder?: import('./features/lecture/microphone/worker.ts').SpeechDecoder;
+  repository?:PlatformRepository;
   graphService?: GraphServiceSource;
   graphProviderConfigured?: boolean;
 };
 
 /** One shared API; a missing graph database must not disable the live lecture service. */
 export async function buildApp({
-  config, provider, logger = false, lectureStore, lectureService, speechDecoder,
+  config, provider, logger = false, lectureStore, lectureService, speechDecoder,repository,
   graphService = () => undefined, graphProviderConfigured = config.llm.provider === 'deepseek',
 }: AppDependencies): Promise<FastifyInstance> {
   const app = baseApp(logger);
@@ -63,10 +68,24 @@ export async function buildApp({
     onError: error => app.log.error(error),
   });
   app.addHook('onClose', async () => service.close());
+  const runtimes=repository?createUserLectureRuntimes(repository,provider,error=>app.log.error(error)):undefined;
+  if(runtimes)app.addHook('onClose',async()=>runtimes.close());
   await app.register(async api => {
-    api.get('/health', async () => ({ ok: true, provider: provider.name, model: provider.model }));
+    if (repository) api.addHook('preHandler', async request => {
+      if (request.routeOptions.url === '/api/datasets/:courseId/*' && (request.params as {courseId:string}).courseId === 'cv') {
+        await requireCourse(request, repository, 'cv');
+      }
+    });
+    if (repository) api.addHook('preHandler', async request => {
+      if (['GET', 'HEAD', 'OPTIONS'].includes(request.method) || !request.headers.origin) return;
+      let sameOrigin = false;
+      try { sameOrigin = new URL(request.headers.origin).host === request.headers.host; } catch {}
+      if (!sameOrigin) throw new AccountError(403, 'Open this action in Recall.');
+    });
+    api.get('/health', async () => ({ ok: true, provider: provider.name, model: provider.model,accounts:repository?'database':'fixture' }));
+    if(repository&&runtimes)await api.register(platformRoutes,{repository,runtimes,store,service,provider});
     await api.register(datasetRoutes);
-    await api.register(lectureFeature, { service, store, provider, decoder: speechDecoder });
+    await api.register(lectureFeature, { service, store, provider, decoder: speechDecoder,repository,resolve:runtimes?(request=>runtimes.resolve(request)):undefined });
     await api.register(readingsFeature, { provider });
   }, { prefix: '/api' });
   registerGraphRoutes(app, graphService, graphProviderConfigured);

@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import type { LectureService } from '../service.ts';
 import { createSpeechDecoder, SpeechError, type SpeechDecoder } from './worker.ts';
+import type { RuntimeResolver } from '../../../platform/lectureRuntime.ts';
 
 const Params = z.object({ courseId: z.literal('cs50'), lectureId: z.literal('0') });
 const Packet = z.object({ runId: z.uuid(), seq: z.number().int().positive(), time: z.number().nonnegative(), endTime: z.number().positive(),
@@ -22,18 +23,23 @@ async function localOnly(request: FastifyRequest) {
   }
 }
 
-export async function microphoneRoutes(app: FastifyInstance, { service, decoder = createSpeechDecoder() }: { service: LectureService; decoder?: SpeechDecoder }) {
+export async function microphoneRoutes(app: FastifyInstance, deps: { service: LectureService; decoder?: SpeechDecoder; resolve?: RuntimeResolver }) {
+  const decoder=deps.decoder??createSpeechDecoder(),runtime=deps.resolve??(async()=>deps);
   app.addHook('onClose', async () => decoder.close());
   app.get('/speech/status', { preHandler: localOnly }, async () => decoder.status());
   app.post('/speech/warmup', { preHandler: localOnly }, async () => { await decoder.warmup(); return decoder.status(); });
   app.post('/lectures/:courseId/:lectureId/microphone', { preHandler: localOnly }, async request => {
     const key = Params.parse(request.params);
+    const resolved=await runtime(request),{service}=resolved;
     await decoder.warmup();
-    return service.startMicrophone(key);
+    const session=await service.startMicrophone(key);
+    if ('flush' in resolved && typeof resolved.flush === 'function') await resolved.flush();
+    return session;
   });
   // Explicit larger body limit applies only to local audio, never to model prompts.
   app.post('/lectures/:courseId/:lectureId/microphone/audio', { preHandler: localOnly, bodyLimit: 1350000 }, async request => {
     const key = Params.parse(request.params);
+    const {service}=await runtime(request);
     const packet = Packet.parse(request.body);
     const session = service.microphone(key, packet.runId);
     const text = await decoder.transcribe(packet.audio);
@@ -44,9 +50,11 @@ export async function microphoneRoutes(app: FastifyInstance, { service, decoder 
   });
   app.post('/lectures/:courseId/:lectureId/microphone/finish', { preHandler: localOnly }, async request => {
     const key = Params.parse(request.params);
+    const resolved=await runtime(request),service=resolved.service;
     const { runId } = z.object({ runId: z.uuid() }).parse(request.body);
     const session = service.microphone(key, runId);
     await session.finish();
+    if('flush' in resolved&&typeof resolved.flush==='function')await resolved.flush();
     return session.state();
   });
 }

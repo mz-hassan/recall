@@ -7,7 +7,7 @@ import './lecture.css';
 import { getCourseLectures, loadTranscript } from './dataset.js';
 import { replayOptions } from './replay.js';
 import { MomentDetail } from './MomentDetail.jsx';
-import { isEnrolled, readDoubts, readProfile, toggleDoubt } from '../classroom/accounts.js';
+import { isEnrolled, readDoubts, readProfile, toggleDoubt, loadDoubts, restoreAccount } from '../classroom/accounts.js';
 import { buildPastTopics } from './pastTopics.js';
 import { MomentChat } from './components/MomentChat.jsx';
 import { ServerReplayApp } from './components/ServerReplayApp.jsx';
@@ -88,7 +88,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture }) {
   const server = source?.kind === 'server';
   const fixture = source?.kind === 'fixture';
   const start = options.live ? 0 : allMoments.at(-1)?.time ?? 0;
-  const initialIndex = server ? Math.max(0, allMoments.length - 1) : source ? 0 : allMoments.findLastIndex(moment => moment.time <= start);
+  const initialIndex = source?.prepared?0:server ? Math.max(0, allMoments.length - 1) : source ? 0 : allMoments.findLastIndex(moment => moment.time <= start);
   const [localElapsed, setElapsed] = useState(start);
   const requestedTopic = options.live ? null : new URLSearchParams(location.search).get('topic');
   const requestedIndex = allMoments.findIndex(item => item.id === requestedTopic);
@@ -123,12 +123,16 @@ function Lecture({ allMoments, lecture, options, rich, source, capture }) {
   const [profile] = useState(readProfile);
   const canMarkDoubt = profile?.role === 'student' && isEnrolled(profile, courseId);
   const [doubts, setDoubts] = useState(readDoubts);
+  const [doubtPending,setDoubtPending]=useState(false);
+  useEffect(()=>{let active=true;loadDoubts(profile,courseId,lecture.id).then(entries=>{if(active)setDoubts(entries);}).catch(()=>{});return()=>{active=false;};},[profile,courseId,lecture.id,stream.runId]);
   const doubtful = canMarkDoubt && moment && doubts.some(entry =>
     entry.courseId === courseId && entry.email === profile.email && entry.momentId === moment.id);
   const doubtAction = canMarkDoubt && moment
-    ? <button className="doubt-toggle" type="button" aria-pressed={doubtful} onClick={() => {
-      try { setDoubts(toggleDoubt({ ...profile, courseId }, moment.id, moment.pastTopicId)); }
-      catch { notify('This browser could not save your doubt marker.'); }
+    ? <button className="doubt-toggle" type="button" disabled={doubtPending} aria-pressed={doubtful} onClick={async () => {
+      setDoubtPending(true);
+      try { setDoubts(await toggleDoubt({ ...profile, courseId,lectureId:lecture.id,runId:stream.runId }, moment.id, moment.pastTopicId)); }
+      catch(failure) { notify(failure.message||'Your doubt marker could not be saved.'); }
+      finally{setDoubtPending(false);}
     }}>{doubtful ? '✓ Marked unclear' : '? Mark as unclear'}</button>
     : !isEnrolled(profile, courseId) && <a className="doubt-toggle" href="./#signin/student">Sign in to mark this unclear ↗</a>;
   const previousRun = useRef(stream.runId);
@@ -287,7 +291,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture }) {
   const header = <header><Brand href="./#courses" lecture/>
     <button id="lectureInfo" className="lecture-name" onClick={() => setModal('about')}>{courseId === 'ai' ? 'AI ALIGNMENT' : lecture.courseCode} <span>{lecture.id.padStart(2, '0')}</span><small>{rich ? 'When imitation fails' : lecture.title}</small></button>
     <div className="header-actions"><a href={'./#lecture/' + courseId + '/' + lecture.id} className="map-button source-return" aria-label="Lecture and sources"><span>Lecture &amp; sources</span> ↗</a>
-      <button className="map-button" onClick={() => setModal('about')}>{capture ? 'About live lecture' : options.live ? 'Simulation settings' : 'About replay'}</button>
+      <button className="map-button" onClick={() => setModal('about')}>{source?.prepared?'About study notes':capture ? 'About live lecture' : options.live ? 'Simulation settings' : 'About replay'}</button>
     </div>
   </header>;
   if (!moment) return <>{header}{capture && <MicrophoneControls capture={capture}/>}<section className="replay-error lecture-waiting">
@@ -306,10 +310,10 @@ function Lecture({ allMoments, lecture, options, rich, source, capture }) {
     {capture && <MicrophoneControls capture={capture}/>}
     {source && !capture && <div className="lecture-stream-status" aria-live="polite">
       <span>{stream.error || (stream.connectionStatus === 'reconnecting' ? 'Reconnecting…' : server
-        ? stream.session?.state === 'completed' ? 'Lecture complete' : 'Live lecture stream'
+        ? source.prepared?(source.info?.basis==='materials'?'Preparation notes · slides and readings':'Study notes · lecture transcript'):stream.session?.state === 'completed' ? 'Lecture complete' : 'Live lecture stream'
         : stream.connectionStatus === 'complete' ? 'Fixture complete' : 'Recorded fixture stream')}</span>
       <button type="button" onClick={stream.reconnect}>{stream.error ? 'Retry stream' : 'Reconnect stream'}</button>
-      {server && <button type="button" disabled={commandPending} onClick={restart}>Restart replay</button>}
+      {server && !source.prepared&&<button type="button" disabled={commandPending} onClick={restart}>Restart replay</button>}
       {commandError && <span role="alert">{commandError}</span>}
     </div>}
     <main id="experience" ref={stage}>
@@ -334,7 +338,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture }) {
           </div><span className="timestamp">{item.label}</span>{item.artIndex != null && <div className="art" dangerouslySetInnerHTML={{ __html: art(item.artIndex) }}/>}
         </button>;
       })}</div>
-      <div className="scroll-instruction"><span>{options.live && !playing ? "▶" : "↑"}</span><div>{capture ? capture.listening ? 'LISTENING · SCROLL TO REWIND' : 'MICROPHONE OFF' : server && stream.session?.state === 'completed' ? 'REPLAY COMPLETE' : options.live && !playing ? "PRESS PLAY TO SIMULATE" : "SCROLL TO REWIND"}<small>{capture ? moments.length + ' captured topics' : server
+      <div className="scroll-instruction"><span>{options.live && !playing ? "▶" : "↑"}</span><div>{source?.prepared?'STUDY NOTES':capture ? capture.listening ? 'LISTENING · SCROLL TO REWIND' : 'MICROPHONE OFF' : server && stream.session?.state === 'completed' ? 'REPLAY COMPLETE' : options.live && !playing ? "PRESS PLAY TO SIMULATE" : "SCROLL TO REWIND"}<small>{source?.prepared?moments.length+' prepared topics':capture ? moments.length + ' captured topics' : server
         ? (stream.session?.published ?? 0) + ' of ' + (stream.session?.total ?? 0) + ' chunks · ' + moments.length + ' topics'
         : options.live ? moments.length + " of " + allMoments.length + (source ? " fixture moments" : " chunks") : "One thought at a time"}</small></div></div>
       <button ref={closeButton} className="close-detail" aria-label="Close expanded moment" onClick={closeDetail}>✕ <span>Back to the thread</span></button>
@@ -346,9 +350,9 @@ function Lecture({ allMoments, lecture, options, rich, source, capture }) {
       {expanded && chat && <MomentChat key={server ? stream.runId : moment.id} moment={moment} client={server ? source.client : null}
         runId={stream.runId} onClose={() => setChat(false)} onSelectMoment={selectMoment}/>}
     </main>
-    <footer><div className="lecture-status"><button className="pause" aria-label={capture ? playing ? 'Stop microphone capture' : 'Start microphone capture' : playing ? 'Pause simulated lecture' : 'Play simulated lecture'}
-      disabled={capture ? capture.pending || capture.queued > 0 && !playing : commandPending || (server && stream.session?.state === 'completed')} onClick={playback}>{playing ? 'Ⅱ' : '▶'}</button><div><div className="status-line"><i/><span>{focused === liveIndex ? capture ? playing ? 'MICROPHONE · LIVE EDGE' : 'CAPTURED TIMELINE' : options.live ? 'SIMULATION · LIVE EDGE' : 'PAST TIMELINE' : 'REWINDING THE THREAD'}</span></div>
-      <span className="clock">{formatTime(elapsed)}</span>{!capture && <span className="clock-total"> / {formatTime(duration)}</span>}</div>
+    <footer><div className="lecture-status">{!source?.prepared&&<button className="pause" aria-label={capture ? playing ? 'Stop microphone capture' : 'Start microphone capture' : playing ? 'Pause simulated lecture' : 'Play simulated lecture'}
+      disabled={capture ? capture.pending || capture.queued > 0 && !playing : commandPending || (server && stream.session?.state === 'completed')} onClick={playback}>{playing ? 'Ⅱ' : '▶'}</button>}<div><div className="status-line"><i/><span>{source?.prepared?'STUDY NOTES':focused === liveIndex ? capture ? playing ? 'MICROPHONE · LIVE EDGE' : 'CAPTURED TIMELINE' : options.live ? 'SIMULATION · LIVE EDGE' : 'PAST TIMELINE' : 'REWINDING THE THREAD'}</span></div>
+      <span className="clock">{source?.prepared?(focused+1)+' / '+moments.length:formatTime(elapsed)}</span>{!capture&&!source?.prepared && <span className="clock-total"> / {formatTime(duration)}</span>}</div>
       <div className="wave" aria-hidden="true">{Array.from({ length: 12 }, (_, i) => <i key={i}/>)}</div></div>
       <div className="footer-center"><button aria-label="Earlier concept" disabled={focused === 0} onClick={() => go(focused - 1)}>↑</button><span id="positionLabel">{moment.short}</span><button aria-label="Later concept" disabled={focused === liveIndex} onClick={() => go(focused + 1)}>↓</button></div>
       <button className="return-live" onClick={() => { closeDetail(); go(liveIndex); }}>Back to now <span>↗</span></button><span className="live-hint">You’re right here.</span>
@@ -358,8 +362,9 @@ function Lecture({ allMoments, lecture, options, rich, source, capture }) {
       {modal === 'transcript' && <><div className="eyebrow">IN THE LECTURE</div><h2>{moment.short}</h2><blockquote>“{moment.quote}”</blockquote><p>{lecture.teacher} · {moment.quoteTime}</p><p className="notes">{capture ? 'From microphone capture; timestamps start at capture time zero.' : 'From the lecture transcript.'}</p></>}
       {modal === 'about' && <><div className="eyebrow">{lecture.courseCode} · LECTURE {lecture.id.padStart(2, '0')}</div><h2>{lecture.title}</h2>
         <p>Scroll up to rewind. Select a moment to see its details.</p>
-        <p>{capture ? 'Audio stays on this laptop and is decoded locally by Whisper. Recognized text uses the configured AI provider for topics, notes and visuals. Stop listening to finish the final topic; starting again replaces this lecture’s timeline. Capture time starts at zero and is independent of the video playhead.' : server ? 'The server publishes transcript chunks and topic revisions to this timeline. Existing sessions resume when you reopen the lecture. Apply settings to restart a paused replay.' : fixture ? 'This recorded fixture uses authored Lecture 02 excerpts, notes and slides. It demonstrates pending notes and revisions without a backend or AI calls. Press Play to publish each moment at the configured interval.' : rich ? 'This replay uses curated explanations and slides.' : 'Transcript chunks use a simulated clock. Press Play to publish each chunk at the configured interval.'}</p>
-        {!capture && <form className="replay-config" action="lecture.html" method="get">
+        <p>{source?.prepared?source.info?.summary:capture ? 'Audio stays on this laptop and is decoded locally by Whisper. Recognized text uses the configured AI provider for topics, notes and visuals. Stop listening to finish the final topic; starting again replaces this lecture’s timeline. Capture time starts at zero and is independent of the video playhead.' : server ? 'The server publishes transcript chunks and topic revisions to this timeline. Existing sessions resume when you reopen the lecture. Apply settings to restart a paused replay.' : fixture ? 'This recorded fixture uses authored Lecture 02 excerpts, notes and slides. It demonstrates pending notes and revisions without a backend or AI calls. Press Play to publish each moment at the configured interval.' : rich ? 'This replay uses curated explanations and slides.' : 'Transcript chunks use a simulated clock. Press Play to publish each chunk at the configured interval.'}</p>
+        {source?.prepared&&<p>{source.info?.basis==='materials'?'These are preparation notes based on assigned slides and readings. No lecture transcript was available.':'These notes were prepared from the saved lecture transcript and available course materials.'}</p>}
+        {!capture&&!source?.prepared && <form className="replay-config" action="lecture.html" method="get">
           <input type="hidden" name="course" value={courseId}/>
           <input type="hidden" name="lecture" value={lecture.id}/><input type="hidden" name="mode" value="live"/>
           {fixture && <input type="hidden" name="transport" value="fixture"/>}
@@ -378,13 +383,14 @@ function Lecture({ allMoments, lecture, options, rich, source, capture }) {
 }
 
 function ReplayApp() {
-  const [profile] = useState(readProfile);
+  const [profile,setProfile] = useState(readProfile);
+  useEffect(()=>{let active=true;restoreAccount().then(user=>{if(active)setProfile(user);}).catch(()=>{});return()=>{active=false;};},[]);
   const [options] = useState(() => replayOptions(location.search));
   const hasAccess = isEnrolled(profile, options.courseId);
-  const lecture = getCourseLectures(options.courseId).find(item => item.id === options.lectureId);
+  const lecture = getCourseLectures(options.courseId).find(item => item.id === options.lectureId)??(options.prepared?{id:options.lectureId,courseId:options.courseId,courseName:options.courseId==='cv'?'Computer Vision':'Course',courseCode:options.courseId==='cv'?'COMPSCI 670':options.courseId,teacher:'Course recording',title:'Lecture '+options.lectureId,replay:false}:undefined);
   const rich = options.courseId === 'ai' && lecture?.id === '2' && !options.live;
   const fixture = options.courseId === 'ai' && lecture?.id === '2' && options.live && new URLSearchParams(location.search).get('transport') === 'fixture';
-  const backend = (options.live || options.microphone || options.courseId === 'cs50') && !fixture;
+  const backend = (options.live || options.microphone || options.prepared || options.courseId === 'cs50') && !fixture;
   const [moments, setMoments] = useState(fixture ? demoMoments.slice(0, options.limit) : null);
   const source = useMemo(() => fixture ? recordMomentStream(moments, options.interval) : null, [fixture, moments, options.interval]);
   const [error, setError] = useState('');
@@ -406,7 +412,7 @@ function ReplayApp() {
     <a href={profile ? './#find-courses' : './#signin/student'}>{profile ? 'Find a course ↗' : 'Log in ↗'}</a>
   </section>;
   if (backend && lecture) return <ServerReplayApp lecture={lecture} options={options}>{(serverSource, initialMoments, capture) =>
-    <Lecture allMoments={initialMoments} lecture={lecture} options={options} rich={false} source={serverSource} capture={capture}/>
+    <Lecture allMoments={initialMoments} lecture={serverSource.info?{...lecture,title:serverSource.info.title}:lecture} options={options} rich={false} source={serverSource} capture={capture}/>
   }</ServerReplayApp>;
   if (moments) return <Lecture allMoments={moments} lecture={lecture} options={options} rich={rich} source={source}/>;
   return <section className="replay-error"><Brand href="./#courses" lecture/>

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Brand, Dialog } from '../ui.jsx';
 import { readStored, readPdf, storePdf } from '../storage.js';
 import { baseCourses, baseSources } from './content.js';
+import { mergeNotesCatalog,noteSources } from './notesCatalog.js';
 import './library.css';
 import { ReadingPage } from '../readings/ReadingPage.jsx';
 import { PapersPage } from '../readings/PapersPage.jsx';
@@ -12,7 +13,7 @@ const PaperReader = lazy(() => import('../readings/PaperReader.jsx').then(module
 import { CourseGraphPage } from '../graph/CourseGraphPage.jsx';
 import { CourseGraphButton } from '../graph/CourseGraphButton.jsx';
 import { replayPath } from '../lecture/replay.js';
-import { enrolledCourseIds, isCourseStaff, joinCourse, readProfile, saveProfile } from '../classroom/accounts.js';
+import { enrolledCourseIds, isCourseStaff, joinCourse, readProfile, saveProfile, restoreAccount, logoutAccount } from '../classroom/accounts.js';
 import { AccountForm, CourseSearch, StaffOverview } from '../classroom/Classroom.jsx';
 
 const date = value => new Date(value + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -61,9 +62,8 @@ function CourseHeading({ course, sourceCount, active, onAdd, nextLecture, onStar
   </>;
 }
 
-// A lecture opens its generated (live) timeline, except Lecture 2, whose hand-curated replay
-// with authored notes and slides is the version to show. Its live demo stays on Course material.
-const lectureTimelinePath = lecture => replayPath(lecture.id, lecture.courseId !== 'ai' || lecture.id !== '2', lecture.courseId, lecture.microphone);
+// Prepared notes use the normal timeline. Explicit simulations remain on Course material.
+const lectureTimelinePath = lecture => lecture.notesAvailable?replayPath(lecture.id,false,lecture.courseId)+'&view=notes':replayPath(lecture.id, lecture.courseId !== 'ai' || lecture.id !== '2', lecture.courseId, lecture.microphone);
 
 function CourseOverview({ course, getSources }) {
   return <>
@@ -71,8 +71,8 @@ function CourseOverview({ course, getSources }) {
     {course.lectures.length ? <div className="lecture-list">{course.lectures.map(lecture => <article key={lecture.id} className="lecture-row course-lecture-row">
       <span className="lecture-number">{number(lecture)}</span>
       <div>
-        <h3>{lecture.replay ? <a className="lecture-timeline-link" href={lectureTimelinePath(lecture)}>{lecture.title}</a> : lecture.title}</h3>
-        <p>{lecture.date ? date(lecture.date) + ', 2026' : course.term || 'Course lecture'}{!lecture.replay && ' · No timeline available'}</p>
+        <h3>{lecture.replay||lecture.notesAvailable ? <a className="lecture-timeline-link" href={lectureTimelinePath(lecture)}>{lecture.title}</a> : lecture.title}</h3>
+        <p>{lecture.date ? date(lecture.date) + ', 2026' : course.term || 'Recording date unavailable'}{lecture.notesAvailable?(lecture.notesBasis==='materials'?' · Preparation notes from materials':' · Study notes ready'):!lecture.replay&&' · No timeline available'}</p>
       </div>
       <div className="course-lecture-actions">
         <a className="source-link" href={lecturePath(course, lecture)} aria-label={'Course material for Lecture ' + number(lecture)}>Course material ↗</a>
@@ -163,6 +163,7 @@ function LectureMaterials({ course, lecture, sources, onAdd, ...actions }) {
       </div>
       <div className="hero-actions">
         <button className="secondary" onClick={() => onAdd(lecture.id)}>+ Add to this lecture</button>
+        {lecture.notesAvailable&&<a className="primary" href={lectureTimelinePath(lecture)}>Study notes ↗</a>}
         {lecture.microphone && <a className="primary" href={replayPath(lecture.id, false, course.id, true)}>Start live lecture ↗</a>}
         {lecture.replay && <a className="secondary" href={replayPath(lecture.id, true, course.id) + (lecture.microphone ? '&restart=1' : '')}>{lecture.microphone ? 'Replay reference transcript' : 'Simulate live'} ↗</a>}
       </div>
@@ -294,13 +295,18 @@ function Library() {
   const [hash, setHash] = useState(location.hash);
   const [profile, setProfile] = useState(readProfile);
   const [enrolled, setEnrolled] = useState(() => enrolledCourseIds(profile));
+  const [noteCatalog,setNoteCatalog]=useState([]);
+  const [accountReady,setAccountReady]=useState(false);
+  const [catalogReady,setCatalogReady]=useState(false);
+  useEffect(()=>{let active=true;fetch('/api/courses/notes').then(response=>response.ok?response.json():{lectures:[]}).then(data=>{if(active)setNoteCatalog(data.lectures??[]);}).catch(()=>{}).finally(()=>{if(active)setCatalogReady(true);});return()=>{active=false;};},[]);
+  useEffect(()=>{let active=true;restoreAccount().then(user=>{if(active){setProfile(user);setEnrolled(enrolledCourseIds(user));}}).catch(error=>{if(active)setMessage(error.message);}).finally(()=>{if(active)setAccountReady(true);});return()=>{active=false;};},[]);
   const [userCourses, setUserCourses] = useState(() => readStored('recall-courses'));
   const [userSources, setUserSources] = useState(() => readStored('recall-sources'));
   const [session, setSession] = useState(null);
   const [dialog, setDialog] = useState(null);
   const [message, setMessage] = useState('');
   const toastTimer = useRef(null);
-  const courses = [...baseCourses, ...userCourses];
+  const courses = mergeNotesCatalog([...baseCourses, ...userCourses],noteCatalog);
   const [view = 'courses', id, lectureId, sourceKey] = (hash.slice(1) || 'courses').split('/');
   const course = courses.find(item => item.id === id);
   const staff = isCourseStaff(profile, id) && enrolled.includes(id);
@@ -311,7 +317,7 @@ function Library() {
   const lecture = course?.lectures.find(item => item.id === lectureId);
   const lastCompletedIndex = course?.lectures.findLastIndex(item => item.replay) ?? -1;
   const nextLecture = course?.lectures.find(item => item.microphone) ?? course?.lectures[lastCompletedIndex + 1];
-  const getSources = (courseId, lectureId) => [...baseSources, ...userSources].filter(source =>
+  const getSources = (courseId, lectureId) => [...baseSources, ...userSources,...noteSources(noteCatalog,baseSources)].filter(source =>
     source.course === courseId && (!lectureId || source.lecture === lectureId || source.lecture === 'all'));
   const materials = lecture ? getSources(id, lecture.id).filter(source => source.lecture === lecture.id) : [];
   const reading = view === 'reading' && materials.find(source =>
@@ -325,6 +331,7 @@ function Library() {
   const pageKey = view === 'paper' ? ['paper', id, lectureId].join('/') : hash;
   useLayoutEffect(() => { window.scrollTo(0, 0); }, [pageKey]);
   useEffect(() => {
+    if (!accountReady || !catalogReady) return;
     if (!profile) {
       if (!accountPage) location.hash = view === 'staff' ? 'signin/instructor' : 'signin/student';
       return;
@@ -336,7 +343,7 @@ function Library() {
     if (!['course', 'sources', 'papers', 'paper', 'lecture', 'reading', 'record', 'staff', 'graph'].includes(view)) location.hash = 'courses';
     else if ((['lecture', 'reading'].includes(view) && !lecture) || (view === 'record' && session?.course !== course.id)) location.hash = 'course/' + course.id;
     else if (view === 'reading' && !sourceKey) location.hash = lecturePath(course, lecture);
-  }, [accountPage, canOpenCourse, course, id, lecture, profile, session, sourceKey, staff, view]);
+  }, [accountReady, catalogReady, accountPage, canOpenCourse, course, id, lecture, profile, session, sourceKey, staff, view]);
 
   function notify(text) {
     clearTimeout(toastTimer.current);
@@ -355,19 +362,20 @@ function Library() {
     location.hash = 'courses';
     return true;
   }
-  function onSignOut() {
-    try { saveProfile(null); }
-    catch { notify('This browser could not clear your demo sign-in.'); return; }
+  async function onSignOut() {
+    try { await logoutAccount(profile); }
+    catch(error) { notify(error.message||'Could not sign out.'); return; }
     setProfile(null);
     setEnrolled([]);
     setSession(null);
     location.hash = 'signin/' + profile.role;
   }
-  function onJoin(item) {
+  async function onJoin(item) {
     if (!profile) return;
-    try { joinCourse(profile, item.id); }
-    catch { notify('This browser could not add the course.'); return; }
-    setEnrolled(enrolledCourseIds(profile));
+    let updated;
+    try { updated=await joinCourse(profile, item.id); }
+    catch(error) { notify(error.message||'Could not add the course.'); return; }
+    setProfile(updated);setEnrolled(enrolledCourseIds(updated));
     setDialog(null);
     location.hash = coursePath(item);
   }
@@ -415,7 +423,7 @@ function Library() {
       </div>
     </header>
     <main id="page" key={pageKey}>
-      {!profile ? <AccountForm role={signInRole} signup={view === 'signup'} onSignIn={onSignIn}/>
+      {!accountReady||!catalogReady ? <p role="status">Opening your workspace…</p> : !profile ? <AccountForm role={signInRole} signup={view === 'signup'} onSignIn={onSignIn}/>
         : view === 'courses' ? <Courses courses={courses.filter(item => enrolled.includes(item.id))} getSources={getSources} coursePath={coursePath} staff={teaching}/>
         : view === 'find-courses' ? <CourseSearch courses={courses} enrolled={enrolled} onJoin={onJoin} coursePath={coursePath} onCreate={() => setDialog({ type: 'course' })}/>
         : canOpenCourse && <>
@@ -431,11 +439,11 @@ function Library() {
         {view === 'lecture' && lecture && <LectureMaterials course={course} lecture={lecture} sources={materials} onAdd={onAdd} onPdf={onPdf} onRemove={onRemove}/>}
         {view === 'record' && session?.course === id && <Session course={course} session={session} onPdf={onPdf}
           onEnd={() => { setSession(null); location.hash = 'course/' + id; notify('Demo ended. No audio was recorded.'); }}/>}
-        {!['record', 'staff', 'paper'].includes(view) && <div className="bottom-note"><span>A little rewind. A lot of clarity.</span><span>Interactive prototype · No background AI connected</span></div>}
+        {!['record', 'staff', 'paper'].includes(view) && <div className="bottom-note"><span>A little rewind. A lot of clarity.</span><span>Your notes, materials, and lecture threads</span></div>}
       </>}
     </main>
     <Dialog wide={dialog?.type === 'preview'} onClose={() => setDialog(null)}>
-      {dialog?.type === 'about' && <><div className="eyebrow">RECALL · WORKSPACE PREVIEW</div><h2>Your learning, connected.</h2><p>Courses hold lectures. Sources belong to the whole course or to one lecture. AI Alignment Lecture 02 has a curated replay. Other lectures with transcripts support transcript replay.</p><p>Uploaded PDFs and added course metadata stay in this browser. The six bundled PDFs are copied from your original library. Website scraping, AI matching, content validation, recording, and transcription are not connected.</p></>}
+      {dialog?.type === 'about' && <><div className="eyebrow">RECALL · COURSE WORKSPACE</div><h2>Your learning, connected.</h2><p>Courses connect materials, prepared study notes, and live lecture threads. Sign in to save your lectures, questions, and doubt markers with your account. Prepared course notes are shared with enrolled users.</p><p>PDFs you upload and custom course metadata still stay in this browser. CS50 supports local microphone transcription in the lecture timeline.</p></>}
       {dialog?.type === 'course' && <NewCourseForm onSave={item => {
         const next = [...userCourses, item]; setUserCourses(next); persist('recall-courses', next); onJoin(item);
       }}/>}

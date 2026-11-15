@@ -3,6 +3,7 @@ import { TimeSource } from './lecture.ts';
 
 // Student-side contracts (Helly). The pipeline's lecture.ts contract stays unchanged.
 export const ChatRequest = z.object({
+  requestId: z.uuid().optional(),
   runId: z.string().min(1),
   question: z.string().trim().min(1).max(2000),
   context: z.discriminatedUnion('kind', [

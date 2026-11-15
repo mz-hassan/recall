@@ -77,7 +77,7 @@ export class DatasetSource implements LectureSource {
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 /** Library course ID → dataset folder. 'ai' matches the course ID the frontend already uses. */
-const COURSE_DATASETS: Record<string, string> = { ai: 'datasets/cs690s', cs50: 'datasets/cs50' };
+const COURSE_DATASETS: Record<string, string> = { ai: 'datasets/cs690s', cs50: 'datasets/cs50', cv: '.local/course-imports/cs670' };
 
 const Material = z.object({ title: z.string(), source_url: z.string().optional(), files: z.array(z.string()).default([]) });
 const ManifestSchema = z.object({
