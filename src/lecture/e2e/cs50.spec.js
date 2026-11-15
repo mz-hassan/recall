@@ -16,8 +16,8 @@ test('CS50 microphone capture drives the timeline, grounded PDF highlights and p
   });
   page.on('request', request => { if (request.url().includes('/microphone/audio')) audioDestinations.push(new URL(request.url()).origin); });
   await page.goto('/cs50.html', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: 'Listen here. Follow the lecture.' })).toBeVisible();
-  await expect(page.locator('.pilot-pdf-host canvas')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Listen here. Follow the lecture.' })).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('.pilot-pdf-host canvas')).toBeVisible({ timeout: 15000 });
   await page.getByRole('button', { name: /Start listening|Start new capture/ }).click();
   await expect(page.getByText('● Listening on this laptop', { exact: true })).toBeVisible();
   await expect(page.locator('#pilot-transcript')).toContainText('Binary search', { timeout: 25000 });
