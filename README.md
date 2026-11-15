@@ -1,85 +1,116 @@
 # Recall
 
-Recall helps students recover context during a lecture and revisit it afterward. The course library brings together assigned readings, past timelines and a cross-lecture knowledge graph. The live lecture interface groups incoming transcript chunks into moments that can carry summaries, equations, intuition, slides, diagrams and requested artifacts.
+### Lost the thread? Rewind the idea.
 
-## Run locally
+Recall is an AI lecture companion that helps students recover context while a lecture is still happening. Instead of searching a transcript, rewind through an animated timeline of concepts, expand a moment, and see the explanation, equations, and relevant slides together.
 
-Use Node.js 22.18 or later (Node 24 recommended). The TypeScript runner supports both backend features.
+Built as a hackathon prototype, Recall brings live understanding, course materials, and review into one workspace.
+
+## The experience
+
+- **Rewind through concepts.** A vertical, animated timeline keeps the current discussion in focus and lets you return to earlier moments.
+- **Understand the tricky parts.** Expanded moments bring together summaries, intuition, equations, slide references, and contextual questions. The curated *Limitations of Behavior Cloning* demo also includes authored animations and equation walkthroughs.
+- **Keep materials close.** Browse slides and required or optional readings by lecture; open originals or available reading explanations.
+- **Connect the course.** A course-wide knowledge graph shows relationships across lecture topics.
+- **Save your progress.** Accounts, course memberships, generated lecture histories, completed chats, doubt markers, and generated artifacts are stored in MongoDB.
+- **Surface confusion.** Students mark concepts unclear. Instructors and TAs browse lecture and topic doubt counts, then open the relevant content.
+
+The goal is to make catching up feel natural—especially when attention drifts or spoken explanations move too quickly. Accessibility is a design motivation, not a validated outcome yet.
+
+## Try the demo
+
+1. Run the app using the setup below and create a **Student** account with an `.edu` address and a demo password of at least eight characters.
+2. Use **Find or add a course** to add **AI Alignment**.
+3. Open Lecture 02, **Limitations of Behavior Cloning**, and explore the timeline. Expand a concept to see its slides, intuition, equations, and visual explanations.
+4. Open **Course material** to browse that lecture’s sources, or **Knowledge graph** from the course page to explore connected concepts once graph data has been seeded or generated.
+5. Try transcript simulation for an available lecture. For microphone input, add **CS50** and follow the [speech setup guide](docs/cs50-pilot.md).
+
+Instructor and teaching-assistant accounts have a course view for lecture doubts. Real database-backed accounts show saved student activity; a fresh database will not contain a class of simulated users.
+
+## Run on your laptop
+
+Requirements: **Node.js 22.18+**, npm, and MongoDB. Microphone transcription additionally needs the local Whisper installation described in the speech guide.
 
 ```sh
+git clone https://github.com/mz-hassan/recall.git
+cd recall
 npm ci
 cp .env.example .env
 ```
 
-Set `DEEPSEEK_API_KEY` in `.env`. Both the graph and live lecture features use this same configuration. Start MongoDB for accounts, shared notes, lecture histories and graph storage in a separate terminal (no Docker):
+Choose your model mode in `.env`:
+
+- **AI generation:** set `DEEPSEEK_API_KEY` and keep `LLM_PROVIDER=deepseek`. Generation makes paid API calls; keep the key server-side.
+- **Offline pipeline preview:** set `LLM_PROVIDER=fixture`. This produces deterministic live-lecture output without an API key; it does not generate a knowledge graph.
+
+Start MongoDB in a separate terminal:
 
 ```sh
 npm run db:start
 ```
 
-Then start the app:
+Then start the frontend and API:
 
 ```sh
-npm run dev        # Vite + one shared Fastify API, default 127.0.0.1:3001 (API_PORT in .env)
+npm run dev
+```
+
+Open the local URL printed by Vite, normally **http://localhost:5173**. The API defaults to **http://127.0.0.1:3001**. `.env` controls the MongoDB connection and database name.
+
+For a curated sample course graph, with MongoDB running:
+
+```sh
+node --import tsx --env-file-if-exists=.env scripts/seed-curated-graph.mjs
+```
+
+## How it works
+
+```mermaid
+flowchart LR
+    A[Lecture transcript] --> C[Topic segmentation]
+    B[Microphone audio] --> W[Local Whisper] --> C
+    C --> D[Summaries, intuition and equations]
+    S[Course slides and readings] --> D
+    D --> T[Interactive lecture timeline]
+    T --> M[(MongoDB)]
+    S --> G[Course knowledge graph]
+    G --> M
+```
+
+The frontend uses **React + Vite**. A **TypeScript + Fastify** API runs the lecture pipeline and account features. **DeepSeek** powers configured language-model tasks; **faster-whisper / Whisper large-v3-turbo** handles speech recognition locally without an OpenAI API account. **MongoDB** stores persistent application data and graph documents. Equations render with **KaTeX**.
+
+Model tasks use a shared provider interface and task-specific harnesses. A fixture provider supports offline testing; Gemini is a planned integration, not a working provider advertised by this demo.
+
+## Data and persistence
+
+The repository includes course materials, slide previews, and available transcripts. The [AI Alignment dataset](datasets/cs690s/README.md) and its manifest connect lecture entries to source files and original URLs. Transcript coverage varies; some lectures have materials but no recording transcript.
+
+**Cloning this repository does not copy someone else’s MongoDB.** Authored demo content ships with the code, but generated study notes, accounts, personal histories, and graphs require generation, a seed, or a database import. Once generated and saved, lecture data can reopen from the same database after a restart without regenerating it. New AI questions and artifact requests can still make model calls.
+
+Custom course definitions and uploaded PDFs currently remain in the browser’s storage. See [shared notes and saved accounts](docs/shared-study-notes.md) for the persistence model.
+
+## Prototype scope
+
+Transcript replay lets us exercise the live pipeline using existing lecture recordings. CS50 additionally supports local microphone transcription. The demo mixes authored content, transcript fallback views, and model-generated output; availability depends on the lecture and stored data.
+
+Email ownership and staff roles are not verified in the main-branch prototype. It is intended for a controlled hackathon demonstration. The separate [server branch](https://github.com/mz-hassan/recall/tree/codex/server-multiuser) contains the HTTPS/device-testing setup; this README describes `main`.
+
+Next steps include course-site ingestion, stronger connections from completed timelines and their artifacts into the course graph, richer reading explanations, slide annotations, and verified account access.
+
+## Build with us
+
+```sh
 npm run typecheck
-npm test          # graph and live lecture tests, including nested test directories
+npm test
 npm run build
 npx playwright install chromium
-npm run test:e2e   # desktop/mobile checks against an isolated offline fixture server
+npm run test:e2e
 ```
 
-Sign in and add AI Alignment to your workspace. Select a lecture row to replay its timeline or open **Course material** for sources and **Simulate live**. **Knowledge graph** opens the database-backed course graph. See the [graph setup](docs/knowledge-graph.md) and the [live lecture → graph handoff guide](docs/live-lecture-graph-handoff.md). No Docker is used. `npm run dev:web` runs the frontend alone; `npm run dev:server` runs the shared API. The graph needs MongoDB, but live lecture still runs if the graph database is unavailable. Start MongoDB and restart the API to enable the graph again.
+- [Developer guide and workstreams](docs/developer-guide.md)
+- [Architecture and module boundaries](docs/architecture.md)
+- [Model harnesses and shared contracts](docs/agent-harnesses.md)
+- [Knowledge graph setup](docs/knowledge-graph.md)
+- [Live lecture implementation](src/lecture/README.md)
 
-The shared API also exposes transcript replay/streaming, model-backed topic segmentation, topic enrichment, page-exact slides and running lecture summaries. Check it at `http://localhost:3001/api/health`. To run the backend pipelines directly:
-
-```sh
-npm run eval:segmentation -- --lecture 2
-npm run eval:lecture -- --lecture 2
-npm run extract:slides
-```
-
-The evaluation commands use the configured provider and can make paid calls when DeepSeek is selected. Set `LLM_PROVIDER=fixture` explicitly for deterministic offline live-lecture tests/demos. With no configuration, `loadConfig({})` also defaults to fixture mode; the checked-in template selects DeepSeek. There is no fabricated graph fallback.
-
-## Dataset and simulation
-
-The [CS 690S dataset](datasets/cs690s/README.md) covers 23 Fall 2026 lecture entries. Its [manifest](datasets/cs690s/manifest.json) records source URLs, required and optional readings, slide PDFs and text extracts, and TXT or VTT transcripts where available. Some entries lack transcripts or reuse material from another lecture. The frontend uses the manifest to determine whether a lecture can replay. A later ingestion workstream can scrape a course website and emit this same manifest; the checked-in dataset works directly today.
-
-Lecture 02 has an existing curated past replay. Other past replays group recorded transcripts into 8–12 demo topics. Live simulation uses the server's topic stream and resumes an existing run; a new run starts paused with a six-chunk preview at 160 words per chunk and an eight-second interval. **Restart replay** starts over, and **Simulation settings** applies changed options to a new run. Expand a moment for contextual chat, cited chart or animated-diagram requests, and KaTeX equations. Artifacts survive browser reloads within the current in-memory server session, including later topic revisions. See [student-side implementation and checks](src/lecture/README.md). The offline authored demo remains available at `lecture.html?lecture=2&mode=live&transport=fixture`.
-
-The asset preparation script copies the demo PDFs from the dataset on dev/build. Git tracks the dataset and slide preview images. Vite generates `dist/` for hosting.
-
-## Parallel workstreams
-
-Each guide is a self-contained context to hand to a collaborator or coding agent. Pick one, claim a checkbox in a GitHub issue or PR, and note the acceptance criteria and any contract changes.
-
-| Workstream | Starting point |
-| --- | --- |
-| Reading breakdowns and visual explanations | [Reading agent context](docs/workstreams/readings.md) |
-| Course-wide knowledge graph | [Graph agent context](docs/workstreams/course-graph.md) |
-| Live lecture, slide retrieval, artifacts and side chat | [Live agent context](docs/workstreams/live-lecture.md) |
-
-There are three workstreams. Linking completed lecture timelines and their artifacts into the course graph is a later milestone of workstream 2, not a separate graph, timeline, or team.
-
-Start with the [code ownership and stack guide](docs/architecture.md), then read the [shared contracts and provider-neutral harness guide](docs/agent-harnesses.md) before defining agent outputs. Use feature branches, keep PRs scoped to a workstream, and run the tests and production build before opening a PR. Update the relevant checklist when its acceptance criteria are met. Coordinate changes to the course shell or shared contracts with the other workstreams.
-
-- [ ] Later: Add a course-site scraper that normalizes materials into the existing dataset manifest, preserves provenance, and marks missing resources.
-
-## Stack and implementation status
-
-[CS50 live lectures](docs/cs50-pilot.md) use the same course library and lecture timeline as other courses. Add CS50 through **Find or add a course**, open Lecture 0, and choose **Start live lecture**. Microphone capture uses local Whisper large-v3-turbo; moment details contain matched slides, notes, highlights, progressive explanations/tables, and equation hover definitions. Setup downloads the speech model into ignored `.local` storage. Audio stays on this laptop; recognized text uses the configured AI provider.
-
-The React + Vite frontend connects to a TypeScript/Fastify backend for transcript replay, topic segmentation, automatic enrichment, contextual chat and validated visual artifacts. Fixture and DeepSeek providers share the same interface. The course graph uses MongoDB persistence, DeepSeek extraction and completion-triggered indexing; lecture materials remain in the dataset folder. Live lecture sessions and artifacts currently use in-memory storage, while durable timeline persistence remains future work. Reading harnesses remain a separate workstream.
-
-The agreed direction is a Node.js + TypeScript/Fastify backend, MongoDB for course data and graph references, and task-specific harnesses behind a shared model-provider interface. Keep DeepSeek as the initial configurable provider; Gemini is the planned replacement. Fixture mode must remain usable without either API or a database. See the architecture guide for module boundaries, suggested libraries, storage design and implementation order.
-
-The older Recall concept brief is reference material, not the current implementation contract. Catch-up, action extraction, annotations and personal review remain possible later features. Tiger Data and Sentient OS are optional ideas, not required dependencies. Deployment is deferred; focus on local development and the three workstreams.
-
-### Classroom demo
-
-Create a demo account with an academic email such as `student@example.edu` and a password of at least eight characters. Choose Student, Instructor, or Teaching assistant on the login or signup page. From **My courses**, open **Find or add a course**, search for `690S` or AI Alignment, and add it to your workspace. You can also create a course from that page.
-
-Students can mark a topic **Unclear** from its expanded timeline view. Instructors and TAs open **Lecture doubts** from their course card. Lectures are listed newest first with total counts. Expand a lecture to see each topic’s count and select a topic to open its details.
-
-AI Alignment and Computer Vision open prepared study notes in the normal lecture timeline. All users enrolled in a course share its prepared notes. When a transcript is unavailable, the page explicitly labels notes from slides/readings as preparation notes. See [shared notes and saved accounts](docs/shared-study-notes.md) for generation and storage details.
-
-The normal API saves accounts, memberships, lecture transcripts/topics/summaries, completed question/answer exchanges, doubts and generated visuals in the configured MongoDB. Personal histories are scoped to the signed-in user. Passwords use salted scrypt hashes; sessions use HttpOnly cookies and hashed database tokens. Email ownership and staff roles remain unverified prototype choices. Custom course definitions and uploaded PDFs still use browser storage. Isolated fixture tests retain the older browser-only demo behavior and simulated counts; database accounts show actual saved doubt counts.
+Course materials retain their original attribution and source links in the dataset manifests.
