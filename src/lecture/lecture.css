@@ -100,3 +100,9 @@
 .rewound .scroll-instruction{opacity:0}
 /* With a topic open, the side thread is narrower so long titles never run under the notes panel. */
 @media(min-width:801px){.expanded .moment .moment-content{width:56%}}
+/* PDF-backed slides render in the browser: a 16:9 placeholder holds the space while the page draws. */
+.slide-frame.slide-loading{cursor:default}
+.slide-placeholder{aspect-ratio:16/9;border-radius:3px;background:linear-gradient(100deg,#18211c 30%,#1f2b24 50%,#18211c 70%) 0 0/300% 100%;animation:slide-shimmer 1.6s ease-in-out infinite}
+@keyframes slide-shimmer{to{background-position:-150% 0}}
+.slide-source{display:inline-block;font-size:9px;letter-spacing:1px;color:#6f8a7a;margin:0 0 6px 5px}
+.slide-source:hover{color:#b6f3d3}
