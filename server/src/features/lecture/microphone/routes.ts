@@ -5,7 +5,7 @@ import { createSpeechDecoder, SpeechError, type SpeechDecoder } from './worker.t
 
 const Params = z.object({ courseId: z.literal('cs50'), lectureId: z.literal('0') });
 const Packet = z.object({ runId: z.uuid(), seq: z.number().int().positive(), time: z.number().nonnegative(), endTime: z.number().positive(),
-  audio: z.string().min(60).max(860000).regex(/^[A-Za-z0-9+/]+={0,2}$/) }).refine(packet => packet.endTime > packet.time && packet.endTime - packet.time <= 20);
+  audio: z.string().min(60).max(1300000).regex(/^[A-Za-z0-9+/]+={0,2}$/) }).refine(packet => packet.endTime > packet.time && packet.endTime - packet.time <= 30);
 
 async function localOnly(request: FastifyRequest) {
   if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(request.ip)) throw new SpeechError('Microphone capture is available only on this laptop.', 403);
@@ -32,7 +32,7 @@ export async function microphoneRoutes(app: FastifyInstance, { service, decoder 
     return service.startMicrophone(key);
   });
   // Explicit larger body limit applies only to local audio, never to model prompts.
-  app.post('/lectures/:courseId/:lectureId/microphone/audio', { preHandler: localOnly, bodyLimit: 900000 }, async request => {
+  app.post('/lectures/:courseId/:lectureId/microphone/audio', { preHandler: localOnly, bodyLimit: 1350000 }, async request => {
     const key = Params.parse(request.params);
     const packet = Packet.parse(request.body);
     const session = service.microphone(key, packet.runId);

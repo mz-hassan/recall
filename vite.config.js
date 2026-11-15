@@ -6,7 +6,11 @@ export default defineConfig(({ mode }) => {
   const { API_PORT = '3001' } = loadEnv(mode, process.cwd(), 'API_PORT');
   return {
     base: './',
-    server: { proxy: { '/api': { target: 'http://127.0.0.1:' + API_PORT, changeOrigin: false } } },
+    // Only app entrypoints participate in dependency discovery; dataset HTML and local Python
+    // installations are reference/runtime files, not browser applications.
+    optimizeDeps: { entries: ['index.html', 'lecture.html'] },
+    server: { watch: { ignored: ['**/.local/**', '**/test-results/**', '**/playwright-report/**'] },
+      proxy: { '/api': { target: 'http://127.0.0.1:' + API_PORT, changeOrigin: false } } },
     build: {
       rollupOptions: {
         input: { library: 'index.html', lecture: 'lecture.html' },

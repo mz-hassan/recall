@@ -93,7 +93,7 @@ test('a closed topic is enriched with notes, real slides with confidence, a vali
   assert.equal(index?.kind === 'text' ? index.text : '', '4: Behavior cloning supervised learning on expert demonstrations\n8: DAgger aggregate dataset expert labels learner states');
   assert.ok(evidence.some(item => item.id === 'slide-page-8'));
   assert.ok(!evidence.some(item => item.id === 'previous-slides'), 'first topic has no previous slides');
-  assert.equal(requests[0]!.options?.reasoning, 'low');
+  assert.equal(requests[0]!.options?.reasoning, 'off');
 });
 
 test('the next topic gets the previous topic\'s slides as a hint, plus the pages right after them', async () => {
@@ -121,6 +121,49 @@ test('open topics are not enriched until they close', async () => {
   store.saveMoment(key, rawMoment(key, 1, chunk(1, 'text')));
   await enricher.idle();
   assert.equal(requests.length, 0);
+});
+
+test('live summaries update cumulatively while a topic stays open and survive raw transcript revisions', async () => {
+  const store = createMemoryStore();
+  store.reset(key, { runId: 'live', state: 'playing', elapsed: 0, words: 160, interval: 12, published: 0, total: 0 });
+  const { provider, requests } = scripted([notes({ summary: 'Algorithms solve problems step by step.' }), notes({ summary: 'Algorithms solve problems step by step. Binary search halves the search space each time.' })]);
+  const enricher = createModelEnricher({ provider, includeOpen: true, loadDeck: async () => deck });
+  enricher.start({ key, store, signal: new AbortController().signal });
+  const first = rawMoment(key, 1, chunk(1, 'An algorithm is a sequence of precise instructions.'));
+  store.saveMoment(key, first); await enricher.idle();
+  assert.equal(store.getMoment(key, first.id)!.status, 'open');
+  assert.match(store.getMoment(key, first.id)!.summary, /step by step/);
+  store.saveMoment(key, { ...first, quote: first.quote + ' Binary search discards half of the phone book at each step.', chunkSeqs: [1,2] });
+  assert.match(store.getMoment(key, first.id)!.summary, /step by step/, 'a segmentation draft cannot erase the prior summary');
+  await enricher.idle();
+  assert.match(store.getMoment(key, first.id)!.summary, /Binary search/);
+  assert.equal(store.getMoment(key, first.id)!.enrichment, 'ready');
+  assert(requests[1]!.evidence.some(item => item.id === 'previous-topic-summary' && item.kind === 'text' && item.text.includes('step by step')));
+  enricher.stop();
+});
+
+test('live enrichment coalesces superseded revisions instead of building a model-request backlog', async () => {
+  const store = createMemoryStore();
+  store.reset(key, { runId: 'live', state: 'playing', elapsed: 0, words: 160, interval: 12, published: 0, total: 0 });
+  let release!: () => void, started!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const began = new Promise<void>(resolve => { started = resolve; });
+  const requests: GenerateStructuredRequest<unknown>[] = [];
+  const provider: ModelProvider = { name: 'slow', model: 'slow', modalities: ['text'], async generateStructured(request) {
+    requests.push(request as GenerateStructuredRequest<unknown>);
+    if (requests.length === 1) { started(); await gate; }
+    return { data: request.schema.parse(notes()), provider: 'slow', model: 'slow', usage: { inputTokens: 0, outputTokens: 0 }, latencyMs: 0 };
+  } };
+  const enricher = createModelEnricher({ provider, includeOpen: true, loadDeck: async () => deck });
+  enricher.start({ key, store, signal: new AbortController().signal });
+  const first = rawMoment(key, 1, chunk(1, 'First idea.'));
+  store.saveMoment(key, first); await began;
+  store.saveMoment(key, { ...first, quote: 'First idea. Second idea.' });
+  store.saveMoment(key, { ...first, quote: 'First idea. Second idea. Latest explanation.' });
+  release(); await enricher.idle();
+  assert.equal(requests.length, 2);
+  assert(requests[1]!.evidence.some(item => item.id === 'topic' && item.kind === 'text' && item.text.includes('Latest explanation')));
+  enricher.stop();
 });
 
 test('the second topic sees the first topic\'s running summary and title', async () => {

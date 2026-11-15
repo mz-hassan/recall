@@ -59,6 +59,11 @@ export function createMemoryStore({ maxLog = 5000 }: { maxLog?: number } = {}): 
   function save(lecture: LectureState, draft: MomentDraft): Moment {
     const runId = requireRun(lecture);
     const previous = lecture.moments.get(draft.id);
+    // Raw segmentation drafts predate concurrent summaries. A longer transcript must not erase notes.
+    if (previous && draft.enrichment === 'none' && !draft.summary && previous.enrichment !== 'none') {
+      draft = { ...draft, summary: previous.summary, intuition: previous.intuition, slides: previous.slides,
+        equations: previous.equations, graph: previous.graph, enrichment: previous.enrichment, type: previous.type };
+    }
     // Segmentation/enrichment may still hold a draft from before a student attached
     // an artifact. Keep those independent attachments through subsequent revisions.
     const artifacts = [...new Map([...(previous?.artifacts ?? []), ...draft.artifacts].map(artifact => [artifact.id, artifact])).values()];

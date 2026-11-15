@@ -4,6 +4,7 @@ import type { LectureStore, MomentDraft } from '../store/types.ts';
 import { ENRICHMENT_INSTRUCTIONS, ENRICHMENT_PROMPT_VERSION } from './prompts/v2.ts';
 import { ENRICHMENT_TASK, EnrichmentResult } from './schema.ts';
 import { findCandidateSlides, loadSlideDeck, type SlideDeck } from './slides.ts';
+import { concise } from '../concise.ts';
 
 export type EnricherContext = { key: LectureKey; store: LectureStore; signal: AbortSignal };
 
@@ -39,6 +40,8 @@ export type ModelEnricherOptions = {
   maxTopicWords?: number;
   maxCandidateSlides?: number;
   onCall?: (call: EnrichmentCall) => void;
+  /** Refresh summaries as the topic grows; coalesce superseded drafts instead of queuing each revision. */
+  includeOpen?: boolean;
 };
 
 const EMPTY_DECK: SlideDeck = { pdfPath: null, pages: [], slide: page => ({ page, url: '', kind: 'pdf' }) };
@@ -67,20 +70,22 @@ function trimWords(text: string, max: number): string {
  * A failed call marks the moment 'failed' and keeps its raw transcript.
  */
 export function createModelEnricher({
-  provider, loadDeck = loadSlideDeck, maxTopicWords = 2500, maxCandidateSlides = 4, onCall = () => {},
+  provider, loadDeck = loadSlideDeck, maxTopicWords = 2500, maxCandidateSlides = 4, onCall = () => {}, includeOpen = false,
 }: ModelEnricherOptions): Enricher {
   let queue: Promise<void> = Promise.resolve();
   let unsubscribe: (() => void) | null = null;
 
   return {
     start({ key, store, signal }) {
-      const seen = new Set<string>();
+      const seen = new Map<string, string>();
+      const queued = new Set<string>();
       const deck = loadDeck(key).catch(() => EMPTY_DECK);
 
       async function enrich(momentId: string) {
         if (signal.aborted) return;
         const moment = store.updateMoment(key, momentId, current => ({ ...withoutRevision(current), enrichment: 'pending' }));
         if (!moment) return;
+        const runId = store.getSession(key)?.runId;
         const slides = await deck;
         const earlierMoments = store.getMoments(key).filter(item => item.time < moment.time && item.id !== moment.id);
         const earlier = earlierMoments.map(item => item.title);
@@ -99,6 +104,7 @@ export function createModelEnricher({
 
         const evidence: Evidence[] = [
           { id: 'topic', kind: 'text', text: `Title: ${moment.title}\nLabel: ${moment.short}\nTranscript: ${trimWords(moment.quote, maxTopicWords)}` },
+          ...(moment.summary ? [{ id: 'previous-topic-summary', kind: 'text' as const, text: moment.summary }] : []),
           ...(summary ? [{ id: 'lecture-so-far', kind: 'text' as const, text: summary }] : []),
           ...(earlier.length ? [{ id: 'earlier-topics', kind: 'text' as const, text: earlier.map((title, index) => `${index + 1}. ${title}`).join('\n') }] : []),
           ...(slides.pages.length ? [{ id: 'slide-index', kind: 'text' as const, text: slideIndex(slides.pages) }] : []),
@@ -113,9 +119,9 @@ export function createModelEnricher({
             evidence,
             schema: EnrichmentResult,
             signal,
-            options: { reasoning: 'low', maxOutputTokens: 1500 },
+            options: { reasoning: 'off', maxOutputTokens: 1200 },
           });
-          if (signal.aborted) return;
+          if (signal.aborted || store.getSession(key)?.runId !== runId) return;
           const notes = result.data;
           // The model may pick any real page of the deck, never a page that does not exist.
           const chosen = notes.slides
@@ -125,7 +131,7 @@ export function createModelEnricher({
 
           store.updateMoment(key, momentId, current => ({
             ...withoutRevision(current),
-            summary: notes.summary,
+            summary: concise(notes.summary, 70),
             intuition: notes.intuition,
             type: notes.type,
             equations: notes.equations,
@@ -133,7 +139,7 @@ export function createModelEnricher({
             graph: notes.diagram && edges.length
               ? { origin: 'generated', nodes: notes.diagram.nodes, edges: edges.map((edge, index) => ({ id: `e${index + 1}`, ...edge })) }
               : null,
-            enrichment: 'ready',
+            enrichment: current.quote === moment.quote ? 'ready' : 'pending',
           }));
           store.setRunningSummary(key, notes.lecture_so_far);
           onCall({
@@ -144,7 +150,7 @@ export function createModelEnricher({
             lowConfidenceSlides: chosen.filter(slide => slide.confidence === 'low').map(slide => slide.page),
           });
         } catch (error) {
-          if (signal.aborted) return;
+          if (signal.aborted || store.getSession(key)?.runId !== runId) return;
           store.updateMoment(key, momentId, current => ({ ...withoutRevision(current), enrichment: 'failed' }));
           onCall({
             task: ENRICHMENT_TASK, promptVersion: ENRICHMENT_PROMPT_VERSION, momentId, outcome: 'failed',
@@ -156,10 +162,14 @@ export function createModelEnricher({
 
       unsubscribe = store.subscribe(key, event => {
         if (event.type !== 'moment.upsert') return;
-        const { id, status, enrichment } = event.moment;
-        if (status !== 'closed' || enrichment !== 'none' || seen.has(id)) return;
-        seen.add(id);
-        queue = queue.then(() => enrich(id)).catch(() => {});
+        const { id, status, quote } = event.moment;
+        if (status !== 'closed' && !includeOpen) return;
+        const version = status + ':' + quote;
+        if (seen.get(id) === version) return;
+        seen.set(id, version);
+        if (queued.has(id)) return;
+        queued.add(id);
+        queue = queue.then(async () => { queued.delete(id); await enrich(id); }).catch(() => {});
       });
     },
     stop() {

@@ -12,7 +12,7 @@ session, including a paused or completed session. If none exists, it creates a
 paused replay with the URL's settings: 160 words, 8 seconds, 6 chunks by default.
 The server owns playback and sends snapshots, moment revisions and session state.
 Topic count can differ from transcript chunk count because segmentation groups chunks.
-Closed topics receive main's generated notes and running summary. Slide image references
+Open topics receive cumulatively updated summaries as speech arrives; pending revisions retain the last good summary. Superseded revisions are coalesced. Raw transcript appears only through the fallback control when summary generation fails. Slide image references
 expand in the page; PDF references open the original PDF at its cited page. Low-confidence
 slide matches are labelled as possible matches.
 
@@ -51,7 +51,7 @@ The shared student-side contract is `shared/contracts/lectureInteractions.ts`.
 where context is `{ kind: 'moment', momentId }` or `{ kind: 'recent', seconds: 180 }`.
 Answers include plain text, canonical moment citations, range/time source and provider
 metadata. Clicking a citation selects its moment without discarding the answer.
-Questions are limited to 2000 characters; chat request bodies are limited to 16 KiB.
+Questions are limited to 2000 characters; chat request bodies are limited to 16 KiB. Answers normally use 1–3 short sentences and are bounded to 90 words.
 Empty context, stale runs, unsupported citations and provider failures have recoverable
 responses. Client cancellation and a 60-second request budget bound in-flight work.
 

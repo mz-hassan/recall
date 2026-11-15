@@ -59,7 +59,7 @@ export async function buildApp({
     store,
     createSegmenter: () => createModelSegmenter({ provider, onCall: call => app.log.info({ segmentation: call }, 'segmentation') }),
     createMicrophoneSegmenter: () => createModelSegmenter({ provider, minWords: 20, onCall: call => app.log.info({ segmentation: call }, 'segmentation') }),
-    createEnricher: () => createModelEnricher({ provider, onCall: call => app.log.info({ enrichment: call }, 'enrichment') }),
+    createEnricher: () => createModelEnricher({ provider, includeOpen: true, onCall: call => app.log.info({ enrichment: call }, 'enrichment') }),
     onError: error => app.log.error(error),
   });
   app.addHook('onClose', async () => service.close());

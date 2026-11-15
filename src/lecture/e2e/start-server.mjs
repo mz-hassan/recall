@@ -10,7 +10,7 @@ const app = await buildApp({ config: loadConfig({}), provider: createFixtureProv
   transcribe: async () => 'An algorithm is a step by step process that takes inputs and produces outputs. Binary search divides a phone book in half to find a name quickly.',
 } });
 await app.listen({ host: '127.0.0.1', port: 8791 });
-const web = await createServer({ server: { host: '127.0.0.1', port: 4175, strictPort: true,
+const web = await createServer({ cacheDir: '.local/vite-e2e', server: { host: '127.0.0.1', port: 4175, strictPort: true,
   proxy: { '/api': { target: 'http://127.0.0.1:8791', changeOrigin: false } } } });
 await web.listen();
 for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, async () => {

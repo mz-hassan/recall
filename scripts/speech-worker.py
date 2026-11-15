@@ -19,8 +19,8 @@ for line in sys.stdin:
         with wave.open(io.BytesIO(base64.b64decode(request['audio'], validate=True)), 'rb') as wav:
             if (wav.getnchannels(), wav.getsampwidth(), wav.getframerate()) != (1, 2, 16000):
                 raise ValueError('Expected mono 16-bit PCM WAV at 16000 Hz')
-            if not 0 < wav.getnframes() <= 16000 * 20:
-                raise ValueError('Audio must be between 0 and 20 seconds')
+            if not 0 < wav.getnframes() <= 16000 * 30:
+                raise ValueError('Audio must be between 0 and 30 seconds')
             audio = np.frombuffer(wav.readframes(wav.getnframes()), dtype=np.int16).astype(np.float32) / 32768
         text = ''
         # Silence is not evidence. VAD also reduces Whisper's silence hallucinations.

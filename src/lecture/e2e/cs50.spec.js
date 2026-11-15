@@ -32,6 +32,10 @@ test('CS50 uses the regular course, materials, timeline, microphone, and moment 
   await page.getByRole('button', { name: 'Start listening', exact: true }).click();
   await expect(page.getByText('● Listening on this laptop', { exact: true })).toBeVisible();
   await expect(page.locator('.moment.current')).toBeVisible({ timeout: 25000 });
+  await expect.poll(async () => (await (await request.get('/api/lectures/cs50/0/moments')).json()).moments.at(-1)?.enrichment).toBe('ready');
+  const liveSummary = await (await request.get('/api/lectures/cs50/0/moments')).json();
+  expect(liveSummary.moments.at(-1).status).toBe('open');
+  expect(liveSummary.moments.at(-1).summary.length).toBeGreaterThan(0);
   await page.getByRole('button', { name: 'Stop listening', exact: true }).click();
   await expect(page.getByText('Microphone off', { exact: true })).toBeVisible({ timeout: 15000 });
   await page.locator('.moment.current').click();

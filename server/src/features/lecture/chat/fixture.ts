@@ -10,13 +10,13 @@ export const chatFixture: Fixture = ({ evidence }) => {
   const recap = /miss|recap|summari|catch.?up|this (moment|topic)|explain/.test(question);
   const words = question.match(/[a-z]{4,}/g)?.filter(word => !['what', 'does', 'about', 'please', 'could', 'would', 'which', 'there', 'this', 'that', 'with', 'from'].includes(word)) ?? [];
   const matches = context.moments.filter(moment => recap || words.some(word =>
-    `${moment.title} ${moment.quote} ${moment.summary}`.toLowerCase().includes(word))).slice(-5);
+    `${moment.title} ${moment.quote} ${moment.summary}`.toLowerCase().includes(word))).slice(-3);
   if (!matches.length) return {
     answer: 'The available lecture evidence does not answer that question. Try asking about the selected moment or a topic already covered.',
     momentIds: [], insufficientEvidence: true,
   };
   return {
-    answer: matches.map(moment => `${moment.title}: ${(moment.summary || moment.quote).slice(0, 500)}`).join('\n\n'),
+    answer: matches.map(moment => `${moment.title}: ${(moment.summary || moment.quote).slice(0, 160)}`).join(' '),
     momentIds: matches.map(moment => moment.id), insufficientEvidence: false,
   };
 };

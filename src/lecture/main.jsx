@@ -18,6 +18,7 @@ import { targetAfterArrival } from './streamState.js';
 import { MicrophoneControls } from './microphone/MicrophoneControls.jsx';
 import { SlideViewer } from './microphone/SlideViewer.jsx';
 import './microphone/slides.css';
+import { summaryCopy } from './summaryCopy.js';
 
 const formatTime = seconds => [Math.floor(seconds / 60), Math.floor(seconds % 60)].map(n => String(n).padStart(2, '0')).join(':');
 // Keep frame-by-frame transforms off the React render path. React owns selection and playback.
@@ -76,12 +77,10 @@ function useTimelineMotion(stage, nodes, target, expanded, liveIndex) {
 // Long generated titles step down a size so a card stays about two or three lines tall.
 const titleSize = title => title.length > 42 ? 'title-longer' : title.length > 24 ? 'title-long' : undefined;
 
-// The line under a title previews the notes the reader finds inside the moment (the summary),
-// falling back to the opening of the transcript while notes are still being written.
+// The topic card always previews its cumulative summary, never the raw transcript.
 function lede(item) {
   if (item.lede) return item.lede;
-  const summary = (item.summary || '').replace(/<[^>]+>/g, '').trim();
-  return summary || item.quote.slice(0, 150) + '…';
+  return summaryCopy(item);
 }
 
 function Lecture({ allMoments, lecture, options, rich, source, capture }) {

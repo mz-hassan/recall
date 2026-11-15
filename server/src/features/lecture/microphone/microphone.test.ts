@@ -11,9 +11,40 @@ import { coachingRoutes, groundCoaching } from './coaching.ts';
 import { createFixtureProvider } from '../../../llm/fixture.ts';
 import { CoachingSpec } from '../../../../../shared/contracts/slideCoaching.ts';
 import type { SpeechDecoder } from './worker.ts';
+import { buildApp } from '../../../app.ts';
+import { loadConfig } from '../../../config.ts';
+import type { ModelProvider } from '../../../llm/types.ts';
 
 const key = { courseId: 'cs50', lectureId: '0' };
 const text = 'An algorithm is a step by step process that takes inputs and produces outputs. A phone book search can divide the problem in half at every step.';
+
+test('a slow question cannot block recognition or publishing the next microphone chunk', async t => {
+  const store = createMemoryStore(), service = createLectureService({ store });
+  let release!: () => void, started!: () => void, answered = false;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const began = new Promise<void>(resolve => { started = resolve; });
+  const provider: ModelProvider = { name: 'held-chat-test', model: 'fixture', modalities: ['text'], async generateStructured(request) {
+    assert.equal(request.task, 'lecture.chat'); started(); await gate;
+    return { data: request.schema.parse({ answer: 'Algorithms solve problems in precise steps.', momentIds: [store.getMoments(key)[0]!.id], insufficientEvidence: false }),
+      provider: 'test', model: 'test', usage: { inputTokens: 0, outputTokens: 0 }, latencyMs: 0 };
+  } };
+  let decodes = 0;
+  const decoder: SpeechDecoder = { status: () => ({ installed: true, ready: true, busy: false, model: 'test', device: 'test' }), warmup: async () => {}, close() {}, async transcribe() { decodes++; return text; } };
+  const app = await buildApp({ config: loadConfig({}), provider, lectureStore: store, lectureService: service, speechDecoder: decoder });
+  t.after(async () => { release(); await app.close(); });
+  const headers = { 'x-recall-microphone': '1' }, base = '/api/lectures/cs50/0';
+  const state = (await app.inject({ method: 'POST', url: base + '/microphone', headers, payload: {} })).json();
+  const packet = { runId: state.runId, seq: 1, time: 0, endTime: 12, audio: 'A'.repeat(64) };
+  assert.equal((await app.inject({ method: 'POST', url: base + '/microphone/audio', headers, payload: packet })).statusCode, 200);
+  await service.idle(key);
+  const answer = app.inject({ method: 'POST', url: base + '/chat', payload: { runId: state.runId, question: 'Explain algorithms', context: { kind: 'moment', momentId: store.getMoments(key)[0]!.id } } }).then(response => { answered = true; return response; });
+  await began;
+  assert.equal((await app.inject({ method: 'POST', url: base + '/microphone/audio', headers, payload: { ...packet, seq: 2, time: 12, endTime: 36 } })).statusCode, 200);
+  await service.idle(key);
+  assert.equal(decodes, 2); assert.equal(answered, false);
+  assert.equal(store.getMoments(key).length, 2);
+  release(); assert.equal((await answer).statusCode, 200);
+});
 test('microphone chunks retain capture times, ignore silence, finish topics and reject stale / reordered audio', async () => {
   const store = createMemoryStore();
   const capture = createMicrophoneSession({ key, store, segmenter: createPassthroughSegmenter() });

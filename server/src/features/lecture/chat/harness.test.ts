@@ -61,6 +61,16 @@ test('out-of-context questions return an explicit insufficient-evidence result',
   assert.deepEqual(answer.citations, []);
 });
 
+test('answers stay within 90 words even if the model ignores the brevity instruction', async () => {
+  const provider = createFixtureProvider({ [CHAT_TASK]: request => {
+    assert.equal(request.options?.maxOutputTokens, 600);
+    return { answer: 'This is a clear sentence about the lecture. '.repeat(30), momentIds: ['ai/2/moment/2'], insufficientEvidence: false };
+  } });
+  const answer = await answerLectureQuestion({ key, store: setup(), provider, request: selected() });
+  assert(answer.answer.split(/\s+/).length <= 90);
+  assert.match(answer.answer, /\.$/);
+});
+
 test('chat rejects unknown and cross-context citations', async () => {
   const provider = createFixtureProvider({ [CHAT_TASK]: () => ({ answer: 'Unsupported', momentIds: ['ai/2/moment/1'], insufficientEvidence: false }) });
   await assert.rejects(answerLectureQuestion({ key, store: setup(), provider, request: selected() }), /unsupported moment citations/);

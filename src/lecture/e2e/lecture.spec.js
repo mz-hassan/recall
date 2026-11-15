@@ -63,20 +63,36 @@ test('an expanded older moment and its scroll stay put while live topics arrive'
   expect((await (await request.get(base + '/session')).json()).published).toBe(published);
 });
 
-test('pending and missing notes leave the source readable without changing selection', async ({ page }) => {
+test('pending summaries hide the transcript and ready summaries replace the placeholder without changing selection', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.clock.install();
   await page.goto(live + '&transport=fixture&interval=1');
   await expect(page.locator('.moment.current')).toContainText('Filling in notes');
   await page.locator('.moment.current').click();
-  await expect(page.locator('.chunk-copy')).toContainText('we’re going to assume');
+  await expect(page.locator('.chunk-copy')).toContainText('Summarizing this topic');
+  await expect(page.getByRole('button', { name: 'Read transcript fallback', exact: false })).toHaveCount(0);
   const id = await selected(page);
   await page.getByRole('button', { name: 'Play simulated lecture', exact: true }).click();
   await page.clock.runFor(2100);
   expect(await selected(page)).toBe(id);
   await expect(page.locator('#detail')).not.toContainText('Filling in notes');
-  await page.getByRole('button', { name: 'Read the source', exact: false }).click();
-  await expect(page.locator('dialog blockquote')).toContainText('query the expert');
+  await expect(page.locator('.chunk-copy')).not.toContainText('Summarizing this topic');
+  await expect(page.getByRole('button', { name: 'Read transcript fallback', exact: false })).toHaveCount(0);
+});
+
+test('the transcript is accessible only as a fallback when summary generation fails', async ({ page, request }) => {
+  await start(request, { start: 'instant', limit: 2 });
+  let quote;
+  await page.route('**/api/lectures/ai/2/moments', async route => {
+    const response = await route.fetch(); const snapshot = await response.json();
+    snapshot.moments = snapshot.moments.map(moment => ({ ...moment, summary: '', enrichment: 'failed' }));
+    quote = snapshot.moments.at(-1).quote;
+    await route.fulfill({ response, json: snapshot });
+  });
+  await page.goto(live); await page.locator('.moment.current').click();
+  await expect(page.locator('.chunk-copy')).toContainText('Summary unavailable');
+  await page.getByRole('button', { name: 'Read transcript fallback', exact: false }).click();
+  await expect(page.locator('dialog blockquote')).toContainText(quote.slice(0, 80));
 });
 
 test('contextual chat cites real moments and survives a source jump', async ({ page, request }) => {
