@@ -1,0 +1,28 @@
+dialog.quiz-modal{width:min(900px,calc(100vw - 32px));max-width:900px;max-height:88dvh;padding:38px;color:#e6ecea;background:#101613;border:1px solid #344c3e;border-radius:20px;overflow-y:auto;overscroll-behavior:contain}
+.quiz-modal::backdrop{background:#030705c9;backdrop-filter:blur(8px)}
+.quiz-close{position:absolute;right:14px;top:10px;font-size:28px;color:#becdc5;border:0;background:none;cursor:pointer}
+.quiz-shell h2,.quiz-leaderboard h2{font-size:clamp(25px,4vw,37px);letter-spacing:-1px;margin:10px 0 20px;line-height:1.15}
+.quiz-shell p,.quiz-leaderboard p{color:#adbbb3;line-height:1.7;margin:14px 0}
+.quiz-shell button,.quiz-leaderboard button{cursor:pointer}
+.quiz-shell .primary,.quiz-shell .secondary,.quiz-leaderboard .secondary{display:inline-flex;padding:12px 18px;border:1px solid #537260;border-radius:24px;background:#1b3024;color:#daf3e4;font:inherit;text-decoration:none;line-height:1.3}
+.quiz-shell .secondary,.quiz-leaderboard .secondary{background:transparent}
+.quiz-shell button:disabled{opacity:.5;cursor:wait}
+.quiz-coverage{padding:14px 0;border-block:1px solid #2c3b32;color:#adc6b5;font-size:13px}
+.quiz-coverage summary,.quiz-review summary{cursor:pointer}
+.quiz-coverage li{margin:9px 0;line-height:1.5}
+.quiz-progress{position:sticky;top:-38px;padding:12px;background:#101613;z-index:1;font-variant-numeric:tabular-nums;border-bottom:1px solid #344c3e}
+.quiz-question{border:0;border-bottom:1px solid #2b3a31;padding:22px 0;margin:0 0 20px;min-width:0}
+.quiz-question legend{display:block;font-size:18px;line-height:1.5;padding:0;width:100%;color:#e6ecea}
+.quiz-question legend small{display:block;color:#9db8a7;font-size:12px;margin-bottom:8px}
+.quiz-question label{display:flex;gap:12px;padding:13px 15px;margin:9px 0;border:1px solid #31473a;border-radius:10px;line-height:1.6;cursor:pointer;overflow-wrap:anywhere}
+.quiz-question input{flex:none;margin-top:6px;accent-color:#a5eac0;width:16px;height:16px}
+.quiz-question .quiz-selected{border-color:#9cd4ae;background:#23422e55}
+.quiz-question label:focus-within{outline:2px solid #a5eac0;outline-offset:2px}
+.quiz-score{display:flex;flex-direction:column;gap:10px;padding:24px 0}.quiz-score strong{font-size:40px;color:#b6f3d3}.quiz-score span{color:#a7bbaf}
+.quiz-result-actions,.quiz-filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:20px 0}
+.quiz-review{padding-left:22px}.quiz-review li{padding:20px 0;border-bottom:1px solid #304035}.quiz-review h3{font-size:18px;line-height:1.5;margin-top:10px}.quiz-review blockquote{margin:12px 0;padding-left:16px;border-left:2px solid #81a48c;color:#a7c2b1;line-height:1.7}
+.quiz-correct{color:#b6f3d3}.quiz-wrong,.quiz-error{color:#f1b09a!important}.quiz-error{padding:14px;border:1px solid #795143;border-radius:8px}
+.quiz-filters label{display:flex;flex-direction:column;gap:8px;color:#a5bdad;font-size:13px}.quiz-filters select{max-width:100%;padding:10px;border:1px solid #425a49;border-radius:8px;background:#101613;color:#dceae1;font:inherit}
+.quiz-table-scroll{max-width:100%;overflow-x:auto;margin-top:20px}.quiz-leaderboard table{width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums}.quiz-leaderboard caption{text-align:left;color:#9db4a5;padding-bottom:12px}.quiz-leaderboard th,.quiz-leaderboard td{padding:14px 12px;border-bottom:1px solid #344638;white-space:nowrap}.quiz-leaderboard thead{color:#9fbdab;font-size:12px}.quiz-is-you{background:#36543c55}.quiz-your-rank{padding:16px;border:1px solid #536b57;border-radius:10px}
+@media(max-width:600px){dialog.quiz-modal{padding:30px 18px}.quiz-progress{top:-30px}.quiz-question legend{font-size:17px}.quiz-filters{align-items:stretch}.quiz-filters label{width:100%}.quiz-result-actions{align-items:stretch;flex-direction:column}.quiz-leaderboard th,.quiz-leaderboard td{padding:12px 8px}}
+@media(max-width:800px){header:has(.lecture-quiz-launch){gap:10px}header:has(.lecture-quiz-launch) .lecture-name{flex:1;min-width:0}header:has(.lecture-quiz-launch) .lecture-name small{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}header:has(.lecture-quiz-launch) .header-actions{gap:4px}.lecture-quiz-launch{font-size:0}.lecture-quiz-launch::after{content:'Quiz';font-size:11px}}

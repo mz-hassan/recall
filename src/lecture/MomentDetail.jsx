@@ -5,7 +5,7 @@ import { MomentExtras } from './MomentExtras.jsx';
 import { LectureSlide } from './components/LectureSlide.jsx';
 import { summaryCopy, summaryFailed } from './summaryCopy.js';
 
-export function MomentDetail({ moment, saved, onSave, onOpen, onChat, chatEnabled, client, runId, onSelectMoment, doubtAction, slideContent }) {
+export function MomentDetail({ moment, saved, onSave, onOpen, onChat, chatEnabled, client, runId, onSelectMoment, doubtAction, slideContent, onQuiz }) {
   return <>
     <div className="eyebrow">{moment.label} &nbsp; / &nbsp; {moment.type}</div>
     <h2>{moment.title}</h2>
@@ -26,6 +26,7 @@ export function MomentDetail({ moment, saved, onSave, onOpen, onChat, chatEnable
     <MomentExtras moment={moment} client={client} runId={runId} onSelectMoment={onSelectMoment}/>
     <div className="detail-actions">{(moment.headline || summaryFailed(moment)) && <button onClick={() => onOpen('transcript')}>{moment.headline ? 'Read the source ↗' : 'Read transcript fallback ↗'}</button>}{onSave && <button onClick={onSave}>{saved ? '✓ Moment saved' : '+ Save this moment'}</button>}</div>
     {doubtAction}
+    {onQuiz && <div className="detail-actions"><button type="button" onClick={onQuiz}>Take a topic quiz ↗</button></div>}
     <p className="notes">{moment.timeSource === 'simulated' || (!moment.timeSource && moment.type === 'TRANSCRIPT') ? 'Time reflects simulated playback.' : moment.label.startsWith('≈') ? 'Estimated timestamp within an untimed transcript passage.' : 'Timestamp anchored to the lecture transcript.'}</p>
   </>;
 }

@@ -15,6 +15,8 @@ import { CourseGraphButton } from '../graph/CourseGraphButton.jsx';
 import { replayPath } from '../lecture/replay.js';
 import { enrolledCourseIds, isCourseStaff, joinCourse, readProfile, saveProfile, restoreAccount, logoutAccount } from '../classroom/accounts.js';
 import { AccountForm, CourseSearch, StaffOverview } from '../classroom/Classroom.jsx';
+import { QuizDialog } from '../quizzes/QuizDialog.jsx';
+import { Leaderboard } from '../quizzes/Leaderboard.jsx';
 
 const date = value => new Date(value + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 const number = lecture => lecture.id.padStart(2, '0');
@@ -58,7 +60,7 @@ function CourseHeading({ course, sourceCount, active, onAdd, nextLecture, onStar
       <button className="primary" onClick={onStartSession} disabled={!nextLecture}>◉ Start a session</button>
       {!nextLecture && <small>{course.lectures.length ? 'No upcoming lectures.' : 'No lectures scheduled.'}</small>}
     </div></div></div>
-    <nav className="tabs">{staff && <a href={'#staff/' + course.id}>Lecture doubts ↗</a>}<a className={active === 'course' ? 'active' : ''} href={'#course/' + course.id}>Overview &amp; lectures <small>{course.lectures.length}</small></a><a className={active === 'papers' ? 'active' : ''} href={'#papers/' + course.id}>Papers</a><a className={active === 'sources' ? 'active' : ''} href={'#sources/' + course.id}>Sources <small>{sourceCount}</small></a></nav>
+    <nav className="tabs">{staff && <a href={'#staff/' + course.id}>Lecture doubts ↗</a>}<a className={active === 'course' ? 'active' : ''} href={'#course/' + course.id}>Overview &amp; lectures <small>{course.lectures.length}</small></a><a className={active === 'papers' ? 'active' : ''} href={'#papers/' + course.id}>Papers</a><a className={active === 'sources' ? 'active' : ''} href={'#sources/' + course.id}>Sources <small>{sourceCount}</small></a><a className={active === 'leaderboard' ? 'active' : ''} href={'#leaderboard/' + course.id}>Quiz leaderboard</a></nav>
   </>;
 }
 
@@ -71,7 +73,7 @@ function lectureTimelinePath(lecture) {
   return replayPath(lecture.id, true, lecture.courseId, lecture.microphone);
 }
 
-function CourseOverview({ course, getSources }) {
+function CourseOverview({ course, getSources, onQuiz }) {
   return <>
     <div className="subhead"><span>LECTURES</span><small>{course.lectures.length} in the course library</small></div>
     {course.lectures.length ? <div className="lecture-list">{course.lectures.map(lecture => <article key={lecture.id} className="lecture-row course-lecture-row">
@@ -81,6 +83,7 @@ function CourseOverview({ course, getSources }) {
         <p>{lecture.date ? date(lecture.date) + ', 2026' : course.term || 'Recording date unavailable'}{lecture.notesAvailable?(lecture.notesBasis==='materials'?' · Preparation notes from materials':' · Study notes ready'):!lecture.replay&&' · No timeline available'}</p>
       </div>
       <div className="course-lecture-actions">
+        {(lecture.replay||lecture.notesAvailable)&&<button type="button" className="source-link" onClick={()=>onQuiz(lecture)}>Take lecture quiz ↗</button>}
         <a className="source-link" href={lecturePath(course, lecture)} aria-label={'Course material for Lecture ' + number(lecture)}>Course material ↗</a>
       </div>
     </article>)}</div> : <div className="empty-state">Your first thread starts here. Add course sources, then preview a session.</div>}
@@ -152,7 +155,7 @@ function CourseSources({ course, sources, onAdd, onLink, ...actions }) {
   </aside></div>;
 }
 
-function LectureMaterials({ course, lecture, sources, onAdd, ...actions }) {
+function LectureMaterials({ course, lecture, sources, onAdd, onQuiz, ...actions }) {
   const groups = [
     ['Required', 'Required readings'],
     ['Optional', 'Optional readings'],
@@ -169,6 +172,7 @@ function LectureMaterials({ course, lecture, sources, onAdd, ...actions }) {
       </div>
       <div className="hero-actions">
         <button className="secondary" onClick={() => onAdd(lecture.id)}>+ Add to this lecture</button>
+        {(lecture.replay||lecture.notesAvailable)&&<button type="button" className="secondary" onClick={()=>onQuiz(lecture)}>Take lecture quiz ↗</button>}
         {hasCuratedReplay(lecture) && <a className="primary" href={lectureTimelinePath(lecture)}>Curated timeline ↗</a>}
         {lecture.notesAvailable && <a className={hasCuratedReplay(lecture) ? 'secondary' : 'primary'} href={studyNotesPath(lecture)}>Study notes ↗</a>}
         {lecture.microphone && <a className="primary" href={replayPath(lecture.id, false, course.id, true)}>Start live lecture ↗</a>}
@@ -311,6 +315,7 @@ function Library() {
   const [userSources, setUserSources] = useState(() => readStored('recall-sources'));
   const [session, setSession] = useState(null);
   const [dialog, setDialog] = useState(null);
+  const [quiz, setQuiz] = useState(null);
   const [message, setMessage] = useState('');
   const toastTimer = useRef(null);
   const courses = mergeNotesCatalog([...baseCourses, ...userCourses],noteCatalog);
@@ -330,6 +335,7 @@ function Library() {
   const reading = view === 'reading' && materials.find(source =>
     encodeURIComponent(source.id) === sourceKey && readingKinds.includes(source.kind));
   const canOpenCourse = profile && course && enrolled.includes(id);
+  const openQuiz = item => setQuiz({courseId:course.id,lectureId:item.id,scope:'lecture',source:hasCuratedReplay(item)?'curated':item.notesAvailable?'notes':'transcript'});
   useEffect(() => {
     const onHash = () => { setHash(location.hash); setDialog(null); };
     window.addEventListener('hashchange', onHash);
@@ -347,7 +353,7 @@ function Library() {
     if (['courses', 'find-courses'].includes(view)) return;
     if (!canOpenCourse) { location.hash = 'find-courses'; return; }
     if (view === 'staff' && !staff) { location.hash = 'course/' + id; return; }
-    if (!['course', 'sources', 'papers', 'paper', 'lecture', 'reading', 'record', 'staff', 'graph'].includes(view)) location.hash = 'courses';
+    if (!['course', 'sources', 'papers', 'paper', 'lecture', 'reading', 'record', 'staff', 'graph', 'leaderboard'].includes(view)) location.hash = 'courses';
     else if ((['lecture', 'reading'].includes(view) && !lecture) || (view === 'record' && session?.course !== course.id)) location.hash = 'course/' + course.id;
     else if (view === 'reading' && !sourceKey) location.hash = lecturePath(course, lecture);
   }, [accountReady, catalogReady, accountPage, canOpenCourse, course, id, lecture, profile, session, sourceKey, staff, view]);
@@ -422,7 +428,7 @@ function Library() {
     <div className="ambient" aria-hidden="true"/>
     <header><Brand href={profile ? '#courses' : '#signin/' + signInRole}/><div id="breadcrumb">{!canOpenCourse ? <span>{view === 'find-courses' ? 'Find a course' : profile ? 'My courses' : 'Account access'}</span> :
       view === 'course' ? <><a href="#courses">My courses</a><span>/ {course.name}</span></> :
-        <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['papers', 'paper'].includes(view) ? 'Papers' : ['lecture', 'reading'].includes(view) ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : view === 'staff' ? 'Lecture doubts' : view === 'graph' ? 'Knowledge graph' : 'Session'}</span></>}</div>
+        <><a href={'#course/' + course.id}>{course.name}</a><span>/ {['papers', 'paper'].includes(view) ? 'Papers' : ['lecture', 'reading'].includes(view) ? 'Lecture ' + lectureId : view === 'sources' ? 'Sources' : view === 'staff' ? 'Lecture doubts' : view === 'graph' ? 'Knowledge graph' : view === 'leaderboard' ? 'Quiz leaderboard' : 'Session'}</span></>}</div>
       <div className="header-end">
         {profile ? <button className="secondary" onClick={onSignOut}>Sign out</button>
           : <a className="secondary" href="#signin/student">Sign in</a>}
@@ -434,21 +440,23 @@ function Library() {
         : view === 'courses' ? <Courses courses={courses.filter(item => enrolled.includes(item.id))} getSources={getSources} coursePath={coursePath} staff={teaching}/>
         : view === 'find-courses' ? <CourseSearch courses={courses} enrolled={enrolled} onJoin={onJoin} coursePath={coursePath} onCreate={() => setDialog({ type: 'course' })}/>
         : canOpenCourse && <>
-        {['course', 'sources', 'papers'].includes(view) && <CourseHeading course={course} sourceCount={getSources(id).length} active={view} onAdd={onAdd} staff={staff} nextLecture={nextLecture} onStartSession={onStartSession}/>}
+        {['course', 'sources', 'papers', 'leaderboard'].includes(view) && <CourseHeading course={course} sourceCount={getSources(id).length} active={view} onAdd={onAdd} staff={staff} nextLecture={nextLecture} onStartSession={onStartSession}/>}
+        {view === 'leaderboard' && <Leaderboard courseId={course.id} course={course}/>}
         {view === 'staff' && staff && <StaffOverview course={course} profile={profile}/>}
         {view === 'graph' && <CourseGraphPage course={course}/>}
-        {view === 'course' && <CourseOverview course={course} getSources={getSources}/>}
+        {view === 'course' && <CourseOverview course={course} getSources={getSources} onQuiz={openQuiz}/>}
         {view === 'sources' && <CourseSources course={course} sources={getSources(id)} onAdd={onAdd} onLink={() => onLink()} onPdf={onPdf} onRemove={onRemove}/>}
         {view === 'papers' && <PapersPage course={course}/>}
         {view === 'paper' && <Suspense fallback={<div className="empty-state">Opening your paper…</div>}><PaperReader course={course} paperId={lectureId} anchorId={sourceKey}/></Suspense>}
         {view === 'reading' && lecture && sourceKey && <ReadingPage course={course} lecture={lecture} source={reading}
           materialPath={lecturePath(course, lecture)} original={reading && <SourceLink source={reading} onPdf={onPdf}>Open original</SourceLink>}/>}
-        {view === 'lecture' && lecture && <LectureMaterials course={course} lecture={lecture} sources={materials} onAdd={onAdd} onPdf={onPdf} onRemove={onRemove}/>}
+        {view === 'lecture' && lecture && <LectureMaterials course={course} lecture={lecture} sources={materials} onAdd={onAdd} onQuiz={openQuiz} onPdf={onPdf} onRemove={onRemove}/>}
         {view === 'record' && session?.course === id && <Session course={course} session={session} onPdf={onPdf}
           onEnd={() => { setSession(null); location.hash = 'course/' + id; notify('Demo ended. No audio was recorded.'); }}/>}
         {!['record', 'staff', 'paper'].includes(view) && <div className="bottom-note"><span>A little rewind. A lot of clarity.</span><span>Your notes, materials, and lecture threads</span></div>}
       </>}
     </main>
+    {quiz && <QuizDialog options={quiz} onClose={()=>setQuiz(null)}/>}
     <Dialog wide={dialog?.type === 'preview'} onClose={() => setDialog(null)}>
       {dialog?.type === 'about' && <><div className="eyebrow">RECALL · COURSE WORKSPACE</div><h2>Your learning, connected.</h2><p>Courses connect materials, prepared study notes, and live lecture threads. Sign in to save your lectures, questions, and doubt markers with your account. Prepared course notes are shared with enrolled users.</p><p>PDFs you upload and custom course metadata still stay in this browser. CS50 supports local microphone transcription in the lecture timeline.</p></>}
       {dialog?.type === 'course' && <NewCourseForm onSave={item => {

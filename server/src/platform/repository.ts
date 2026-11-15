@@ -2,6 +2,7 @@ import { MongoClient, type Collection, type Document } from 'mongodb';
 import type { Moment, SessionState, TimelineSnapshotEvent, TranscriptChunk } from '../../../shared/contracts/lecture.ts';
 import type { ChatAnswer, ChatRequest, GeneratedArtifact } from '../../../shared/contracts/lectureInteractions.ts';
 import type { SlideCoaching } from '../../../shared/contracts/slideCoaching.ts';
+import { createQuizRepository } from '../features/quizzes/repository.ts';
 
 export type User = { id: string; email: string; role: 'student' | 'instructor' | 'ta'; courses: string[] };
 export type UserRecord = User & { _id: string; salt: string; passwordHash: string; createdAt: Date };
@@ -29,6 +30,8 @@ export function createPlatformRepository({ uri, database }: { uri: string; datab
         db.collection('lecture_runs').createIndex({ userId: 1, courseId: 1, lectureId: 1, kind: 1, updatedAt: -1 }),
         db.collection('lecture_chats').createIndex({ userId: 1, courseId: 1, lectureId: 1, runId: 1, createdAt: 1 }),
         db.collection('lecture_doubts').createIndex({ courseId: 1, lectureId: 1, runId: 1, momentId: 1 }),
+        db.collection('quiz_attempts').createIndex({ id: 1 }, { unique: true }),
+        db.collection('quiz_attempts').createIndex({ courseId: 1, ranked: 1, status: 1, userId: 1 }),
       ]);
     })().catch(error => { connection = undefined; throw error; });
     await connection;
@@ -36,6 +39,7 @@ export function createPlatformRepository({ uri, database }: { uri: string; datab
   async function collection<T extends Document>(name: string): Promise<Collection<T>> { await connect(); return client.db(database).collection<T>(name); }
   const publicUser = (user: UserRecord): User => ({ id: user.id, email: user.email, role: user.role, courses: user.courses });
   return {
+    quizzes: createQuizRepository(collection),
     connect,
     async close() { await client.close(); connection = undefined; },
     async createUser(user: UserRecord) { await (await collection<UserRecord>('users')).insertOne(user); return publicUser(user); },

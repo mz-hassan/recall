@@ -8,9 +8,13 @@ export default defineConfig({
   projects: [
     { name: 'desktop', use: { browserName: 'chromium', viewport: { width: 1440, height: 800 } } },
     { name: 'mobile', testIgnore: 'tests/e2e/**', use: { browserName: 'chromium', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
+    { name: 'quizzes', testMatch: 'tests/quiz-e2e/**/*.spec.js', timeout: 60_000, use: { baseURL: 'http://127.0.0.1:4176', browserName: 'chromium' } },
   ],
-  webServer: {
+  webServer: [{
     command: 'node --import tsx src/lecture/e2e/start-server.mjs', url: 'http://127.0.0.1:4175',
     reuseExistingServer: false, timeout: 30_000,
-  },
+  }, {
+    command: 'node --import tsx tests/quiz-e2e/start-server.mjs', url: 'http://127.0.0.1:4176',
+    reuseExistingServer: false, timeout: 60_000,
+  }],
 });

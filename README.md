@@ -106,6 +106,10 @@ Next steps include course-site ingestion, stronger connections from completed ti
 
 ## Build with us
 
+Course lectures now include [topic and whole-lecture MCQ quizzes](docs/quizzes.md),
+with extra coverage for doubts and key concepts. Topic quizzes earn up to 10 points,
+lecture quizzes up to 100; the course leaderboard counts first submitted attempts only.
+
 ```sh
 npm run typecheck
 npm test
