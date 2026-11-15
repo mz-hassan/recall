@@ -56,8 +56,9 @@ test('outline is primary, headings are collapsed, and PDF loads only when opened
   expect(pdfRequests).toBe(0);
   await page.screenshot({ path: 'test-results/dagger-outline.png' });
   await page.getByText('3. DAgger', { exact: true }).click();
-  await page.getByText('Algorithm 3.1: the DAgger loop', { exact: true }).click();
-  await page.getByRole('button', { name: 'View passage · p. 4' }).click();
+  await expect(page.locator('.reading-section[open] .outline-bullet')).toHaveCount(3);
+  await expect(page.locator('.reading-section[open] details')).toHaveCount(0);
+  await page.getByRole('button', { name: 'View Algorithm 3.1: the DAgger loop on page 4' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Page number' })).toHaveValue('4');
   await rendered(page, 4);
   await page.getByRole('button', { name: 'Zoom in' }).click();
@@ -112,8 +113,7 @@ test('outline selection opens the paper and unified chat, and diagrams truly exp
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await openReader(page);
   await page.getByText('3. DAgger', { exact: true }).click();
-  await page.getByText('Algorithm 3.1: the DAgger loop', { exact: true }).click();
-  await selectText(page.locator('[data-source-id="algorithm"] p'));
+  await selectText(page.locator('[data-source-id="algorithm"] span'));
   await expect(page.getByRole('toolbar', { name: 'Selected text actions' })).toBeVisible();
   await page.getByRole('button', { name: 'Explain', exact: true }).click();
   await expect(page.getByText('Keep all prior expert-labeled states when retraining.')).toBeVisible();
