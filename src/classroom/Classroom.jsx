@@ -29,13 +29,14 @@ export function AccountForm({ role, signup, onSignIn }) {
       setBusy(true);
       setError('');
       try {
-        const profile = await authenticateDemo({ email, role, password: form.get('password'), signup });
+        const profile = await authenticateDemo({ email, role, password: form.get('password'), invite: form.get('invite') || undefined, signup });
         if (!onSignIn(profile)) setError('This browser could not save your login.');
       } catch (failure) { setError(failure.message); }
       finally { setBusy(false); }
     }}>
       <label className="form-field"><span>Academic email</span><input type="email" name="email" autoComplete="username" placeholder="you@umass.edu" required/></label>
       <label className="form-field"><span>Password</span><input type="password" name="password" autoComplete={signup ? 'new-password' : 'current-password'} minLength={signup ? 8 : undefined} maxLength={128} required/></label>
+      {signup && role !== 'student' && <label className="form-field"><span>Staff invitation code (if required)</span><input name="invite" type="password" maxLength={256}/></label>}
       {signup && <p className="form-note">Use at least 8 characters and a password just for this demo.</p>}
       {error && <p className="message" role="alert">{error}</p>}
       <div className="account-actions">

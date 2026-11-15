@@ -20,7 +20,7 @@ export { createModelEnricher } from './enrichment/harness.ts';
 export type { LectureStore } from './store/types.ts';
 
 /** Registers every live lecture route. */
-export async function lectureFeature(app: FastifyInstance, deps: { service: LectureService; store: LectureStore; provider: ModelProvider; decoder?: import('./microphone/worker.ts').SpeechDecoder; resolve?:RuntimeResolver;repository?:PlatformRepository }) {
+export async function lectureFeature(app: FastifyInstance, deps: { service: LectureService; store: LectureStore; provider: ModelProvider; decoder?: import('./microphone/worker.ts').SpeechDecoder; resolve?:RuntimeResolver;repository?:PlatformRepository; remoteOrigin?: string }) {
   await app.register(streamRoutes, deps);
   await app.register(interactRoutes, deps);
   await app.register(microphoneRoutes, deps);

@@ -30,7 +30,7 @@ export function createSpeechDecoder(): SpeechDecoder {
   function warmup() {
     if (ready) return Promise.resolve();
     if (boot) return boot;
-    if (!installed()) return Promise.reject(new SpeechError('Install the local speech model with scripts/install-speech.ps1.'));
+    if (!installed()) return Promise.reject(new SpeechError('Install the speech model on the Recall server before recording.'));
     boot = new Promise<void>((resolve, reject) => {
       // Do not pass API keys or cloud-provider configuration to the audio worker.
       child = spawn(python, ['-u', script, model], { windowsHide: true, env: {

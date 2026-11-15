@@ -1,6 +1,9 @@
+import { createServer as createHttpsServer, type ServerOptions as TlsOptions } from 'node:https';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import type { Config } from './config.ts';
+import { findPaper } from './data/readings.ts';
+import { completionSchema } from '../../shared/contracts/graph.ts';
 import { datasetRoutes } from './data/routes.ts';
 import type { ModelProvider } from './llm/index.ts';
 import {
@@ -16,8 +19,12 @@ import { createUserLectureRuntimes } from './platform/lectureRuntime.ts';
 import { platformRoutes } from './platform/routes.ts';
 import { AccountError, requireCourse } from './platform/auth.ts';
 
-function baseApp(logger: boolean) {
-  const app = Fastify({ logger, forceCloseConnections: true, bodyLimit: 16384 });
+function baseApp(logger: boolean, tls?: TlsOptions, trustLoopbackProxy = false) {
+  const app = Fastify({
+    logger, forceCloseConnections: true, bodyLimit: 16384,
+    trustProxy: trustLoopbackProxy ? 'loopback' : false,
+    ...(tls && { serverFactory: (handler: Parameters<typeof createHttpsServer>[1]) => createHttpsServer(tls, handler) }),
+  });
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof ZodError) return reply.code(400).send({ error: 'Invalid request.', details: error.issues });
     if (error instanceof GraphError) return reply.code(error.statusCode).send({ error: error.message });
@@ -41,6 +48,7 @@ export function createApp(service: GraphService, providerConfigured = true) {
 
 export type AppDependencies = {
   config: Config;
+  tls?: TlsOptions;
   provider: ModelProvider;
   logger?: boolean;
   lectureStore?: LectureStore;
@@ -53,10 +61,10 @@ export type AppDependencies = {
 
 /** One shared API; a missing graph database must not disable the live lecture service. */
 export async function buildApp({
-  config, provider, logger = false, lectureStore, lectureService, speechDecoder,repository,
+  config, provider, tls, logger = false, lectureStore, lectureService, speechDecoder,repository,
   graphService = () => undefined, graphProviderConfigured = config.llm.provider === 'deepseek',
 }: AppDependencies): Promise<FastifyInstance> {
-  const app = baseApp(logger);
+  const app = baseApp(logger, tls, config.deployment.trustLoopbackProxy);
   registerLectureFixtures(provider);
   registerReadingsFixtures(provider);
   const store = lectureStore ?? createMemoryStore();
@@ -71,6 +79,13 @@ export async function buildApp({
   const runtimes=repository?createUserLectureRuntimes(repository,provider,error=>app.log.error(error)):undefined;
   if(runtimes)app.addHook('onClose',async()=>runtimes.close());
   await app.register(async api => {
+    if (repository && config.deployment.origin) api.addHook('preHandler', async request => {
+      if (!request.routeOptions.url?.startsWith('/api/readings/')) return;
+      const { paperId } = request.params as { paperId: string };
+      const paper = findPaper(paperId);
+      if (!paper) throw new AccountError(404, 'Paper not found.');
+      await requireCourse(request, repository, paper.courseId);
+    });
     if (repository) api.addHook('preHandler', async request => {
       if (request.routeOptions.url === '/api/datasets/:courseId/*' && (request.params as {courseId:string}).courseId === 'cv') {
         await requireCourse(request, repository, 'cv');
@@ -79,15 +94,31 @@ export async function buildApp({
     if (repository) api.addHook('preHandler', async request => {
       if (['GET', 'HEAD', 'OPTIONS'].includes(request.method) || !request.headers.origin) return;
       let sameOrigin = false;
-      try { sameOrigin = new URL(request.headers.origin).host === request.headers.host; } catch {}
+      try {
+        const origin = new URL(request.headers.origin);
+        sameOrigin = config.deployment.origin
+          ? origin.origin === config.deployment.origin
+          : origin.host === request.headers.host;
+      } catch {}
       if (!sameOrigin) throw new AccountError(403, 'Open this action in Recall.');
     });
     api.get('/health', async () => ({ ok: true, provider: provider.name, model: provider.model,accounts:repository?'database':'fixture' }));
-    if(repository&&runtimes)await api.register(platformRoutes,{repository,runtimes,store,service,provider});
+    if(repository&&runtimes)await api.register(platformRoutes,{
+      repository,runtimes,store,service,provider,staffInvite:config.deployment.staffInvite,
+    });
     await api.register(datasetRoutes);
-    await api.register(lectureFeature, { service, store, provider, decoder: speechDecoder,repository,resolve:runtimes?(request=>runtimes.resolve(request)):undefined });
+    await api.register(lectureFeature, { service, store, provider, decoder: speechDecoder,repository,remoteOrigin:config.deployment.origin,resolve:runtimes?(request=>runtimes.resolve(request)):undefined });
     await api.register(readingsFeature, { provider });
   }, { prefix: '/api' });
+  if (repository && config.deployment.origin) app.addHook('preHandler', async request => {
+    if (request.routeOptions.url !== '/api/graph/lecture-completed') return;
+    if (request.headers.origin && request.headers.origin !== config.deployment.origin) {
+      throw new AccountError(403, 'Open this action in Recall.');
+    }
+    const { courseId } = completionSchema.parse(request.body);
+    const user = await requireCourse(request, repository, courseId);
+    if (user.role === 'student') throw new AccountError(403, 'This action requires course staff.');
+  });
   registerGraphRoutes(app, graphService, graphProviderConfigured);
   return app;
 }

@@ -34,3 +34,12 @@ test('MongoDB and model settings preserve the shared local configuration', () =>
   assert.equal(config.llm.deepseekApiKey, 'test-key');
   assert.deepEqual(config.mongo, { uri: 'mongodb://127.0.0.1:27017', database: 'recall' });
 });
+
+test('deployment requires a complete TLS pair and the exact browser origin', () => {
+  assert.throws(() => loadConfig({ TLS_CERT_FILE: 'cert.pem' }), /TLS_CERT_FILE/);
+  assert.throws(() => loadConfig({ APP_ORIGIN: 'https://recall.example.edu/path' }), /APP_ORIGIN/);
+  assert.throws(() => loadConfig({ TLS_CERT_FILE: 'cert.pem', TLS_KEY_FILE: 'key.pem' }), /APP_ORIGIN/);
+  assert.throws(() => loadConfig({ TRUST_LOOPBACK_PROXY: '1', HOST: '0.0.0.0' }), /HOST/);
+  const config = loadConfig({ TLS_CERT_FILE: 'cert.pem', TLS_KEY_FILE: 'key.pem', APP_ORIGIN: 'https://recall.example.edu' });
+  assert.equal(config.deployment.origin, 'https://recall.example.edu');
+});

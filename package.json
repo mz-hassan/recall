@@ -25,7 +25,8 @@
     "eval:lecture": "node --import tsx --env-file-if-exists=.env server/src/features/lecture/eval.ts",
     "extract:slides": "node scripts/extract-slide-pages.mjs",
     "prepare:reading": "node scripts/prepare-reading.mjs",
-    "notes:prepare": "node --import tsx --env-file-if-exists=.env scripts/prepare-course-notes.mts"
+    "notes:prepare": "node --import tsx --env-file-if-exists=.env scripts/prepare-course-notes.mts",
+    "start": "node --import tsx --env-file-if-exists=.env server/src/index.ts --serve-web"
   },
   "dependencies": {
     "@dagrejs/dagre": "^3.1.3",
@@ -38,6 +39,7 @@
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-pdf": "^11.0.0",
+    "tsx": "^4.23.15",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -47,7 +49,6 @@
     "@types/react-dom": "^19.3.0",
     "concurrently": "^10.0.7",
     "mongodb-memory-server": "^11.3.0",
-    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "7.3.8"
   },

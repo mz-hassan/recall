@@ -2,6 +2,8 @@
 
 Recall helps students recover context during a lecture and revisit it afterward. The course library brings together assigned readings, past timelines and a cross-lecture knowledge graph. The live lecture interface groups incoming transcript chunks into moments that can carry summaries, equations, intuition, slides, diagrams and requested artifacts.
 
+The [device and deployment guide](docs/device-test.md) covers the single-server production build, MongoDB, and HTTPS microphone testing.
+
 ## Run locally
 
 Use Node.js 22.18 or later (Node 24 recommended). The TypeScript runner supports both backend features.

@@ -9,11 +9,11 @@ import type { LectureStore } from '../features/lecture/store/types.ts';
 import type { LectureService } from '../features/lecture/service.ts';
 import type { ModelProvider } from '../llm/types.ts';
 
-export async function platformRoutes(app:FastifyInstance,{repository,runtimes,store,service,provider}:{repository:PlatformRepository;runtimes:UserLectureRuntimes;store:LectureStore;service:LectureService;provider:ModelProvider}){
+export async function platformRoutes(app:FastifyInstance,{repository,runtimes,store,service,provider,staffInvite}:{repository:PlatformRepository;runtimes:UserLectureRuntimes;store:LectureStore;service:LectureService;provider:ModelProvider;staffInvite?:string}){
   app.addHook('preHandler',async request=>{
     if(request.url.includes('/prepared/')&&request.method==='POST'&&request.url.includes('/session'))throw new AccountError(405,'Prepared study notes cannot be restarted as a replay.');
   });
-  await app.register(authRoutes,{repository});
+  await app.register(authRoutes,{repository,staffInvite});
   app.get('/courses/notes',async()=>({lectures:await repository.notesCatalog()}));
   app.get('/account/runs',async request=>{
     const user=await requireUser(request,repository),query=z.object({courseId:z.string().optional()}).parse(request.query);

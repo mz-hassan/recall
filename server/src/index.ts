@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { serveFrontend } from './platform/static.ts';
 import { buildApp } from './app.ts';
 import { loadConfig } from './config.ts';
 import { createProvider } from './llm/index.ts';
@@ -8,6 +10,9 @@ import { createPlatformRepository } from './platform/repository.ts';
 try {
   const config = loadConfig();
   const provider = createProvider(config.llm);
+  const { certFile, keyFile } = config.deployment;
+  const tls = certFile && keyFile ? { cert: await readFile(certFile), key: await readFile(keyFile) } : undefined;
+  const serveWeb = process.argv.includes('--serve-web');
   const graphProvider = new DeepSeekProvider({
     key: config.llm.deepseekApiKey,
     model: config.llm.model ?? DEFAULT_DEEPSEEK_MODEL,
@@ -16,7 +21,7 @@ try {
   const graph = startGraphRuntime(config.mongo, graphProvider, message => console.warn(message));
   const repository=createPlatformRepository(config.mongo);
   const app = await buildApp({
-    config, provider, logger: true, graphService: graph.getService,repository,
+    config, provider, tls, logger: true, graphService: graph.getService,repository,
     graphProviderConfigured: Boolean(config.llm.deepseekApiKey),
   }).catch(async error => { await graph.close();await repository.close(); throw error; });
   app.addHook('onClose', async () => graph.close());
@@ -29,7 +34,13 @@ try {
       close().catch(error => { console.error(error); process.exitCode = 1; });
     });
   }
-  try { await app.listen({ host: config.host, port: config.port }); }
+  try {
+    if (serveWeb) {
+      await serveFrontend(app, 'dist', repository);
+      await repository.connect();
+    }
+    await app.listen({ host: config.host, port: config.port });
+  }
   catch (error) { await close(); throw error; }
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);

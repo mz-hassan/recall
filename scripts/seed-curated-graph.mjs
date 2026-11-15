@@ -61,10 +61,10 @@ const connections = [
 const lectureIds = references => [...new Set(references.map(ref => ref.lectureId))].sort();
 const nodes = concepts.map(([id, label, summary, references, aliases]) => ({ id, label, summary, references, aliases, lectureIds: lectureIds(references) }));
 const edges = connections.map(([from, to, relation, references]) => ({ id: [from, relation, to].join(':'), from, to, relation, references, lectureIds: lectureIds(references) }));
-const { client, repository } = await connectGraphRepository('mongodb://127.0.0.1:27017', 'recall_local_demo');
+const { client, repository } = await connectGraphRepository(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017', process.env.MONGODB_DB || 'recall');
 try {
   const existing = await repository.graph(courseId);
-  if (existing.version && !existing.version.startsWith('curated-local-')) throw new Error('A different graph already occupies the local demo database.');
+  if (existing.version && !existing.version.startsWith('curated-local-')) throw new Error('A different graph already occupies the configured database.');
   if (existing.version !== version) {
     const indexedAt = new Date().toISOString();
     await repository.publish(courseId, { version, updatedAt: indexedAt, nodes, edges,
