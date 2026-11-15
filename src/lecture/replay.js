@@ -1,5 +1,6 @@
-export const replayPath = (lectureId, live = false) =>
-  'lecture.html?lecture=' + encodeURIComponent(lectureId) + (live ? '&mode=live' : '');
+export const replayPath = (lectureId, live = false, courseId = 'ai', microphone = false) =>
+  'lecture.html?lecture=' + encodeURIComponent(lectureId) + (courseId !== 'ai' ? '&course=' + encodeURIComponent(courseId) : '')
+    + (microphone ? '&mode=microphone' : live ? '&mode=live' : '');
 
 export function replayOptions(search) {
   const query = new URLSearchParams(search);
@@ -9,6 +10,8 @@ export function replayOptions(search) {
   };
   return {
     lectureId: query.get('lecture') ?? '2',
+    courseId: query.get('course') ?? 'ai',
+    microphone: query.get('mode') === 'microphone',
     live: query.get('mode') === 'live',
     words: bounded('words', 160, 30, 1000),
     interval: bounded('interval', 8, 1, 60),
@@ -16,7 +19,7 @@ export function replayOptions(search) {
   };
 }
 
-export function makeTranscriptMoments(transcript, lectureId, { words, interval }) {
+export function makeTranscriptMoments(transcript, lectureId, { words, interval, courseId = 'ai' }) {
   const tokens = transcript.match(/\S+/g) ?? [];
   const moments = [];
   for (let offset = 0; offset < tokens.length; offset += words) {
@@ -25,7 +28,7 @@ export function makeTranscriptMoments(transcript, lectureId, { words, interval }
     const quote = tokens.slice(offset, offset + words).join(' ');
     const title = 'Transcript chunk ' + (index + 1);
     moments.push({
-      id: 'ai/' + lectureId + '/chunk/' + (index + 1), time, title, short: title,
+      id: courseId + '/' + lectureId + '/chunk/' + (index + 1), time, title, short: title,
       label: [Math.floor(time / 60), time % 60].map(n => String(n).padStart(2, '0')).join(':'),
       type: 'TRANSCRIPT', summary: '', quote, quoteTime: 'Simulation time',
       slides: [], equations: [], artifacts: [], intuition: '', graph: null,

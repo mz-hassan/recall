@@ -66,7 +66,7 @@ Start with the [code ownership and stack guide](docs/architecture.md), then read
 
 ## Stack and implementation status
 
-The public [CS50 microphone pilot](docs/cs50-pilot.md) is available at `cs50.html`: local Whisper large-v3-turbo transcription, live topics, matched slides and notes, grounded highlights, progressive explanations/tables, and equation hover definitions. Setup downloads the speech model into ignored `.local` storage. Microphone audio stays on this laptop; recognized text uses the configured AI provider.
+[CS50 live lectures](docs/cs50-pilot.md) use the same course library and lecture timeline as other courses. Add CS50 through **Find or add a course**, open Lecture 0, and choose **Start live lecture**. Microphone capture uses local Whisper large-v3-turbo; moment details contain matched slides, notes, highlights, progressive explanations/tables, and equation hover definitions. Setup downloads the speech model into ignored `.local` storage. Audio stays on this laptop; recognized text uses the configured AI provider.
 
 The React + Vite frontend connects to a TypeScript/Fastify backend for transcript replay, topic segmentation, automatic enrichment, contextual chat and validated visual artifacts. Fixture and DeepSeek providers share the same interface. The course graph uses MongoDB persistence, DeepSeek extraction and completion-triggered indexing; lecture materials remain in the dataset folder. Live lecture sessions and artifacts currently use in-memory storage, while durable timeline persistence remains future work. Reading harnesses remain a separate workstream.
 

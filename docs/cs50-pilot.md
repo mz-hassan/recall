@@ -1,6 +1,6 @@
-# CS50 live microphone pilot
+# CS50 in Recall
 
-Open `http://localhost:5173/cs50.html` after `npm run dev`. The library home also links to **CS50 live microphone pilot**. No course enrollment is required for this public test.
+Open `http://localhost:5173` after `npm run dev`. Sign in, use **Find or add a course** to add **CS50: Introduction to Computer Science**, and open its Lecture 0. CS50 uses the same course library, materials pages, lecture timeline, moment details, and chat as the other courses; there is no separate CS50 app or page.
 
 ## Setup
 
@@ -20,19 +20,19 @@ Keep the existing server-side DeepSeek settings in `.env` for topic generation, 
 ## Two-laptop test
 
 1. On the other laptop, open the linked CS50x 2025 Lecture 0 video and use speakers. The opening contains music/silence; start around **1:15** for speech, or use a section discussing binary representation, algorithms or search to test slide matching.
-2. On this laptop, open the pilot, press **Start listening**, and allow microphone access. Check the level meter. Keep the room quiet and the speakers close enough to the microphone.
+2. On this laptop, open **CS50 → Lecture 0 → Course material → Start live lecture**, then press **Start listening** in the normal lecture timeline and allow microphone access. The course's **Start a session** button opens the same timeline. Check the level meter. Keep the room quiet and speakers close to the microphone.
 3. Expect the first transcript after one 12-second chunk plus local decoding time. Topic and annotation generation can take longer. Transcript is kept even if note generation fails.
-4. **Follow latest** follows topics; select an earlier topic to rewind. **Follow topic** suggests slides. Disable it or enter a page number to inspect another slide.
+4. Scroll or use the timeline to rewind. Open a moment to see its notes and annotated slide viewer in the standard detail panel. **Follow topic** suggests slides; disable it or enter a page number to inspect another slide. Use **Lecture & sources** to return to the course materials, including the video, notes, PDF, and reference transcript.
 5. Highlights use actual PDF text rectangles, checked against its SHA-256 fingerprint. Hover a highlight for a short note. **Animate explanation** steps through relevant source text. Tables can fill row by row. Equations expose variable definitions on hover/focus. Moment visuals support chart playback and step diagrams through the existing artifact controls.
-6. **Stop listening** stops the microphone, flushes the last partial audio chunk, drains recognized text into topics, and closes the final topic. The timeline and generated artifacts survive reloads while the API process remains alive. A new capture replaces this lecture's timeline; server restarts clear it.
+6. **Stop listening** stops the microphone, flushes the last partial audio chunk, drains recognized text into topics, and closes the final topic. The timeline and generated artifacts survive reloads while the API process remains alive. A new capture replaces this lecture's timeline; server restarts clear it. **Replay reference transcript** explicitly starts a separate reference replay in the same lecture UI and replaces the current lecture timeline.
 
-Microphone timestamps start at capture time zero, independent of the YouTube playhead. The provided reference transcript is for comparison and is never substituted into a microphone session. Recognition and matching can be wrong. Image-only slides can be browsed, but have no text evidence for automatic highlights; the pilot does not claim OCR or image understanding. Suggested slide matches are not exact synchronization with the video.
+Microphone timestamps start at capture time zero, independent of the YouTube playhead. The provided reference transcript is for comparison and is never substituted into a microphone session. Recognition and matching can be wrong. Image-only slides can be browsed, but have no text evidence for automatic highlights; OCR and image understanding are not implemented. Suggested slide matches are not exact synchronization with the video.
 
 Audio lives in browser/worker memory and is not written to disk. Capture accepts requests only from loopback, with a same-origin check and an explicit request header. It processes chunks in order, rejects stale runs, and stops visibly if it cannot keep up; it does not silently discard chunks. The application uses in-memory session storage, not a durable recording archive.
 
 ## Validation
 
-`npm test`, `npm run typecheck`, `npm run build`, and `npm run test:e2e` cover the existing application and pilot. The CS50 browser test injects an explicitly labeled ASR fixture and fake browser microphone; it verifies capture, the shared timeline, source IDs, highlights, progressive tables and reloads on desktop/mobile. It is not a physical microphone accuracy test.
+`npm test`, `npm run typecheck`, `npm run build`, and `npm run test:e2e` cover the application. The CS50 browser test injects an explicitly labeled ASR fixture and fake browser microphone; it enrolls through the normal course flow and verifies lecture materials, capture, the shared timeline, moment details, source IDs, highlights, progressive tables and reloads on desktop/mobile. It is not a physical microphone accuracy test.
 
 For an opt-in real-model check against a short public CS50 excerpt:
 

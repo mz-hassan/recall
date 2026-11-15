@@ -52,7 +52,7 @@ function Courses({ courses, getSources, coursePath, staff }) {
 function CourseHeading({ course, sourceCount, active, onAdd, nextLecture, onStartSession, staff }) {
   return <>
     <a className="back" href="#courses">← My courses</a>
-    <div className="hero course-hero"><div><div className="eyebrow">{course.code} &nbsp; / &nbsp; FALL 2026</div><h1>{course.name}<em>.</em></h1><p className="intro">{course.teacher || 'Your course workspace'} · {course.lectures.length} lectures in your library</p></div>
+    <div className="hero course-hero"><div><div className="eyebrow">{course.code} &nbsp; / &nbsp; {course.term || 'FALL 2026'}</div><h1>{course.name}<em>.</em></h1><p className="intro">{course.teacher || 'Your course workspace'} · {course.lectures.length} lectures in your library</p></div>
     <div className="hero-actions">{active === 'course' && <CourseGraphButton courseId={course.id}/>}<button className="secondary" onClick={() => onAdd()}>+ Add sources</button><div className="session-launch">
       <button className="primary" onClick={onStartSession} disabled={!nextLecture}>◉ Start a session</button>
       {!nextLecture && <small>{course.lectures.length ? 'No upcoming lectures.' : 'No lectures scheduled.'}</small>}
@@ -63,7 +63,7 @@ function CourseHeading({ course, sourceCount, active, onAdd, nextLecture, onStar
 
 // A lecture opens its generated (live) timeline, except Lecture 2, whose hand-curated replay
 // with authored notes and slides is the version to show. Its live demo stays on Course material.
-const lectureTimelinePath = lecture => replayPath(lecture.id, lecture.id !== '2');
+const lectureTimelinePath = lecture => replayPath(lecture.id, lecture.courseId !== 'ai' || lecture.id !== '2', lecture.courseId, lecture.microphone);
 
 function CourseOverview({ course, getSources }) {
   return <>
@@ -72,7 +72,7 @@ function CourseOverview({ course, getSources }) {
       <span className="lecture-number">{number(lecture)}</span>
       <div>
         <h3>{lecture.replay ? <a className="lecture-timeline-link" href={lectureTimelinePath(lecture)}>{lecture.title}</a> : lecture.title}</h3>
-        <p>{date(lecture.date)}, 2026{!lecture.replay && ' · No timeline available'}</p>
+        <p>{lecture.date ? date(lecture.date) + ', 2026' : course.term || 'Course lecture'}{!lecture.replay && ' · No timeline available'}</p>
       </div>
       <div className="course-lecture-actions">
         <a className="source-link" href={lecturePath(course, lecture)} aria-label={'Course material for Lecture ' + number(lecture)}>Course material ↗</a>
@@ -163,10 +163,12 @@ function LectureMaterials({ course, lecture, sources, onAdd, ...actions }) {
       </div>
       <div className="hero-actions">
         <button className="secondary" onClick={() => onAdd(lecture.id)}>+ Add to this lecture</button>
-        {lecture.replay && <a className="secondary" href={replayPath(lecture.id, true)}>Simulate live ↗</a>}
+        {lecture.microphone && <a className="primary" href={replayPath(lecture.id, false, course.id, true)}>Start live lecture ↗</a>}
+        {lecture.replay && <a className="secondary" href={replayPath(lecture.id, true, course.id) + (lecture.microphone ? '&restart=1' : '')}>{lecture.microphone ? 'Replay reference transcript' : 'Simulate live'} ↗</a>}
       </div>
     </div>
     <div className="lecture-materials">
+      {lecture.microphone && <p className="intro">Start live lecture to use your microphone in the lecture timeline. Starting a new capture or reference replay replaces this lecture’s current timeline.</p>}
       {groups.map(([kind, label]) => {
         const entries = sources.filter(source => source.kind === kind);
         return entries.length > 0 && <section className="source-group" key={kind}>
@@ -308,7 +310,7 @@ function Library() {
   const signInRole = ['instructor', 'ta'].includes(id) ? id : 'student';
   const lecture = course?.lectures.find(item => item.id === lectureId);
   const lastCompletedIndex = course?.lectures.findLastIndex(item => item.replay) ?? -1;
-  const nextLecture = course?.lectures[lastCompletedIndex + 1];
+  const nextLecture = course?.lectures.find(item => item.microphone) ?? course?.lectures[lastCompletedIndex + 1];
   const getSources = (courseId, lectureId) => [...baseSources, ...userSources].filter(source =>
     source.course === courseId && (!lectureId || source.lecture === lectureId || source.lecture === 'all'));
   const materials = lecture ? getSources(id, lecture.id).filter(source => source.lecture === lecture.id) : [];
@@ -373,6 +375,7 @@ function Library() {
   function onLink(lecture = 'all') { setDialog({ type: 'link', lecture }); }
   function onStartSession() {
     if (!nextLecture) return;
+    if (nextLecture.microphone) { location.href = replayPath(nextLecture.id, false, course.id, true); return; }
     setSession({
       course: course.id,
       lecture: nextLecture,
@@ -412,7 +415,6 @@ function Library() {
       </div>
     </header>
     <main id="page" key={pageKey}>
-      {(!profile || view === 'courses') && <p style={{ marginBottom: 24 }}><a className="secondary" href="cs50.html">CS50 live microphone pilot ↗</a></p>}
       {!profile ? <AccountForm role={signInRole} signup={view === 'signup'} onSignIn={onSignIn}/>
         : view === 'courses' ? <Courses courses={courses.filter(item => enrolled.includes(item.id))} getSources={getSources} coursePath={coursePath} staff={teaching}/>
         : view === 'find-courses' ? <CourseSearch courses={courses} enrolled={enrolled} onJoin={onJoin} coursePath={coursePath} onCreate={() => setDialog({ type: 'course' })}/>

@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
     server: { proxy: { '/api': { target: 'http://127.0.0.1:' + API_PORT, changeOrigin: false } } },
     build: {
       rollupOptions: {
-        input: { library: 'index.html', lecture: 'lecture.html', cs50: 'cs50.html' },
+        input: { library: 'index.html', lecture: 'lecture.html' },
       },
     },
   };

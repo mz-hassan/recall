@@ -23,23 +23,25 @@ const labels = {
 
 // Labels are demo chapter titles. Transcript excerpts retain their original order.
 export function buildPastTopics(lecture, transcript) {
+  const courseId = lecture.courseId ?? 'ai';
+  const curated = courseId === 'ai' && lecture.id === '2';
   const words = transcript.match(/\S+/g) ?? [];
   if (!words.length) return [];
-  const count = Math.min(words.length, lecture.id === '2' ? 1 : topicCount(lecture.id));
+  const count = Math.min(words.length, curated ? 1 : topicCount(lecture.id));
   const topics = Array.from({ length: count }, (_, index) => {
     const time = index * 8;
     const start = Math.floor(index * words.length / count);
-    const end = lecture.id === '2' ? Math.ceil(words.length * demoMoments[0].time / 3660) : Math.floor((index + 1) * words.length / count);
+    const end = curated ? Math.ceil(words.length * demoMoments[0].time / 3660) : Math.floor((index + 1) * words.length / count);
     const quote = words.slice(start, end).join(' ');
-    const title = labels[lecture.id]?.[index] ?? lecture.title + ' · Part ' + (index + 1);
+    const title = (courseId === 'ai' ? labels[lecture.id]?.[index] : undefined) ?? lecture.title + ' · Part ' + (index + 1);
     return {
-      id: 'ai/' + lecture.id + '/topic/' + (index + 1), time, title, short: title,
+      id: courseId + '/' + lecture.id + '/topic/' + (index + 1), time, title, short: title,
       label: [Math.floor(time / 60), time % 60].map(value => String(value).padStart(2, '0')).join(':'),
       type: 'TRANSCRIPT', summary: '', quote, quoteTime: 'Simulation time',
       slides: [], equations: [], artifacts: [], intuition: '', graph: null,
     };
   });
-  return lecture.id === '2'
+  return curated
     ? [...topics, ...demoMoments]
     : topics;
 }

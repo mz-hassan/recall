@@ -2,7 +2,7 @@ import React from 'react';
 import { MomentExtras } from './MomentExtras.jsx';
 import { LectureSlide } from './components/LectureSlide.jsx';
 
-export function MomentDetail({ moment, saved, onSave, onOpen, onChat, chatEnabled, client, runId, onSelectMoment, doubtAction }) {
+export function MomentDetail({ moment, saved, onSave, onOpen, onChat, chatEnabled, client, runId, onSelectMoment, doubtAction, slideContent }) {
   return <>
     <div className="eyebrow">{moment.label} &nbsp; / &nbsp; {moment.type}</div>
     <h2>{moment.title}</h2>
@@ -12,7 +12,7 @@ export function MomentDetail({ moment, saved, onSave, onOpen, onChat, chatEnable
     {onChat && <div className="context-chat"><div><span className="chat-spark">✧</span><span>Stay with this idea<small>Ask with this moment as context</small></span></div>
       <button type="button" onClick={onChat}>Ask about this <span>↗</span><small>{chatEnabled ? 'LECTURE CHAT' : 'PREVIEW'}</small></button>
     </div>}
-    {moment.slides.map(slide => <LectureSlide key={slide.page + '/' + slide.url} slide={slide} short={moment.short} onOpen={onOpen}/>)}
+    {slideContent ?? moment.slides.map(slide => <LectureSlide key={slide.page + '/' + slide.url} slide={slide} short={moment.short} onOpen={onOpen}/>)}
     {moment.intuition && <div className="intuition"><small>THE IDEA TO HOLD ONTO</small><p>{moment.intuition}</p></div>}
     <MomentExtras moment={moment} client={client} runId={runId} onSelectMoment={onSelectMoment}/>
     <div className="detail-actions"><button onClick={() => onOpen('transcript')}>Read the source ↗</button>{onSave && <button onClick={onSave}>{saved ? '✓ Moment saved' : '+ Save this moment'}</button>}</div>
