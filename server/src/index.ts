@@ -2,8 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { serveFrontend } from './platform/static.ts';
 import { buildApp } from './app.ts';
 import { loadConfig } from './config.ts';
-import { createProvider } from './llm/index.ts';
-import { DeepSeekProvider, DEFAULT_DEEPSEEK_BASE_URL, DEFAULT_DEEPSEEK_MODEL } from './llm/deepseek.ts';
+import { createGraphProvider, createProvider } from './llm/index.ts';
 import { startGraphRuntime } from './features/graph/runtime.ts';
 import { createPlatformRepository } from './platform/repository.ts';
 
@@ -13,16 +12,12 @@ try {
   const { certFile, keyFile } = config.deployment;
   const tls = certFile && keyFile ? { cert: await readFile(certFile), key: await readFile(keyFile) } : undefined;
   const serveWeb = process.argv.includes('--serve-web');
-  const graphProvider = new DeepSeekProvider({
-    key: config.llm.deepseekApiKey,
-    model: config.llm.model ?? DEFAULT_DEEPSEEK_MODEL,
-    baseUrl: config.llm.deepseekBaseUrl ?? DEFAULT_DEEPSEEK_BASE_URL,
-  });
+  const graphProvider = createGraphProvider(config.llm);
   const graph = startGraphRuntime(config.mongo, graphProvider, message => console.warn(message));
   const repository=createPlatformRepository(config.mongo);
   const app = await buildApp({
     config, provider, tls, logger: true, graphService: graph.getService,repository,
-    graphProviderConfigured: Boolean(config.llm.deepseekApiKey),
+    graphProviderConfigured: config.llm.provider !== 'fixture',
   }).catch(async error => { await graph.close();await repository.close(); throw error; });
   app.addHook('onClose', async () => graph.close());
   const close=async()=>{try{await app.close();}finally{await repository.close();}};

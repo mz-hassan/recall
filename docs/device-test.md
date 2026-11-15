@@ -64,5 +64,4 @@ configured HTTPS address, sign in, add CS50, open Lecture 0, and choose
 **Start listening**. The browser streams audio chunks to this Recall server.
 Whisper runs there and the raw audio is not archived. With fixture mode,
 speech recognition still uses the real local Whisper model. The downstream
-topic and summary outputs are deterministic preview output. To enable
-DeepSeek for those outputs, use the same settings as local development. The speech model is unchanged. On a deployed origin, live lecture and paper generation require an enrolled account, and graph indexing requires course staff.
+topic and summary outputs are deterministic preview output. To enable hosted generation, set `LLM_PROVIDER=gemini` with `GEMINI_API_KEY` or `LLM_PROVIDER=deepseek` with `DEEPSEEK_API_KEY`. Leave `LLM_MODEL` blank to use Gemini 4 Hydrogen or DeepSeek Flash, respectively. Restart the server after changing providers. See the [provider setup table](../README.md#run-locally). The speech model is unchanged. On a deployed origin, live lecture and paper generation require an enrolled account, and graph indexing requires course staff.

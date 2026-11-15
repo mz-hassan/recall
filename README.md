@@ -13,7 +13,19 @@ npm ci
 cp .env.example .env
 ```
 
-Set `DEEPSEEK_API_KEY` in `.env`. Both the graph and live lecture features use this same configuration. Start MongoDB for accounts, shared notes, lecture histories and graph storage in a separate terminal (no Docker):
+Choose a provider in the server-side `.env` file.
+
+| Mode | Setting | API key | Default model |
+| --- | --- | --- | --- |
+| Google Gemini | `LLM_PROVIDER=gemini` | `GEMINI_API_KEY` | `gemini-4-hydrogen` |
+| DeepSeek | `LLM_PROVIDER=deepseek` | `DEEPSEEK_API_KEY` | `deepseek-flash` |
+| Offline demo | `LLM_PROVIDER=fixture` | None | Deterministic fixtures |
+
+Use Gemini for Hydrogen, DeepSeek if you already have a funded DeepSeek project, or fixture mode for a demo without API access. You can keep both keys in the git-ignored `.env`. The selected provider uses only its own key. Leave `LLM_MODEL` blank for the default, or set it to a model ID supported by the selected provider. Clear any previous model override when switching providers.
+
+Restart the API after editing `.env`. The setting controls language generation for lectures, chat, readings, teaching artifacts, and the knowledge graph. CS50 microphone transcription runs on local Whisper. Previously saved MongoDB data stays available. Fixture mode previews the live lecture pipeline and can display saved graphs.
+
+Start MongoDB for accounts, shared notes, lecture histories and graph storage in a separate terminal (no Docker):
 
 ```sh
 npm run db:start
@@ -40,7 +52,7 @@ npm run eval:lecture -- --lecture 2
 npm run extract:slides
 ```
 
-The evaluation commands use the configured provider and can make paid calls when DeepSeek is selected. Set `LLM_PROVIDER=fixture` explicitly for deterministic offline live-lecture tests/demos. With no configuration, `loadConfig({})` also defaults to fixture mode; the checked-in template selects DeepSeek. There is no fabricated graph fallback.
+The evaluation commands use the configured provider and can make paid calls when Gemini or DeepSeek is selected. Set `LLM_PROVIDER=fixture` explicitly for deterministic offline live-lecture tests/demos. With no configuration, `loadConfig({})` also defaults to fixture mode; the checked-in template selects fixture mode. There is no fabricated graph fallback.
 
 ## Dataset and simulation
 
@@ -70,9 +82,9 @@ Start with the [code ownership and stack guide](docs/architecture.md), then read
 
 [CS50 live lectures](docs/cs50-pilot.md) use the same course library and lecture timeline as other courses. Add CS50 through **Find or add a course**, open Lecture 0, and choose **Start live lecture**. Microphone capture uses local Whisper large-v3-turbo; moment details contain matched slides, notes, highlights, progressive explanations/tables, and equation hover definitions. Setup downloads the speech model into ignored `.local` storage. Audio stays on this laptop; recognized text uses the configured AI provider.
 
-The React + Vite frontend connects to a TypeScript/Fastify backend for transcript replay, topic segmentation, automatic enrichment, contextual chat and validated visual artifacts. Fixture and DeepSeek providers share the same interface. The course graph uses MongoDB persistence, DeepSeek extraction and completion-triggered indexing; lecture materials remain in the dataset folder. Live lecture sessions and artifacts currently use in-memory storage, while durable timeline persistence remains future work. Reading harnesses remain a separate workstream.
+The React + Vite frontend connects to a TypeScript/Fastify backend for transcript replay, topic segmentation, automatic enrichment, contextual chat and validated visual artifacts. Fixture, Gemini, and DeepSeek providers share the same interface. The course graph uses MongoDB persistence, extraction through the selected provider and completion-triggered indexing; lecture materials remain in the dataset folder. Live lecture sessions and artifacts currently use in-memory storage, while durable timeline persistence remains future work. Reading harnesses remain a separate workstream.
 
-The agreed direction is a Node.js + TypeScript/Fastify backend, MongoDB for course data and graph references, and task-specific harnesses behind a shared model-provider interface. Keep DeepSeek as the initial configurable provider; Gemini is the planned replacement. Fixture mode must remain usable without either API or a database. See the architecture guide for module boundaries, suggested libraries, storage design and implementation order.
+The agreed direction is a Node.js + TypeScript/Fastify backend, MongoDB for course data and graph references, and task-specific harnesses behind a shared model-provider interface. Gemini and DeepSeek use the same provider interface. Fixture mode must remain usable without either API or a database. See the architecture guide for module boundaries, suggested libraries, storage design and implementation order.
 
 The older Recall concept brief is reference material, not the current implementation contract. Catch-up, action extraction, annotations and personal review remain possible later features. Tiger Data and Sentient OS are optional ideas, not required dependencies. Deployment is deferred; focus on local development and the three workstreams.
 
