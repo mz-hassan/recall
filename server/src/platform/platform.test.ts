@@ -70,6 +70,19 @@ test('Mongo accounts share prepared notes and preserve isolated lecture historie
       assert.equal((await app.inject({ method: 'POST', url: '/api/lectures/cs50/0/session', headers: { cookie: alice, origin: 'http://other.example' }, payload: {} })).statusCode, 403);
       assert.equal((await app.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'alice@example.edu', role: 'student', password: 'wrong-password' } })).statusCode, 401);
     });
+    await t.test('lecture titles are private to their owner and an empty title restores the default', async () => {
+      const titles = '/api/account/lecture-titles';
+      const put = (cookie: string, payload: object) => app.inject({ method: 'PUT', url: titles, headers: { cookie }, payload });
+      const list = async (cookie: string) => (await app.inject({ url: titles + '?courseId=cv', headers: { cookie } })).json().titles;
+      assert.equal((await app.inject(titles + '?courseId=cv')).statusCode, 401);
+      assert.equal((await put(alice, { courseId: 'cv', lectureId: '7', title: '  Review session  ' })).statusCode, 200);
+      assert.deepEqual(await list(alice), [{ lectureId: '7', title: 'Review session' }]);
+      assert.deepEqual(await list(bob), []);
+      assert.equal((await put(alice, { courseId: 'ai', lectureId: '7', title: 'Not enrolled' })).statusCode, 403);
+      assert.equal((await put(alice, { courseId: 'cv', lectureId: '7', title: 'x'.repeat(121) })).statusCode, 400);
+      assert.equal((await put(alice, { courseId: 'cv', lectureId: '7', title: '   ' })).json().title, null);
+      assert.deepEqual(await list(alice), []);
+    });
     await t.test('bookmarks are idempotent, private, and resolve only existing topics', async () => {
       const url = '/api/account/bookmarks';
       const payload = { ...key, runId: generationId, momentId: moment.id, saved: true };

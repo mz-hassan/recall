@@ -28,6 +28,17 @@ export async function platformRoutes(app:FastifyInstance,{repository,runtimes,st
     const user=await requireUser(request,repository),{runId}=z.object({runId:z.string().min(1)}).parse(request.params);
     const run=await repository.run(user.id,runId);if(!run)return reply.code(404).send({error:'Saved lecture not found.'});return run;
   });
+  const CourseId=z.string().regex(/^[a-z0-9-]{1,40}$/i);
+  app.get('/account/lecture-titles',async request=>{
+    const {courseId}=z.object({courseId:CourseId}).parse(request.query),user=await requireCourse(request,repository,courseId);
+    return {titles:await repository.lectureTitles(user.id,courseId)};
+  });
+  app.put('/account/lecture-titles',async request=>{
+    const input=z.object({courseId:CourseId,lectureId:z.string().regex(/^[0-9]{1,4}$/),title:z.string().trim().max(120)}).parse(request.body);
+    const user=await requireCourse(request,repository,input.courseId);
+    await repository.setLectureTitle(user.id,input.courseId,input.lectureId,input.title||null);
+    return {lectureId:input.lectureId,title:input.title||null};
+  });
   app.get('/doubts',async request=>{
     const query=z.object({courseId:z.string(),lectureId:z.string().optional()}).parse(request.query),user=await requireCourse(request,repository,query.courseId);
     const entries=await repository.doubts(query.courseId,query.lectureId,user.role==='student'?user.id:undefined);

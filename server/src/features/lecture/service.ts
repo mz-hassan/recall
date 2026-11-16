@@ -56,8 +56,8 @@ export function createLectureService({ store, createSegmenter = createPassthroug
   return {
     hasTranscript,
 
+    // Live capture needs no recorded transcript: the microphone is the source.
     async startMicrophone(key: LectureKey) {
-      if (!await hasTranscript(key)) throw new LectureNotFoundError(key);
       stopRun(runs.get(id(key)));
       const controller = new AbortController();
       const enricher = createEnricher?.() ?? null;

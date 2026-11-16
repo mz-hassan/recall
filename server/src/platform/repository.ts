@@ -15,6 +15,7 @@ export type PreparedNotes = {
 export type SavedRun = { _id: string; userId: string; courseId: string; lectureId: string; runId: string;
   kind: 'live' | 'replay' | 'study'; snapshot: TimelineSnapshotEvent; chunks: TranscriptChunk[]; summary: string | null; updatedAt: Date };
 export type SavedChat = { _id: string; userId: string; courseId: string; lectureId: string; runId: string; request: ChatRequest; answer: ChatAnswer; createdAt: Date };
+export type LectureTitle = { _id: string; userId: string; courseId: string; lectureId: string; title: string; updatedAt: Date };
 export type Doubt = { _id: string; userId: string; courseId: string; lectureId: string; runId: string; momentId: string; pastTopicId?: string; createdAt: Date };
 
 type Bookmark = {
@@ -35,6 +36,7 @@ export function createPlatformRepository({ uri, database }: { uri: string; datab
         db.collection('lecture_runs').createIndex({ userId: 1, courseId: 1, lectureId: 1, kind: 1, updatedAt: -1 }),
         db.collection('lecture_chats').createIndex({ userId: 1, courseId: 1, lectureId: 1, runId: 1, createdAt: 1 }),
         db.collection('lecture_bookmarks').createIndex({ userId: 1, savedAt: -1 }),
+        db.collection('lecture_titles').createIndex({ userId: 1, courseId: 1 }),
         db.collection('lecture_doubts').createIndex({ courseId: 1, lectureId: 1, runId: 1, momentId: 1 }),
         db.collection('quiz_attempts').createIndex({ id: 1 }, { unique: true }),
         db.collection('quiz_attempts').createIndex({ courseId: 1, ranked: 1, status: 1, userId: 1 }),
@@ -65,6 +67,15 @@ export function createPlatformRepository({ uri, database }: { uri: string; datab
     async latestRun(userId: string, courseId: string, lectureId: string, kind?: SavedRun['kind']) { return (await collection<SavedRun>('lecture_runs')).findOne({ userId, courseId, lectureId, kind:kind??{$ne:'study'} }, { sort: { updatedAt: -1 } }); },
     async run(userId: string, runId: string) { return (await collection<SavedRun>('lecture_runs')).findOne({ _id: userId + '/' + runId }); },
     async runs(userId: string, courseId?: string) { return (await collection<SavedRun>('lecture_runs')).find({ userId, ...(courseId ? { courseId } : {}) }, { projection: { snapshot: 0, chunks: 0, summary: 0 } }).sort({ updatedAt: -1 }).limit(100).toArray(); },
+    // A student's own names for lectures they captured live; a missing or empty title restores the default.
+    async lectureTitles(userId: string, courseId: string) {
+      return (await collection<LectureTitle>('lecture_titles')).find({ userId, courseId }, { projection: { _id: 0, lectureId: 1, title: 1 } }).toArray();
+    },
+    async setLectureTitle(userId: string, courseId: string, lectureId: string, title: string | null) {
+      const titles = await collection<LectureTitle>('lecture_titles'), _id = userId + '/' + courseId + '/' + lectureId;
+      if (title) await titles.replaceOne({ _id }, { userId, courseId, lectureId, title, updatedAt: new Date() }, { upsert: true });
+      else await titles.deleteOne({ _id });
+    },
     async saveChat(chat: SavedChat) { await (await collection<SavedChat>('lecture_chats')).replaceOne({ _id: chat._id }, chat, { upsert: true }); },
     async chat(userId: string, requestId: string) { return (await collection<SavedChat>('lecture_chats')).findOne({ _id: userId + '/' + requestId }); },
     async chats(userId: string, courseId: string, lectureId: string, runId: string) { return (await collection<SavedChat>('lecture_chats')).find({ userId, courseId, lectureId, runId }).sort({ createdAt: 1 }).limit(100).toArray(); },

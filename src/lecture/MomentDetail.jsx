@@ -5,9 +5,10 @@ import { MomentExtras } from './MomentExtras.jsx';
 import { LectureSlide } from './components/LectureSlide.jsx';
 import { summaryCopy, summaryFailed } from './summaryCopy.js';
 
-export function MomentDetail({ moment, saved, onSave, savePending, onOpen, client, runId, onSelectMoment, doubtAction, slideContent, onQuiz }) {
+export function MomentDetail({ moment, saved, onSave, savePending, onOpen, client, runId, onSelectMoment, doubtAction, slideContent, onQuiz, onBack, backRef }) {
   return <>
     <div className="eyebrow">{moment.label} &nbsp; / &nbsp; {moment.type}</div>
+    {onBack && <button ref={backRef} type="button" className="detail-back" aria-label="Back to the timeline" onClick={onBack}>← Back</button>}
     <h2>{moment.title}</h2>
     {moment.headline ? <p className="summary" dangerouslySetInnerHTML={{ __html: moment.summary }}/> : <p className="chunk-copy">{summaryCopy(moment)}</p>}
     {(moment.enrichment === 'pending' || moment.enrichment === 'none') && <p className="lecture-stream-note" role="status">{moment.summary ? 'Updating the topic summary…' : 'Filling in notes…'}</p>}

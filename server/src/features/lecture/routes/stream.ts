@@ -84,8 +84,8 @@ export async function streamRoutes(app: FastifyInstance, deps: { service: Lectur
   app.get('/lectures/:courseId/:lectureId/moments', async (request, reply) => {
     try {
       const key = keyOf(request.params);
-      const {service,store}=await runtime(request);
-      if (!store.getSession(key)&&!await service.hasTranscript(key)) throw new LectureNotFoundError(key);
+      const {store}=await runtime(request);
+      // A lecture without a session reads as an empty timeline, so live capture can start on any lecture.
       return store.snapshot(key);
     } catch (error) {
       return sendError(reply, error);
@@ -101,7 +101,6 @@ export async function streamRoutes(app: FastifyInstance, deps: { service: Lectur
       const resolved=await runtime(request);store=resolved.store;
       const lastEventId = request.headers['last-event-id'];
       after = EventsQuery.parse({ after: (request.query as { after?: string }).after ?? lastEventId }).after;
-      if (!store.getSession(key)&&!await resolved.service.hasTranscript(key)) throw new LectureNotFoundError(key);
     } catch (error) {
       return sendError(reply, error);
     }

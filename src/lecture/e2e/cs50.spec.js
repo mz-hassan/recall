@@ -76,3 +76,22 @@ test('CS50 reference replay uses the same lecture view and keeps AI Alignment se
   expect(reference.moments[0].sources.every(source => source.path === 'lecture0/transcript.vtt')).toBeTruthy();
   expect((await (await request.get('/api/lectures/ai/2/moments')).json()).runId).toBe(ai.runId);
 });
+
+test('any course lecture can be captured live, including one with no recording, and Start a session opens capture', async ({ page }) => {
+  test.setTimeout(60000);
+  page.on('pageerror', error => { throw error; });
+  await page.addInitScript(() => sessionStorage.setItem('recall-course-profile', JSON.stringify({ email: 'live-any@example.edu', role: 'student', courseId: 'ai' })));
+  await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  await page.route('https://fonts.gstatic.com/**', route => route.abort());
+  await page.goto('/#course/ai', { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: '◉ Start a session', exact: true }).click();
+  await expect(page).toHaveURL(/lecture\.html\?lecture=\d+&mode=microphone/);
+  await page.goto('/#lecture/ai/0', { waitUntil: 'domcontentloaded' });
+  await page.getByRole('link', { name: 'Start live lecture', exact: false }).click();
+  await expect(page).toHaveURL(/lecture\.html\?lecture=0&mode=microphone/);
+  await page.getByRole('button', { name: 'Start listening', exact: true }).click();
+  await expect(page.getByText('● Listening on this laptop', { exact: true })).toBeVisible();
+  await expect(page.locator('.moment.current')).toBeVisible({ timeout: 25000 });
+  await page.getByRole('button', { name: 'Stop listening', exact: true }).click();
+  await expect(page.getByText('Microphone off', { exact: true })).toBeVisible({ timeout: 15000 });
+});

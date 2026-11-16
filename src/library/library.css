@@ -217,7 +217,9 @@ details.source-group .source-links {
   outline-offset: -2px;
 }
 
-.course-lecture-actions .source-link {
+/* Controls in a row sit above the row-wide lecture link so they receive their own clicks. */
+.course-lecture-actions .source-link,
+.lecture-title-edit {
   position: relative;
   z-index: 1;
 }
@@ -244,3 +246,6 @@ details.source-group .source-links {
   font-size: 12px;
   letter-spacing: 0;
 }
+/* Live lectures can be renamed: a small edit icon appears when the row is hovered or the icon is focused. */
+.lecture-title-editable{display:flex;align-items:center;gap:8px}.lecture-title-edit{display:inline-grid;place-items:center;width:24px;height:24px;flex:none;border:1px solid transparent;border-radius:6px;background:none;color:#8fb39c;opacity:0;cursor:pointer;transition:opacity .2s,background .2s,border-color .2s}.course-lecture-row:hover .lecture-title-edit,.lecture-title-edit:focus-visible{opacity:1}.lecture-title-edit:hover{background:#1a2a21;border-color:#33503f;color:var(--mint,#b6f3d3)}@media(hover:none){.lecture-title-edit{opacity:.75}}
+.lecture-title-form{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.lecture-title-form input{flex:1 1 220px;min-width:0;font:inherit;font-size:14px;color:inherit;background:#0e1512;border:1px solid #33503f;border-radius:8px;padding:8px 10px}.lecture-title-form input:focus{outline:none;border-color:#6b8c78}.lecture-title-form button{font-size:11px;padding:8px 12px}.lecture-title-form small{flex-basis:100%;font-size:10px;color:#e7a1a1}

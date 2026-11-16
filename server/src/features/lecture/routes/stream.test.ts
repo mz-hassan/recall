@@ -64,7 +64,12 @@ test('bad requests are rejected with clear status codes', () => withApp(async ap
   assert.equal((await app.inject({ method: 'POST', url: '/api/lectures/zz/2/session', payload: {} })).statusCode, 404, 'unknown course');
   assert.equal((await app.inject({ method: 'POST', url: base + '/session', payload: { words: 5 } })).statusCode, 400, 'invalid options');
   assert.equal((await app.inject({ method: 'POST', url: '/api/lectures/ai/3/session/play' })).statusCode, 404, 'no session yet');
-  assert.equal((await app.inject({ method: 'GET', url: '/api/lectures/ai/0/events' })).statusCode, 404);
+}));
+
+test('a lecture without a transcript reads as an empty timeline, ready for live capture', () => withApp(async app => {
+  const response = await app.inject({ method: 'GET', url: '/api/lectures/ai/0/moments' });
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.json().moments, []);
 }));
 
 test('the event stream sends a snapshot, then live moments; a reconnect resumes without duplicates', () => withApp(async app => {

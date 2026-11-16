@@ -5,6 +5,9 @@ import { loadBookmarks, setBookmark } from '../bookmarks/api.js';
 import { art } from './content.js';
 import './lecture.css';
 import { getCourseLectures, loadTranscript } from './dataset.js';
+import { readStored } from '../storage.js';
+import { baseCourses } from '../library/content.js';
+import { liveLectureTitle, mergeLiveRuns } from '../library/liveLectures.js';
 import { replayOptions } from './replay.js';
 import { createLectureClient } from './api.js';
 import { CURATED_BC_RUN_ID } from '../../shared/contracts/lectureInteractions.ts';
@@ -323,7 +326,7 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
   }
 
   const header = <header><Brand href="./#courses" lecture/>
-    <button id="lectureInfo" className="lecture-name" onClick={() => setModal('about')}>{courseId === 'ai' ? 'AI ALIGNMENT' : lecture.courseCode} <span>{lecture.id.padStart(2, '0')}</span><small>{lecture.title}</small></button>
+    <a id="lectureInfo" className="lecture-name" href={'./#course/' + courseId} aria-label={'All lectures in ' + (lecture.courseName || lecture.courseCode)}>{courseId === 'ai' ? 'AI ALIGNMENT' : lecture.courseCode} <span>{lecture.id.padStart(2, '0')}</span><small>{lecture.title}</small></a>
     <div className="header-actions"><a href={'./#lecture/' + courseId + '/' + lecture.id} className="map-button source-return" aria-label="Lecture and sources"><span>Lecture &amp; sources</span> ↗</a>
       <button className="map-button lecture-quiz-launch" type="button" disabled={server && !source.prepared && stream.session?.state !== 'completed'} title={server && !source.prepared && stream.session?.state !== 'completed' ? 'Finish the lecture to quiz the whole lecture. Topic quizzes are available in moment details.' : 'Take a whole-lecture quiz'} onClick={() => openQuiz('lecture')}>Take lecture quiz</button>
       <button className="map-button" onClick={() => setModal('about')}>{source?.prepared?'About study notes':capture ? 'About live lecture' : options.live ? 'Simulation settings' : 'About replay'}</button>
@@ -331,12 +334,12 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
   </header>;
   if (!moment) return <>{header}{capture && <MicrophoneControls capture={capture}/>}<section className="replay-error lecture-waiting">
     <p role="status">{stream.error || 'Waiting for the first lecture moment…'}</p>
-    {capture && <p>Play the lecture on your other laptop’s speakers, then start listening. Audio stays on this laptop; transcript text uses the configured AI provider. Allow a 12-second audio chunk plus decoding time for the first topic.</p>}
+    {capture && <p>Start listening when the lecture begins, with this laptop close enough to hear the speaker (or play a recording near it). Audio stays on this laptop; transcript text uses the configured AI provider. Allow a 12-second audio chunk plus decoding time for the first topic.</p>}
     <button onClick={stream.reconnect}>Retry stream</button>
     {server && !capture && <button disabled={commandPending} onClick={restart}>Restart replay</button>}
     {commandError && <p role="alert">{commandError}</p>}
     <a href={'./#lecture/' + courseId + '/' + lecture.id}>Lecture materials ↗</a>
-    {capture && <p>Microphone timestamps begin at capture time zero. The reference transcript is available in lecture materials and is not used as microphone input.</p>}
+    {capture && <p>Microphone timestamps begin at capture time zero.{lecture.replay ? ' The reference transcript is available in lecture materials and is not used as microphone input.' : ''}</p>}
   </section>{modal === 'about' && <Dialog lecture onClose={() => setModal(null)}><h2>{lecture.title}</h2><p>Start listening to transcribe microphone audio locally with Whisper. Transcript text goes to the configured AI provider for topics and slide notes. Stopping listening closes the current topic. Starting again replaces this lecture’s timeline.</p></Dialog>}</>;
 
   return <>
@@ -377,10 +380,9 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
       <div className="scroll-instruction"><span>{options.live && !playing ? "▶" : "↑"}</span><div>{source?.prepared?'STUDY NOTES':capture ? capture.listening ? 'LISTENING · SCROLL TO REWIND' : 'MICROPHONE OFF' : server && stream.session?.state === 'completed' ? 'REPLAY COMPLETE' : options.live && !playing ? "PRESS PLAY TO SIMULATE" : "SCROLL TO REWIND"}<small>{source?.prepared?moments.length+' prepared topics':capture ? moments.length + ' captured topics' : server
         ? (stream.session?.published ?? 0) + ' of ' + (stream.session?.total ?? 0) + ' chunks · ' + moments.length + ' topics'
         : options.live ? moments.length + " of " + allMoments.length + (source ? " fixture moments" : " chunks") : "One thought at a time"}</small></div></div>
-      <button ref={closeButton} className="close-detail" aria-label="Close expanded moment" onClick={closeDetail}>✕ <span>Back to the thread</span></button>
       <section ref={detail} id="detail" className="detail" aria-label="Expanded lecture moment" hidden={!expanded}>
         {expanded && <MomentDetail moment={moment} saved={saved} onSave={canBookmark ? saveMoment : undefined} savePending={bookmarkPending || bookmarks === null} onOpen={setModal} doubtAction={doubtAction}
-          onQuiz={() => openQuiz('topic')}
+          onQuiz={() => openQuiz('topic')} onBack={closeDetail} backRef={closeButton}
           client={server ? source.client : null} runId={stream.runId} onSelectMoment={selectMoment}
           slideContent={courseId === 'cs50' && server ? <SlideViewer moment={moment} runId={stream.runId}/> : undefined}/>}
       </section>
@@ -421,12 +423,36 @@ function Lecture({ allMoments, lecture, options, rich, source, capture, provider
   </>;
 }
 
+// Lectures outside the built-in datasets: prepared notes, or a live capture in any course (including
+// courses created in this browser, whose names stay in browser storage). A live lecture that is not on
+// the course schedule is named by its capture date, like the course page does.
+function unlistedLecture({ courseId, lectureId, microphone }) {
+  const custom = readStored('recall-courses').find(course => course.id === courseId);
+  const scheduled = baseCourses.find(course => course.id === courseId)?.lectures.find(item => item.id === lectureId);
+  const cv = courseId === 'cv';
+  return { id: lectureId, courseId, courseName: custom?.name ?? (cv ? 'Computer Vision' : 'Course'),
+    courseCode: custom?.code ?? (cv ? 'COMPSCI 670' : courseId), teacher: custom?.teacher ?? 'Course recording',
+    title: scheduled?.title ?? (microphone ? liveLectureTitle() : 'Lecture ' + lectureId), scheduled: Boolean(scheduled), replay: false };
+}
+
 function ReplayApp() {
   const [profile,setProfile] = useState(readProfile);
   useEffect(()=>{let active=true;restoreAccount().then(user=>{if(active)setProfile(user);}).catch(()=>{});return()=>{active=false;};},[]);
   const [options] = useState(() => replayOptions(location.search));
   const hasAccess = isEnrolled(profile, options.courseId);
-  const lecture = getCourseLectures(options.courseId).find(item => item.id === options.lectureId)??(options.prepared?{id:options.lectureId,courseId:options.courseId,courseName:options.courseId==='cv'?'Computer Vision':'Course',courseCode:options.courseId==='cv'?'COMPSCI 670':options.courseId,teacher:'Course recording',title:'Lecture '+options.lectureId,replay:false}:undefined);
+  const listed = getCourseLectures(options.courseId).find(item => item.id === options.lectureId);
+  const [liveTitle, setLiveTitle] = useState(null);
+  const lecture = useMemo(() => listed ?? (options.prepared || options.microphone ? (base => liveTitle && !base.scheduled ? { ...base, title: liveTitle } : base)(unlistedLecture(options)) : undefined), [listed, options, liveTitle]);
+  // A captured live lecture's name: the student's own, or its capture date.
+  useEffect(() => {
+    if (listed || !options.microphone || !profile?.id) return;
+    let active = true;
+    const query = '?courseId=' + encodeURIComponent(options.courseId), read = (url, fallback) => fetch(url).then(response => response.ok ? response.json() : fallback).catch(() => fallback);
+    Promise.all([read('/api/account/runs' + query, { runs: [] }), read('/api/account/lecture-titles' + query, { titles: [] })]).then(([runs, titles]) => {
+      if (active) setLiveTitle(mergeLiveRuns({ id: options.courseId, lectures: [] }, runs.runs ?? [], titles.titles ?? []).lectures.find(item => item.id === options.lectureId)?.title ?? null);
+    });
+    return () => { active = false; };
+  }, [listed, options, profile?.id]);
   const rich = options.courseId === 'ai' && lecture?.id === '2' && !options.live;
   const fixture = options.courseId === 'ai' && lecture?.id === '2' && options.live && new URLSearchParams(location.search).get('transport') === 'fixture';
   const backend = (options.live || options.microphone || options.prepared || options.courseId === 'cs50') && !fixture;

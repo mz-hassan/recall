@@ -4,7 +4,8 @@ import type { LectureService } from '../service.ts';
 import { createSpeechDecoder, SpeechError, type SpeechDecoder } from './worker.ts';
 import type { RuntimeResolver } from '../../../platform/lectureRuntime.ts';
 
-const Params = z.object({ courseId: z.literal('cs50'), lectureId: z.literal('0') });
+// Any enrolled course's lecture can be captured live; the same key format as the stream routes.
+const Params = z.object({ courseId: z.string().regex(/^[a-z0-9-]{1,40}$/i), lectureId: z.string().regex(/^[0-9]{1,4}$/) });
 const Packet = z.object({ runId: z.uuid(), seq: z.number().int().positive(), time: z.number().nonnegative(), endTime: z.number().positive(),
   audio: z.string().min(60).max(1300000).regex(/^[A-Za-z0-9+/]+={0,2}$/) }).refine(packet => packet.endTime > packet.time && packet.endTime - packet.time <= 30);
 

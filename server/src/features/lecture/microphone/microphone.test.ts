@@ -104,6 +104,27 @@ test('local microphone API passes only audio to decoder, only recognized text to
   assert.equal((await app.inject({ method: 'POST', url: base + '/audio', headers, payload: { ...packet, seq: 2, time: 12, endTime: 24 } })).statusCode, 409);
 });
 
+test('live capture works on any course lecture, including one with no recorded transcript', async t => {
+  const store = createMemoryStore(), service = createLectureService({ store });
+  const decoder: SpeechDecoder = { status: () => ({ installed: true, ready: true, busy: false, model: 'test', device: 'test' }), warmup: async () => {}, close() {},
+    async transcribe() { return text; } };
+  const app = Fastify();
+  app.setErrorHandler((error: any, _request, reply) => reply.code(error.statusCode ?? 400).send({ error: error.message }));
+  await app.register(microphoneRoutes, { service, decoder });
+  t.after(async () => { service.close(); await app.close(); });
+  const headers = { 'x-recall-microphone': '1' };
+  for (const [courseId, lectureId] of [['ai', '0'], ['my-course-1', '3']] as const) {
+    const base = `/lectures/${courseId}/${lectureId}/microphone`, live = { courseId, lectureId };
+    const started = await app.inject({ method: 'POST', url: base, headers, payload: {} });
+    assert.equal(started.statusCode, 200, courseId + ' starts');
+    const packet = { runId: started.json().runId, seq: 1, time: 0, endTime: 12, audio: 'A'.repeat(64) };
+    assert.equal((await app.inject({ method: 'POST', url: base + '/audio', headers, payload: packet })).statusCode, 200);
+    await service.idle(live);
+    assert.equal(store.getMoments(live)[0]?.quote, text);
+  }
+  assert.equal((await app.inject({ method: 'POST', url: '/lectures/bad_id/1/microphone', headers, payload: {} })).statusCode, 400);
+});
+
 test('slide notes resolve only extracted text IDs, reject malformed tables, and are invalidated by run changes', async t => {
   const spec = CoachingSpec.parse({ mode: 'highlight', note: 'Short note', highlights: [{ textId: 'invented', note: 'No source' }], steps: [], table: null, equations: [] });
   assert.equal(groundCoaching(spec, []).mode, 'whole');
